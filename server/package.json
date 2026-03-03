@@ -21,6 +21,7 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
@@ -29,7 +30,7 @@
     "mongodb": "^7.0.0",
     "mongodb-memory-server": "^11.0.1",
     "mongoose": "^9.1.2",
-    "multer": "^2.0.2"
+    "multer": "^2.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

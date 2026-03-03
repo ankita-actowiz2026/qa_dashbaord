@@ -578,28 +578,28 @@ function ImportFile() {
           const max = maxLength[col]?.trim();
 
           // Check if values are provided
-          if (!min || !max) {
-            errors[col] = "Both Minimum and Maximum length are required";
-            return;
-          }
+          // if (!min || !max) {
+          //   errors[col] = "Both Minimum and Maximum length are required";
+          //   return;
+          // }
 
           // Check if values are valid numbers
-          if (isNaN(Number(min)) || isNaN(Number(max))) {
-            errors[col] = "Minimum and Maximum length must be valid numbers";
-            return;
-          }
+          // if (isNaN(Number(min)) || isNaN(Number(max))) {
+          //   errors[col] = "Minimum and Maximum length must be valid numbers";
+          //   return;
+          // }
 
           // Check if max >= min
-          if (Number(max) < Number(min)) {
-            errors[col] = "Maximum length must be greater than or equal to Minimum length";
-            return;
-          }
+          // if (Number(max) < Number(min)) {
+          //   errors[col] = "Maximum length must be greater than or equal to Minimum length";
+          //   return;
+          // }
 
           // Check if values are positive
-          if (Number(min) < 0 || Number(max) < 0) {
-            errors[col] = "Length values must be positive numbers";
-            return;
-          }
+          // if (Number(min) < 0 || Number(max) < 0) {
+          //   errors[col] = "Length values must be positive numbers";
+          //   return;
+          // }
         } else if (lengthType[col] === "fixed") {
           const fixed = fixedLength[col]?.trim();
 
@@ -740,17 +740,18 @@ function ImportFile() {
       const formData = new FormData();
       formData.append("file", data.file[0]);
       formData.append("columnConfig", JSON.stringify(columnConfig));
+      const tokenData = JSON.parse(localStorage.getItem("user_data") || "{}"); 
 
       const response = await axios.post(
-        `${BACKEND_URL}/api/import/upload`,
+        `${BACKEND_URL}/api/qa_file`,
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
-          },
+            "Content-Type": "multipart/form-data",          
+             Authorization: `Bearer ${tokenData.accessToken}`,            
+          }
         }
       );
-
       console.log("File uploaded successfully:", response.data);
       // Handle success - redirect or show message
     } catch (err) {

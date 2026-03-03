@@ -15,7 +15,7 @@ import connectDB from "./config/db.config";
 import adminAuthRouter from "./routes/admin.auth.route";
 import adminUserRouter from "./routes/admin.user.route";
 
-import postRouter from "./routes/user.post.route";
+import importedFileRouter from "./routes/user.importedFile.route";
 import authRouter from "./routes/user.auth.route";
 import errorHandler from "./middleware/error.handler";
 import  ApiError  from "./utils/api.error";
@@ -36,7 +36,7 @@ app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use("/admin/auth", adminAuthRouter);
 app.use("/admin/user", adminUserRouter);
 
- app.use("/api/post", postRouter);
+ app.use("/api/qa_file", importedFileRouter);
  app.use("/api/auth", authRouter);
 
 app.use('/uploads', (req, res, next) => {
