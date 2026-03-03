@@ -1,6 +1,5 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Registration from "../../pages/front/Registration";
 import Login from "../../pages/front/Login";
 import FrontLayout from "../../layouts/front/FrontLayout";
 
@@ -9,8 +8,8 @@ import PostList from "../../pages/front/post/PostList";
 import ListWithPagination from "../../pages/front/post/ListWithPagination";
 import ListWithServerPagination from "../../pages/front/post/ListWithServerPagination";
 
-// import PrivateRoute from "../../routes/front/PrivateRoute";
-// import PublicRoute from "../../routes/front/PublicRoute";
+import PrivateRoute from "../../routes/front/PrivateRoute";
+import PublicRoute from "../../routes/front/PublicRoute";
 import Dashboard from "../../pages/front/Dashboard";
 import PageNotFound from "../../pages/front/PageNotFound";
 
@@ -23,16 +22,12 @@ import PageNotFound from "../../pages/front/PageNotFound";
 //   return null;
 // };
 function AppRouteFront() {
-  alert("front")
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/registration" />} />
-      <Route>
-        <Route path="/registration" element={<Registration />} />
-        <Route path="/login" element={<Login />} />
-      </Route>
+      <Route path="/" element={<Navigate to="/Login" />} />      
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />      
 
-      <Route path="/" element={<FrontLayout />}>
+      <Route path="/" element={<PrivateRoute><FrontLayout /></PrivateRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/post/add/:id?" element={<PostAdd />} />

@@ -6,19 +6,24 @@ import UserAdd from "../../pages/admin/user/UserAdd";
 import Login from "../../pages/admin/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
-const AppRoutesAdmin = () => {  
-  alert("admin")
+const AppRoutes = () => {  
   return (
     <Routes>
       <Route
         path="login"
-        element={         <Login /> }
+        element={
+          <PublicRoute>
+            <Login />
+          </PublicRoute>
+        }
       />
 
       <Route
         path="/"
         element={
-            <AdminLayout />          
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
         }
       >
         <Route path="dashboard" element={<Dashboard />} />
@@ -32,4 +37,4 @@ const AppRoutesAdmin = () => {
   );
 };
 
-export default AppRoutesAdmin;
+export default AppRoutes;

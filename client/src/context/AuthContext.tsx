@@ -23,14 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("auth_data");
+      const stored = localStorage.getItem("user_data");
       if (stored) {
         const parsed = JSON.parse(stored);
         setAccessToken(parsed.accessToken);
         setUser(parsed.user);
       }
     } catch {
-      localStorage.removeItem("auth_data");
+      localStorage.removeItem("user_data");
     } finally {
       setLoading(false);
     }
@@ -39,26 +39,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (accessToken: string, user: User) => {
     setAccessToken(accessToken);
     setUser(user);
-    localStorage.setItem("auth_data", JSON.stringify({ accessToken, user }));
+    localStorage.setItem("user_data", JSON.stringify({ accessToken, user }));
   };
 
   const logout = () => {
     setAccessToken(null);
     setUser(null);
-    localStorage.removeItem("auth_data");
+    localStorage.removeItem("user_data");
   };
   const updateAccessToken = (newAccessToken: string) => {
     // 1️⃣ Update React state
     setAccessToken(newAccessToken);
 
     // 2️⃣ Update localStorage
-    const stored = localStorage.getItem("auth_data");
+    const stored = localStorage.getItem("user_data");
 
     if (stored) {
       const parsed = JSON.parse(stored);
 
       localStorage.setItem(
-        "auth_data",
+        "user_data",
         JSON.stringify({
           ...parsed,
           accessToken: newAccessToken,

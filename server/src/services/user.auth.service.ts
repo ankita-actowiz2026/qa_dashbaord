@@ -21,7 +21,7 @@ export class AuthService {
     return user;
   }
   async login(data: ILogin ): Promise<ILoginResponse | null | String> {
-    const user  = await User.findOne({"email":data.email,"role":"QA"})
+    const user  = await User.findOne({"email":data.email,"role":"QA",status:"active"})
     if(!user){        
         throw new ApiError("User not exist", 404);        
     }
