@@ -1,0 +1,9 @@
++++++++++++++++++++++++
+db.config.ts :serverSelectionTimeoutMS: 5000
++++++++++++++++++++++++
+5000 milliseconds = 5 seconds
+So the driver will:
+Try to connect to the database
+If server is unreachable / slow / network issue
+It keeps retrying
+After 5 seconds, it throws:

@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "target": "ES2022", //Tells TypeScript which JavaScript version to compile to
+        "module": "NodeNext", //Controls how imports/exports are emitted.NodeNext = modern Node.js ESM support.
+        "lib": ["ES2022", "DOM", "DOM.Iterable"], /* Include built-in library support. */
+        "outDir": "./dist", //Where compiled JavaScript files go.
+        "rootDir": "./src", //Where TypeScript expects your source files to live.
+        "esModuleInterop": true, //Allows default imports from CommonJS modules. without it import will not work
+        "forceConsistentCasingInFileNames": true, //Prevents case-sensitivity bugs in file name
+        "strict": true,
+        "skipLibCheck": true, //Skips type checking for node_modules.
+        "types": ["node"],
+        "isolatedModules": true
+
+    },
+    "include": ["src/**/*"], //“Which files should TypeScript look at?”
+    //"exclude": ["node_modules", "tests", "**/*.test.ts"] //“Which of those should TypeScript ignore?”
+}
