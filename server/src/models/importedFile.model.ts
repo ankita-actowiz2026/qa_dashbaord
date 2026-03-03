@@ -58,8 +58,8 @@ const importedFileSchema = new Schema<IImportedFile>({
       type: Number,
       default: 0,
     },
-    errors: [ErrorSchema],
-    rules: [RuleSchema],
+    error_msg: [ErrorSchema],
+    rules: [RuleSchema],    
 },{ timestamps: true })
  const ImportedFile = model<IImportedFile>('ImportedFile', importedFileSchema )
  export default ImportedFile

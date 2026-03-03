@@ -29,8 +29,8 @@ app.use(cors({origin: process.env.FRONTEND_URL,credentials: true,})); //Allows b
 //credentials: true => if you are passing cookie from frontend
 app.use(helmet({crossOriginResourcePolicy: false,}));
 app.use(rateLimit({windowMs: 15 * 60 * 1000,max: 100,}));//One IP can only make 100 requests every 15 minutes.
-app.use(express.json({ limit: "10kb" }));
-app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 
 app.use("/admin/auth", adminAuthRouter);
@@ -60,6 +60,10 @@ connectDB()
     server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
+
+    // Set socket timeout for large file uploads
+    server.timeout = 20 * 60 * 1000; // 20 minutes
+    server.keepAliveTimeout = 25 * 60 * 1000; // 25 minutes
   })
   .catch((err) => {
     console.error("DB connection failed:", err);

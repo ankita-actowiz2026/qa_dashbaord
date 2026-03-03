@@ -25,8 +25,8 @@ export default interface IImportedFile {
   missing_required_count: number;
   datatype_error_count: number;
   junk_character_count: number;
-  errors: IErrorDetail[];
-  rules: IRuleDetail[];
+  error_msg: IErrorDetail[];
+  rules: IRuleDetail[];  
   createdAt: Date;
   updatedAt: Date;
 }
