@@ -80,7 +80,7 @@ const Header = () => {
                 Dashboard
               </NavLink>
               <NavLink
-                to="/post/list"
+                to="/import_file"
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   isActive

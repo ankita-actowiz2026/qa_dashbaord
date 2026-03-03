@@ -36,75 +36,6 @@ const schema = yup.object({
     }),
 });
 
-// Yup validation schema for date ranges
-const createDateRangeSchema = () =>
-  yup.object().shape({
-    dateRanges: yup
-      .object()
-      .test("dateRangesValid", "Date range validation failed", function (value) {
-        if (!value) return true;
-        
-        // This will be overridden with actual values during validation
-        return true;
-      }),
-  });
-
-// Helper function to validate date ranges using Yup
-const validateDateRangesWithYup = async (
-  columns: string[],
-  columnMappings: Record<string, string>,
-  dateMinValue: Record<string, string>,
-  dateMaxValue: Record<string, string>
-): Promise<Record<string, string>> => {
-  const errors: Record<string, string> = {};
-
-  for (const col of columns) {
-    if (columnMappings[col] === "Date") {
-      const minDateValue = dateMinValue[col]?.trim();
-      const maxDateValue = dateMaxValue[col]?.trim();
-
-      // If both dates are provided, validate that minDate < maxDate
-      if (minDateValue && maxDateValue) {
-        // Check if dates are valid
-        if (isNaN(new Date(minDateValue).getTime())) {
-          errors[col] = "Minimum date must be a valid date";
-          continue;
-        }
-        if (isNaN(new Date(maxDateValue).getTime())) {
-          errors[col] = "Maximum date must be a valid date";
-          continue;
-        }
-
-        // Check order
-        if (new Date(minDateValue) >= new Date(maxDateValue)) {
-          errors[col] = "Minimum date must be less than Maximum date";
-        }
-      }
-    }
-  }
-
-  return errors;
-};
-
-// Helper function to get date 1 year before today in YYYY-MM-DD format
-const getOneYearBeforeToday = (): string => {
-  const today = new Date();
-  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-  const year = oneYearAgo.getFullYear();
-  const month = String(oneYearAgo.getMonth() + 1).padStart(2, '0');
-  const day = String(oneYearAgo.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Helper function to get today's date in YYYY-MM-DD format
-const getTodayDate = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 function ImportFile() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -124,6 +55,9 @@ function ImportFile() {
   const [blockedWordInput, setBlockedWordInput] = useState<Record<string, string>>({});
   const [predefinedValues, setPredefinedValues] = useState<Record<string, string[]>>({});
   const [predefinedValueInput, setPredefinedValueInput] = useState<Record<string, string>>({});
+  const [numberMinValue, setNumberMinValue] = useState<Record<string, string>>({});
+  const [numberMaxValue, setNumberMaxValue] = useState<Record<string, string>>({});
+  const [numberRangeErrors, setNumberRangeErrors] = useState<Record<string, string>>({});
   const [dateMinValue, setDateMinValue] = useState<Record<string, string>>({});
   const [dateMaxValue, setDateMaxValue] = useState<Record<string, string>>({});
   const [dateRangeErrors, setDateRangeErrors] = useState<Record<string, string>>({});
@@ -172,6 +106,8 @@ function ImportFile() {
           const fixedLen: Record<string, string> = {};
           const blockedWordsInit: Record<string, string[]> = {};
           const predefinedValuesInit: Record<string, string[]> = {};
+          const numMinVal: Record<string, string> = {};
+          const numMaxVal: Record<string, string> = {};
           const dateMinVal: Record<string, string> = {};
           const dateMaxVal: Record<string, string> = {};
           cols.forEach((col) => {
@@ -186,6 +122,8 @@ function ImportFile() {
             fixedLen[col] = "";
             blockedWordsInit[col] = [];
             predefinedValuesInit[col] = [];
+            numMinVal[col] = "0";
+            numMaxVal[col] = "10000";
             dateMinVal[col] = "";
             dateMaxVal[col] = "";
           });
@@ -200,8 +138,11 @@ function ImportFile() {
           setFixedLength(fixedLen);
           setBlockedWords(blockedWordsInit);
           setPredefinedValues(predefinedValuesInit);
+          setNumberMinValue(numMinVal);
+          setNumberMaxValue(numMaxVal);
           setDateMinValue(dateMinVal);
           setDateMaxValue(dateMaxVal);
+          setNumberRangeErrors({});
           setDateRangeErrors({});
           setValue("columnMappings", mappings);
         }
@@ -225,6 +166,8 @@ function ImportFile() {
           const fixedLen: Record<string, string> = {};
           const blockedWordsInit: Record<string, string[]> = {};
           const predefinedValuesInit: Record<string, string[]> = {};
+          const numMinVal: Record<string, string> = {};
+          const numMaxVal: Record<string, string> = {};
           const dateMinVal: Record<string, string> = {};
           const dateMaxVal: Record<string, string> = {};
           headers.forEach((col) => {
@@ -239,6 +182,8 @@ function ImportFile() {
             fixedLen[col] = "";
             blockedWordsInit[col] = [];
             predefinedValuesInit[col] = [];
+            numMinVal[col] = "0";
+            numMaxVal[col] = "10000";
             dateMinVal[col] = "";
             dateMaxVal[col] = "";
           });
@@ -253,8 +198,11 @@ function ImportFile() {
           setFixedLength(fixedLen);
           setBlockedWords(blockedWordsInit);
           setPredefinedValues(predefinedValuesInit);
+          setNumberMinValue(numMinVal);
+          setNumberMaxValue(numMaxVal);
           setDateMinValue(dateMinVal);
           setDateMaxValue(dateMaxVal);
+          setNumberRangeErrors({});
           setDateRangeErrors({});
           setValue("columnMappings", mappings);
         }
@@ -282,6 +230,8 @@ function ImportFile() {
           const fixedLen: Record<string, string> = {};
           const blockedWordsInit: Record<string, string[]> = {};
           const predefinedValuesInit: Record<string, string[]> = {};
+          const numMinVal: Record<string, string> = {};
+          const numMaxVal: Record<string, string> = {};
           const dateMinVal: Record<string, string> = {};
           const dateMaxVal: Record<string, string> = {};
           cols.forEach((col) => {
@@ -296,6 +246,8 @@ function ImportFile() {
             fixedLen[col] = "";
             blockedWordsInit[col] = [];
             predefinedValuesInit[col] = [];
+            numMinVal[col] = "0";
+            numMaxVal[col] = "10000";
             dateMinVal[col] = "";
             dateMaxVal[col] = "";
           });
@@ -310,8 +262,11 @@ function ImportFile() {
           setFixedLength(fixedLen);
           setBlockedWords(blockedWordsInit);
           setPredefinedValues(predefinedValuesInit);
+          setNumberMinValue(numMinVal);
+          setNumberMaxValue(numMaxVal);
           setDateMinValue(dateMinVal);
           setDateMaxValue(dateMaxVal);
+          setNumberRangeErrors({});
           setDateRangeErrors({});
           setValue("columnMappings", mappings);
         }
@@ -539,6 +494,34 @@ function ImportFile() {
     setPredefinedValueInput(updated);
   };
 
+  const handleNumberMinChange = (column: string, value: string) => {
+    const updated = {
+      ...numberMinValue,
+      [column]: value,
+    };
+    setNumberMinValue(updated);
+    // Clear error if user starts editing
+    if (numberRangeErrors[column]) {
+      const updatedErrors = { ...numberRangeErrors };
+      delete updatedErrors[column];
+      setNumberRangeErrors(updatedErrors);
+    }
+  };
+
+  const handleNumberMaxChange = (column: string, value: string) => {
+    const updated = {
+      ...numberMaxValue,
+      [column]: value,
+    };
+    setNumberMaxValue(updated);
+    // Clear error if user starts editing
+    if (numberRangeErrors[column]) {
+      const updatedErrors = { ...numberRangeErrors };
+      delete updatedErrors[column];
+      setNumberRangeErrors(updatedErrors);
+    }
+  };
+
   const handleDateMinChange = (column: string, value: string) => {
     const updated = {
       ...dateMinValue,
@@ -633,23 +616,63 @@ function ImportFile() {
     return true;
   };
 
+  const validateNumberRanges = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    columns.forEach((col) => {
+      // Only validate if column type is Number
+      if (columnMappings[col] === "Number") {
+        const min = numberMinValue[col]?.trim();
+        const max = numberMaxValue[col]?.trim();
+
+        // Check if both values are provided
+        if (!min || !max) {
+          errors[col] = "Both Minimum and Maximum values are required for Number type";
+          return;
+        }
+
+        // Check if values are valid numbers
+        if (isNaN(Number(min)) || isNaN(Number(max))) {
+          errors[col] = "Minimum and Maximum values must be valid numbers";
+          return;
+        }
+
+        // Check if max > min
+        if (Number(max) <= Number(min)) {
+          errors[col] = "Maximum value must be greater than Minimum value";
+          return;
+        }
+      }
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setNumberRangeErrors(errors);
+      return false;
+    }
+
+    setNumberRangeErrors({});
+    return true;
+  };
+
   const validateDateRanges = (): boolean => {
     const errors: Record<string, string> = {};
 
     columns.forEach((col) => {
       // Only validate if column type is Date
-      console.log(columnMappings[col])
       if (columnMappings[col] === "Date") {
         const minDate = dateMinValue[col]?.trim();
         const maxDate = dateMaxValue[col]?.trim();
 
-        // If both dates are provided, validate the order
-        if (minDate && maxDate) {
-          // Check if max date > min date
-          if (new Date(maxDate) <= new Date(minDate)) {
-            errors[col] = "Minimum date must be less than Maximum date";
-            return;
-          }
+        // Check if both values are provided
+        if (!minDate || !maxDate) {
+          errors[col] = "Both Minimum and Maximum dates are required for Date type";
+          return;
+        }
+
+        // Check if max date > min date
+        if (new Date(maxDate) <= new Date(minDate)) {
+          errors[col] = "Maximum date must be greater than Minimum date";
+          return;
         }
       }
     });
@@ -666,24 +689,17 @@ function ImportFile() {
   const onSubmit = async (data: any) => {
     try {
       // Validate length fields first
-      const validateResult= validateLengthFields()
-      
-
-      // Validate date ranges with Yup
-      const dateRangeYupErrors = await validateDateRangesWithYup(
-        columns,
-        columnMappings,
-        dateMinValue,
-        dateMaxValue
-      );
-      if (Object.keys(dateRangeYupErrors).length > 0) {
-        setDateRangeErrors(dateRangeYupErrors);
+      if (!validateLengthFields()) {
         return;
       }
-      const validateDateRangeResult= validateDateRanges()
 
-      // Validate date ranges (runtime validation)
-      if (validateResult === false || validateDateRangeResult === false) {
+      // Validate number ranges
+      if (!validateNumberRanges()) {
+        return;
+      }
+
+      // Validate date ranges
+      if (!validateDateRanges()) {
         return;
       }
 
@@ -721,6 +737,12 @@ function ImportFile() {
         // Add predefined values if any
         if (predefinedValues[col] && predefinedValues[col].length > 0) {
           config.predefined_values = predefinedValues[col];
+        }
+
+        // Add number range if type is Number
+        if (columnMappings[col] === "Number") {
+          config.min_value = numberMinValue[col] ? parseInt(numberMinValue[col]) : null;
+          config.max_value = numberMaxValue[col] ? parseInt(numberMaxValue[col]) : null;
         }
 
         // Add date range if type is Date
@@ -946,7 +968,7 @@ function ImportFile() {
                             <label className="text-xs font-semibold text-gray-600 block mb-1">Min Length</label>
                             <input
                               type="number"
-                              value={minLength[column] || "1"}
+                              value={minLength[column] || ""}
                               onChange={(e) => handleMinLengthChange(column, e.target.value)}
                               placeholder="e.g., 1"
                               className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-green-500"
@@ -956,7 +978,7 @@ function ImportFile() {
                             <label className="text-xs font-semibold text-gray-600 block mb-1">Max Length</label>
                             <input
                               type="number"
-                              value={maxLength[column] || "100"}
+                              value={maxLength[column] || ""}
                               onChange={(e) => handleMaxLengthChange(column, e.target.value)}
                               placeholder="e.g., 100"
                               className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-green-500"
@@ -988,6 +1010,43 @@ function ImportFile() {
                     </div>
                   )}
 
+                  {/* Number Min/Max Values - Only for Number type */}
+                  {columnMappings[column] === "Number" && (
+                  <div className="pt-2 border-t border-gray-200 bg-blue-50 p-3 rounded space-y-3">
+                    <div className="text-xs font-semibold text-gray-700">Number Range</div>
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <label className="text-xs font-semibold text-gray-600 block mb-1">Minimum Value</label>
+                        <input
+                          type="number"
+                          value={numberMinValue[column] || ""}
+                          onChange={(e) => handleNumberMinChange(column, e.target.value)}
+                          placeholder="e.g., 0"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs font-semibold text-gray-600 block mb-1">Maximum Value</label>
+                        <input
+                          type="number"
+                          value={numberMaxValue[column] || ""}
+                          onChange={(e) => handleNumberMaxChange(column, e.target.value)}
+                          placeholder="e.g., 10000"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Number Range Validation Error */}
+                    {numberRangeErrors[column] && (
+                      <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
+                        ⚠️ {numberRangeErrors[column]}
+                      </p>
+                    )}
+                  </div>
+                  )}
+
                   {/* Date Min/Max Values - Only for Date type */}
                   {columnMappings[column] === "Date" && (
                   <div className="pt-2 border-t border-gray-200 bg-orange-50 p-3 rounded space-y-3">
@@ -998,7 +1057,7 @@ function ImportFile() {
                         <label className="text-xs font-semibold text-gray-600 block mb-1">Minimum Date</label>
                         <input
                           type="date"
-                          value={dateMinValue[column] || getOneYearBeforeToday()}
+                          value={dateMinValue[column] || ""}
                           onChange={(e) => handleDateMinChange(column, e.target.value)}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-orange-500"
                         />
@@ -1007,7 +1066,7 @@ function ImportFile() {
                         <label className="text-xs font-semibold text-gray-600 block mb-1">Maximum Date</label>
                         <input
                           type="date"
-                          value={dateMaxValue[column] || getTodayDate()}
+                          value={dateMaxValue[column] || ""}
                           onChange={(e) => handleDateMaxChange(column, e.target.value)}
                           className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-orange-500"
                         />

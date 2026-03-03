@@ -36,75 +36,6 @@ const schema = yup.object({
     }),
 });
 
-// Yup validation schema for date ranges
-const createDateRangeSchema = () =>
-  yup.object().shape({
-    dateRanges: yup
-      .object()
-      .test("dateRangesValid", "Date range validation failed", function (value) {
-        if (!value) return true;
-        
-        // This will be overridden with actual values during validation
-        return true;
-      }),
-  });
-
-// Helper function to validate date ranges using Yup
-const validateDateRangesWithYup = async (
-  columns: string[],
-  columnMappings: Record<string, string>,
-  dateMinValue: Record<string, string>,
-  dateMaxValue: Record<string, string>
-): Promise<Record<string, string>> => {
-  const errors: Record<string, string> = {};
-
-  for (const col of columns) {
-    if (columnMappings[col] === "Date") {
-      const minDateValue = dateMinValue[col]?.trim();
-      const maxDateValue = dateMaxValue[col]?.trim();
-
-      // If both dates are provided, validate that minDate < maxDate
-      if (minDateValue && maxDateValue) {
-        // Check if dates are valid
-        if (isNaN(new Date(minDateValue).getTime())) {
-          errors[col] = "Minimum date must be a valid date";
-          continue;
-        }
-        if (isNaN(new Date(maxDateValue).getTime())) {
-          errors[col] = "Maximum date must be a valid date";
-          continue;
-        }
-
-        // Check order
-        if (new Date(minDateValue) >= new Date(maxDateValue)) {
-          errors[col] = "Minimum date must be less than Maximum date";
-        }
-      }
-    }
-  }
-
-  return errors;
-};
-
-// Helper function to get date 1 year before today in YYYY-MM-DD format
-const getOneYearBeforeToday = (): string => {
-  const today = new Date();
-  const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-  const year = oneYearAgo.getFullYear();
-  const month = String(oneYearAgo.getMonth() + 1).padStart(2, '0');
-  const day = String(oneYearAgo.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-// Helper function to get today's date in YYYY-MM-DD format
-const getTodayDate = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 function ImportFile() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,13 +51,6 @@ function ImportFile() {
   const [maxLength, setMaxLength] = useState<Record<string, string>>({});
   const [fixedLength, setFixedLength] = useState<Record<string, string>>({});
   const [lengthErrors, setLengthErrors] = useState<Record<string, string>>({});
-  const [blockedWords, setBlockedWords] = useState<Record<string, string[]>>({});
-  const [blockedWordInput, setBlockedWordInput] = useState<Record<string, string>>({});
-  const [predefinedValues, setPredefinedValues] = useState<Record<string, string[]>>({});
-  const [predefinedValueInput, setPredefinedValueInput] = useState<Record<string, string>>({});
-  const [dateMinValue, setDateMinValue] = useState<Record<string, string>>({});
-  const [dateMaxValue, setDateMaxValue] = useState<Record<string, string>>({});
-  const [dateRangeErrors, setDateRangeErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
   const {
@@ -170,10 +94,6 @@ function ImportFile() {
           const minLen: Record<string, string> = {};
           const maxLen: Record<string, string> = {};
           const fixedLen: Record<string, string> = {};
-          const blockedWordsInit: Record<string, string[]> = {};
-          const predefinedValuesInit: Record<string, string[]> = {};
-          const dateMinVal: Record<string, string> = {};
-          const dateMaxVal: Record<string, string> = {};
           cols.forEach((col) => {
             mappings[col] = "Text";
             mandatory[col] = false;
@@ -184,10 +104,6 @@ function ImportFile() {
             minLen[col] = "";
             maxLen[col] = "";
             fixedLen[col] = "";
-            blockedWordsInit[col] = [];
-            predefinedValuesInit[col] = [];
-            dateMinVal[col] = "";
-            dateMaxVal[col] = "";
           });
           setColumnMappings(mappings);
           setIsMandatory(mandatory);
@@ -198,11 +114,6 @@ function ImportFile() {
           setMinLength(minLen);
           setMaxLength(maxLen);
           setFixedLength(fixedLen);
-          setBlockedWords(blockedWordsInit);
-          setPredefinedValues(predefinedValuesInit);
-          setDateMinValue(dateMinVal);
-          setDateMaxValue(dateMaxVal);
-          setDateRangeErrors({});
           setValue("columnMappings", mappings);
         }
       } else if (fileExtension === "csv") {
@@ -223,10 +134,6 @@ function ImportFile() {
           const minLen: Record<string, string> = {};
           const maxLen: Record<string, string> = {};
           const fixedLen: Record<string, string> = {};
-          const blockedWordsInit: Record<string, string[]> = {};
-          const predefinedValuesInit: Record<string, string[]> = {};
-          const dateMinVal: Record<string, string> = {};
-          const dateMaxVal: Record<string, string> = {};
           headers.forEach((col) => {
             mappings[col] = "Text";
             mandatory[col] = false;
@@ -237,10 +144,6 @@ function ImportFile() {
             minLen[col] = "";
             maxLen[col] = "";
             fixedLen[col] = "";
-            blockedWordsInit[col] = [];
-            predefinedValuesInit[col] = [];
-            dateMinVal[col] = "";
-            dateMaxVal[col] = "";
           });
           setColumnMappings(mappings);
           setIsMandatory(mandatory);
@@ -251,11 +154,6 @@ function ImportFile() {
           setMinLength(minLen);
           setMaxLength(maxLen);
           setFixedLength(fixedLen);
-          setBlockedWords(blockedWordsInit);
-          setPredefinedValues(predefinedValuesInit);
-          setDateMinValue(dateMinVal);
-          setDateMaxValue(dateMaxVal);
-          setDateRangeErrors({});
           setValue("columnMappings", mappings);
         }
       } else if (fileExtension === "json") {
@@ -280,10 +178,6 @@ function ImportFile() {
           const minLen: Record<string, string> = {};
           const maxLen: Record<string, string> = {};
           const fixedLen: Record<string, string> = {};
-          const blockedWordsInit: Record<string, string[]> = {};
-          const predefinedValuesInit: Record<string, string[]> = {};
-          const dateMinVal: Record<string, string> = {};
-          const dateMaxVal: Record<string, string> = {};
           cols.forEach((col) => {
             mappings[col] = "Text";
             mandatory[col] = false;
@@ -294,10 +188,6 @@ function ImportFile() {
             minLen[col] = "";
             maxLen[col] = "";
             fixedLen[col] = "";
-            blockedWordsInit[col] = [];
-            predefinedValuesInit[col] = [];
-            dateMinVal[col] = "";
-            dateMaxVal[col] = "";
           });
           setColumnMappings(mappings);
           setIsMandatory(mandatory);
@@ -308,11 +198,6 @@ function ImportFile() {
           setMinLength(minLen);
           setMaxLength(maxLen);
           setFixedLength(fixedLen);
-          setBlockedWords(blockedWordsInit);
-          setPredefinedValues(predefinedValuesInit);
-          setDateMinValue(dateMinVal);
-          setDateMaxValue(dateMaxVal);
-          setDateRangeErrors({});
           setValue("columnMappings", mappings);
         }
       }
@@ -329,10 +214,6 @@ function ImportFile() {
       setMaxLength({});
       setFixedLength({});
       setLengthErrors({});
-      setBlockedWords({});
-      setBlockedWordInput({});
-      setPredefinedValues({});
-      setPredefinedValueInput({});
     } finally {
       setLoading(false);
     }
@@ -477,96 +358,6 @@ function ImportFile() {
     }
   };
 
-  const handleAddBlockedWord = (column: string) => {
-    const word = blockedWordInput[column]?.trim();
-    if (word) {
-      const updated = {
-        ...blockedWords,
-        [column]: [...(blockedWords[column] || []), word],
-      };
-      setBlockedWords(updated);
-      // Clear the input field
-      const updatedInput = { ...blockedWordInput };
-      updatedInput[column] = "";
-      setBlockedWordInput(updatedInput);
-    }
-  };
-
-  const handleRemoveBlockedWord = (column: string, index: number) => {
-    const updated = {
-      ...blockedWords,
-      [column]: blockedWords[column].filter((_, i) => i !== index),
-    };
-    setBlockedWords(updated);
-  };
-
-  const handleBlockedWordInputChange = (column: string, value: string) => {
-    const updated = {
-      ...blockedWordInput,
-      [column]: value,
-    };
-    setBlockedWordInput(updated);
-  };
-
-  const handleAddPredefinedValue = (column: string) => {
-    const value = predefinedValueInput[column]?.trim();
-    if (value) {
-      const updated = {
-        ...predefinedValues,
-        [column]: [...(predefinedValues[column] || []), value],
-      };
-      setPredefinedValues(updated);
-      // Clear the input field
-      const updatedInput = { ...predefinedValueInput };
-      updatedInput[column] = "";
-      setPredefinedValueInput(updatedInput);
-    }
-  };
-
-  const handleRemovePredefinedValue = (column: string, index: number) => {
-    const updated = {
-      ...predefinedValues,
-      [column]: predefinedValues[column].filter((_, i) => i !== index),
-    };
-    setPredefinedValues(updated);
-  };
-
-  const handlePredefinedValueInputChange = (column: string, value: string) => {
-    const updated = {
-      ...predefinedValueInput,
-      [column]: value,
-    };
-    setPredefinedValueInput(updated);
-  };
-
-  const handleDateMinChange = (column: string, value: string) => {
-    const updated = {
-      ...dateMinValue,
-      [column]: value,
-    };
-    setDateMinValue(updated);
-    // Clear error if user starts editing
-    if (dateRangeErrors[column]) {
-      const updatedErrors = { ...dateRangeErrors };
-      delete updatedErrors[column];
-      setDateRangeErrors(updatedErrors);
-    }
-  };
-
-  const handleDateMaxChange = (column: string, value: string) => {
-    const updated = {
-      ...dateMaxValue,
-      [column]: value,
-    };
-    setDateMaxValue(updated);
-    // Clear error if user starts editing
-    if (dateRangeErrors[column]) {
-      const updatedErrors = { ...dateRangeErrors };
-      delete updatedErrors[column];
-      setDateRangeErrors(updatedErrors);
-    }
-  };
-
   const validateLengthFields = (): boolean => {
     const errors: Record<string, string> = {};
     const allowedLengthTypes = ["Text", "Number", "Decimal", "Email"];
@@ -633,57 +424,10 @@ function ImportFile() {
     return true;
   };
 
-  const validateDateRanges = (): boolean => {
-    const errors: Record<string, string> = {};
-
-    columns.forEach((col) => {
-      // Only validate if column type is Date
-      console.log(columnMappings[col])
-      if (columnMappings[col] === "Date") {
-        const minDate = dateMinValue[col]?.trim();
-        const maxDate = dateMaxValue[col]?.trim();
-
-        // If both dates are provided, validate the order
-        if (minDate && maxDate) {
-          // Check if max date > min date
-          if (new Date(maxDate) <= new Date(minDate)) {
-            errors[col] = "Minimum date must be less than Maximum date";
-            return;
-          }
-        }
-      }
-    });
-
-    if (Object.keys(errors).length > 0) {
-      setDateRangeErrors(errors);
-      return false;
-    }
-
-    setDateRangeErrors({});
-    return true;
-  };
-
   const onSubmit = async (data: any) => {
     try {
       // Validate length fields first
-      const validateResult= validateLengthFields()
-      
-
-      // Validate date ranges with Yup
-      const dateRangeYupErrors = await validateDateRangesWithYup(
-        columns,
-        columnMappings,
-        dateMinValue,
-        dateMaxValue
-      );
-      if (Object.keys(dateRangeYupErrors).length > 0) {
-        setDateRangeErrors(dateRangeYupErrors);
-        return;
-      }
-      const validateDateRangeResult= validateDateRanges()
-
-      // Validate date ranges (runtime validation)
-      if (validateResult === false || validateDateRangeResult === false) {
+      if (!validateLengthFields()) {
         return;
       }
 
@@ -711,22 +455,6 @@ function ImportFile() {
           } else if (lengthType[col] === "fixed") {
             config.fixed_length = fixedLength[col] ? parseInt(fixedLength[col]) : null;
           }
-        }
-        
-        // Add blocked words if any
-        if (blockedWords[col] && blockedWords[col].length > 0) {
-          config.blocked_words = blockedWords[col];
-        }
-        
-        // Add predefined values if any
-        if (predefinedValues[col] && predefinedValues[col].length > 0) {
-          config.predefined_values = predefinedValues[col];
-        }
-
-        // Add date range if type is Date
-        if (columnMappings[col] === "Date") {
-          config.min_date = dateMinValue[col] || null;
-          config.max_date = dateMaxValue[col] || null;
         }
         
         return config;
@@ -946,7 +674,7 @@ function ImportFile() {
                             <label className="text-xs font-semibold text-gray-600 block mb-1">Min Length</label>
                             <input
                               type="number"
-                              value={minLength[column] || "1"}
+                              value={minLength[column] || ""}
                               onChange={(e) => handleMinLengthChange(column, e.target.value)}
                               placeholder="e.g., 1"
                               className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-green-500"
@@ -956,7 +684,7 @@ function ImportFile() {
                             <label className="text-xs font-semibold text-gray-600 block mb-1">Max Length</label>
                             <input
                               type="number"
-                              value={maxLength[column] || "100"}
+                              value={maxLength[column] || ""}
                               onChange={(e) => handleMaxLengthChange(column, e.target.value)}
                               placeholder="e.g., 100"
                               className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-green-500"
@@ -986,143 +714,6 @@ function ImportFile() {
                         </p>
                       )}
                     </div>
-                  )}
-
-                  {/* Date Min/Max Values - Only for Date type */}
-                  {columnMappings[column] === "Date" && (
-                  <div className="pt-2 border-t border-gray-200 bg-orange-50 p-3 rounded space-y-3">
-                    <div className="text-xs font-semibold text-gray-700">Date Range</div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <label className="text-xs font-semibold text-gray-600 block mb-1">Minimum Date</label>
-                        <input
-                          type="date"
-                          value={dateMinValue[column] || getOneYearBeforeToday()}
-                          onChange={(e) => handleDateMinChange(column, e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-orange-500"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <label className="text-xs font-semibold text-gray-600 block mb-1">Maximum Date</label>
-                        <input
-                          type="date"
-                          value={dateMaxValue[column] || getTodayDate()}
-                          onChange={(e) => handleDateMaxChange(column, e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-orange-500"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Date Range Validation Error */}
-                    {dateRangeErrors[column] && (
-                      <p className="text-red-500 text-xs mt-2 flex items-center gap-1">
-                        ⚠️ {dateRangeErrors[column]}
-                      </p>
-                    )}
-                  </div>
-                  )}
-
-                  {/* Block Specific Words - Only for Text, Email, Boolean */}
-                  {["Text", "Email", "Boolean"].includes(columnMappings[column]) && (
-                  <div className="pt-2 border-t border-gray-200 bg-yellow-50 p-3 rounded space-y-3">
-                    <div className="text-xs font-semibold text-gray-700">Block Specific Words</div>
-                    
-                    {/* Input and Add Button */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={blockedWordInput[column] || ""}
-                        onChange={(e) => handleBlockedWordInputChange(column, e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
-                            handleAddBlockedWord(column);
-                          }
-                        }}
-                        placeholder="Enter word and press Enter or click Add"
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-yellow-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleAddBlockedWord(column)}
-                        className="px-3 py-1 bg-yellow-500 text-white text-xs font-semibold rounded hover:bg-yellow-600 transition-colors"
-                      >
-                        Add
-                      </button>
-                    </div>
-
-                    {/* Display List of Blocked Words */}
-                    {blockedWords[column] && blockedWords[column].length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {blockedWords[column].map((word, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 bg-yellow-200 px-2 py-1 rounded text-xs text-gray-700"
-                          >
-                            <span>{word}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveBlockedWord(column, index)}
-                              className="text-red-600 hover:text-red-800 font-bold"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  )}
-
-                  {/* Allow Only Predefined Values - Only for Text, Email, Boolean */}
-                  {["Text", "Email", "Boolean"].includes(columnMappings[column]) && (
-                  <div className="pt-2 border-t border-gray-200 bg-purple-50 p-3 rounded space-y-3">
-                    <div className="text-xs font-semibold text-gray-700">Allow Only Predefined Values</div>
-                    
-                    {/* Input and Add Button */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={predefinedValueInput[column] || ""}
-                        onChange={(e) => handlePredefinedValueInputChange(column, e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter") {
-                            handleAddPredefinedValue(column);
-                          }
-                        }}
-                        placeholder="Enter value and press Enter or click Add"
-                        className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-purple-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleAddPredefinedValue(column)}
-                        className="px-3 py-1 bg-purple-500 text-white text-xs font-semibold rounded hover:bg-purple-600 transition-colors"
-                      >
-                        Add
-                      </button>
-                    </div>
-
-                    {/* Display List of Predefined Values */}
-                    {predefinedValues[column] && predefinedValues[column].length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {predefinedValues[column].map((value, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 bg-purple-200 px-2 py-1 rounded text-xs text-gray-700"
-                          >
-                            <span>{value}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemovePredefinedValue(column, index)}
-                              className="text-red-600 hover:text-red-800 font-bold"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                   )}
                 </div>
               ))}
