@@ -17,7 +17,7 @@ const authentication = async (req: AuthRequest, res: Response, next: NextFunctio
 
     const decoded: any = jwt.verify(token, process.env.ACCESS_SECRET!);
 
-    const user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(decoded.id).select("_id name email role");
 
     req.user = user;
 

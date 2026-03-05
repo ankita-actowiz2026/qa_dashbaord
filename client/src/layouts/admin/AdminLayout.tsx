@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { FiUsers, FiUserPlus, FiHome, FiChevronDown } from "react-icons/fi";
 import Header from "../../layouts/admin/Header";
+import { TbFileReport } from "react-icons/tb";
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true); // default open
@@ -95,6 +96,14 @@ const AdminLayout = () => {
               </div>
             )}
           </div>
+
+          <NavLink
+            to="/admin/report"
+            className={({ isActive }) => navItemClass(isActive)}
+          >
+            <TbFileReport size={18} />
+            {sidebarOpen && "Report"}
+          </NavLink>
         </nav>
       </aside>
 

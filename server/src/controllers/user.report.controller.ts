@@ -6,15 +6,29 @@ import  {SummaryReportParams, SummaryReportQuery}   from "../interface/importedF
   sortOrder?: 'asc' | 'desc';
 }
 import  ApiError  from "../utils/api.error";
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        role: string;
+      };
+    }
+  }
+}
 class ReportController {
   showSummary = async (
-      req: Request<SummaryReportParams, {}, {}, SummaryReportQuery>,
+      req: Request<{}, {}, {}, SummaryReportQuery>,
       res: Response,
       next: NextFunction
     ): Promise<void> => {
     try {
-
-      const { user_id } = req.params
+      if (!req.user) {
+        throw new ApiError("User not authenticated", 401);
+      }
+      console.log(req.user.role)
+      const user_id = (req.user.role=="QA"?req.user.id:undefined);
 
       const user = await reportService.showSummary({
         user_id,

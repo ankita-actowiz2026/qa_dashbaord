@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-import { FaFileExcel, FaFilePdf } from "react-icons/fa";
+
 import ReportRow from "./ReportRow";
 interface ReportData {
   _id: string;
@@ -29,8 +29,13 @@ interface ApiResponse {
     limit: number;
   };
 }
+// const authUser = JSON.parse(sessionStorage.getItem("auth_user") || "null");
 
-function Report() {
+// const role = authUser?.role;
+interface Props {
+  type: "admin" | "user";
+}
+function Report({ type }: Props) {
   const [reportData, setReportData] = useState<ReportData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -38,7 +43,6 @@ function Report() {
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(10);
   const [exporting, setExporting] = useState<{summary: boolean, clean: boolean}>({summary: false, clean: false});
-
   // Fetch report data
   const fetchReportData = async (page: number = 1) => {
     try {
@@ -151,6 +155,7 @@ function Report() {
                   <thead>
                     <tr className="bg-gray-100 border-b border-gray-200">                     
                       <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">User Name</th>
+                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
                       <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">File Name</th>
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Total</th>
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Valid</th>

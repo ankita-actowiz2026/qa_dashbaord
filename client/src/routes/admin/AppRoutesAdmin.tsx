@@ -6,6 +6,8 @@ import UserAdd from "../../pages/admin/user/UserAdd";
 import Login from "../../pages/admin/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
+import Report from "../../pages/user/report/Report";
+
 const AppRoutes = () => {  
   return (
     <Routes>
@@ -31,6 +33,7 @@ const AppRoutes = () => {
         <Route path="user/list" element={<UserList />} />
         <Route path="user/add" element={<UserAdd />} />
         <Route path="user/add/:id?" element={<UserAdd />} />
+        <Route path="/report" element={<Report type="admin" />} />
 
       </Route>
     </Routes>

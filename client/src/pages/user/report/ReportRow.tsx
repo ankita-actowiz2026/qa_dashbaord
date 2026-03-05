@@ -18,6 +18,7 @@ function ReportRow({
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-100 transition-colors">
       <td className="px-6 py-4 text-sm">{row.user_name}</td>
+      <td className="px-6 py-4 text-sm">{row.user_email}</td>
 
       <td className="px-6 py-4 text-sm truncate max-w-xs">
         {row.file_name}

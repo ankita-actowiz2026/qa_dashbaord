@@ -28,8 +28,8 @@ function AppRouteFront() {
       <Route path="/" element={<ProtectedRoute><FrontLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
 
-        <Route path="/import_file" element={<ImportFile />} />
-        <Route path="/report" element={<Report />} />
+        <Route path="/import_file" element={<ImportFile />} />        
+        <Route path="/report" element={<Report type="user" />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

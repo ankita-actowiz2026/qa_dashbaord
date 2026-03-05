@@ -18,7 +18,7 @@ const Header = () => {
         BACKEND_URL + "/api/auth/profile",
         { withCredentials: true }
       );
-
+      sessionStorage.setItem("auth_user", JSON.stringify(res.data.data));
       setUser(res.data.data);
     } catch (error) {
       console.log("Not logged in");
