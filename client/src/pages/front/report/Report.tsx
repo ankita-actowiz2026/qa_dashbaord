@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
+import { FaFileExcel, FaFilePdf } from "react-icons/fa";
+import ReportRow from "./ReportRow";
 interface ReportData {
   _id: string;
   user_id: string;
@@ -15,6 +16,7 @@ interface ReportData {
   datatype_error_count: number;
   junk_character_count: number;
   createdAt: string;
+  clean_data_total?: number; // 🔹 added field
 }
 
 interface ApiResponse {
@@ -124,8 +126,7 @@ function Report() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Import Reports</h1>
-          <p className="text-gray-600">View and manage your imported file reports</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reports</h1>          
         </div>
 
         {/* Error Message */}
@@ -165,47 +166,18 @@ function Report() {
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {reportData.map((row, index) => (
-                      <tr
-                        key={row._id}
-                        className={`border-b border-gray-200 ${
-                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                        } hover:bg-gray-100 transition-colors`}
-                      >
-                        <td className="px-6 py-4 text-sm text-gray-900">{row.user_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 truncate max-w-xs">{row.file_name}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-center font-medium">{row.total_records}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-center font-medium text-green-600">{row.valid_records}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-center font-medium text-red-600">{row.invalid_records}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-center font-medium text-orange-600">{row.duplicate_count}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-center font-medium text-yellow-600">{row.missing_required_count}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-center font-medium text-red-600">{row.datatype_error_count}</td>
-                        <td className="px-6 py-4 text-sm text-gray-900 text-center font-medium text-red-600">{row.junk_character_count}</td>
-                        <td className="px-6 py-4 text-sm text-gray-600">
-                          {new Date(row.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-center space-x-2 flex justify-center gap-2">
-                          <button
-                            onClick={() => handleExportSummary(row._id)}
-                            disabled={exporting.summary}
-                            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-400 text-xs whitespace-nowrap transition-colors"
-                            title="Export Summary as PDF"
-                          >
-                            {exporting.summary ? 'Exporting...' : 'Summary'}
-                          </button>
-                          <button
-                            onClick={() => handleExportCleanData(row._id)}
-                            disabled={exporting.clean}
-                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-400 text-xs whitespace-nowrap transition-colors"
-                            title="Export Clean Data as XLSX"
-                          >
-                            {exporting.clean ? 'Exporting...' : 'Clean Data'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
+                    <tbody>
+                      {reportData.map((row) => (
+                        <ReportRow
+                          key={row._id}
+                          row={row}
+                          exportingSummary={exporting.summary}
+                          exportingClean={exporting.clean}
+                          onExportSummary={handleExportSummary}
+                          onExportClean={handleExportCleanData}
+                        />
+                      ))}
+                    </tbody>
                 </table>
               </div>
 
