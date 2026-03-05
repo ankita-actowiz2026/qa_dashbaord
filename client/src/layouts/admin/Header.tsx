@@ -2,7 +2,7 @@ import axios from "axios";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { useNavigate, NavLink } from "react-router-dom";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-
+import { useState,useEffect } from "react";
 interface HeaderProps {
   title: string;
   userName: string;
@@ -10,7 +10,7 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-const Header = ({ title, userName, onMenuClick, onLogout }: HeaderProps) => {
+const Header = ({ title,  onMenuClick, onLogout }: HeaderProps) => {
   const navigate = useNavigate();
   const handleLogout = async () => {
     try {
@@ -30,6 +30,25 @@ const Header = ({ title, userName, onMenuClick, onLogout }: HeaderProps) => {
       state: { msg: "Logout successfully", type: "success" },
     });
   };
+
+  const [user, setUser] = useState<any>(null);
+
+  const fetchMe = async () => {
+    try {
+      const res = await axios.get(
+        BACKEND_URL + "/admin/auth/profile",
+        { withCredentials: true }
+      );
+
+      setUser(res.data.data);
+    } catch (error) {
+      console.log("Not logged in");
+    }
+  };
+
+  useEffect(() => {
+    fetchMe();
+  }, []);
   return (
     <header className="flex items-center justify-between bg-white shadow px-6 py-4">
       {/* Left Section */}
@@ -47,7 +66,7 @@ const Header = ({ title, userName, onMenuClick, onLogout }: HeaderProps) => {
 
       {/* Right Section */}
       <div className="flex items-center gap-4">
-        <span className="hidden sm:block text-gray-600">Hi, {userName}</span>
+        <span className="hidden sm:block text-gray-600">Hi, {user?.name || ""}</span>
 
         <button
           onClick={handleLogout}

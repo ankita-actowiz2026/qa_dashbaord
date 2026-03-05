@@ -32,7 +32,7 @@ class AuthController {
           next(err);
       }
     }  
-  me = async (req: Request, res: Response) => {
+  profile = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: req.user

@@ -1,17 +1,17 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import Login from "../../pages/front/Login";
-import FrontLayout from "../../layouts/front/FrontLayout";
+import Login from "../../pages/user/Login";
+import FrontLayout from "../../layouts/user/FrontLayout";
 
 
-import ProtectedRoute from "../../routes/front/ProtectedRoute";
-import PublicRoute from "../../routes/front/PublicRoute";
-import Dashboard from "../../pages/front/Dashboard";
-import PageNotFound from "../../pages/front/PageNotFound";
-import ImportFile from "../../pages/front/import_file/ImportFile";
-import Report from "../../pages/front/report/Report";
+import ProtectedRoute from "../../routes/user/protectedRoute";
+import PublicRoute from "../../routes/user/PublicRoute";
+import Dashboard from "../../pages/user/Dashboard";
+import PageNotFound from "../../pages/user/PageNotFound";
+import ImportFile from "../../pages/user/import_file/ImportFile";
+import Report from "../../pages/user/report/Report";
 
-// import { injectAuthContext } from "../../utils/front/apiClient";
+// import { injectAuthContext } from "../../utils/user/apiClient";
 
 // const Injector = () => {
 //   const auth = useAuth();

@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { isAuthenticated } from "../../utils/front/auth";
+import { isAuthenticated } from "../../utils/user/auth";
 
 interface Props {
   children: JSX.Element;

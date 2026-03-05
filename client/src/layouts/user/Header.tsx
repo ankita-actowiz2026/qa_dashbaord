@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { FiMenu, FiX,FiLogOut } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
 
@@ -9,20 +9,32 @@ import axios from "axios";
 const Header = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const { logout, user, accessToken } = useAuth();
-  
+  //const { logout, user, accessToken } = useAuth();
+  const [user, setUser] = useState<any>(null);
+
+  const fetchMe = async () => {
+    try {
+      const res = await axios.get(
+        BACKEND_URL + "/api/auth/profile",
+        { withCredentials: true }
+      );
+
+      setUser(res.data.data);
+    } catch (error) {
+      console.log("Not logged in");
+    }
+  };
+
+  useEffect(() => {
+    fetchMe();
+  }, []);
+
   const handleLogout = async () => {
     try {
-     
-
-      await axios.post(BACKEND_URL + "/api/auth/logout",{},{
-          withCredentials: true,
-        },
-);
+      await axios.post(BACKEND_URL + "/api/auth/logout",{},{withCredentials: true,});
     } catch (err) {
       console.error("Server logout failed", err);
     }
-    logout();
     navigate("/login", {
       replace: true,
       state: { msg: "Logout successfully", type: "success" },
@@ -102,7 +114,7 @@ const Header = () => {
               <div className="flex items-center gap-4">
                 <div className="hidden sm:flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
                   <span className="text-gray-700">Welcome,</span>
-                  <span className="font-bold text-blue-600">{user?.username || ""}</span>
+                  <span className="font-bold text-blue-600">{user?.name || ""}</span>
                 </div>              
                   <button
                     onClick={() => {

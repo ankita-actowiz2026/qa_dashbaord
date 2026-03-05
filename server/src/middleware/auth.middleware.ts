@@ -8,20 +8,23 @@ interface AuthRequest extends Request {
 }
 
 const authentication = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  const token = req.cookies.accessToken;
+ try {
+    const token = req.cookies.accessToken;
 
-  if(!token){
-    return res.status(401).json({success:false,message:"Unauthorized"});
-  }
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
-  try{
-    const decoded = jwt.verify(token,process.env.ACCESS_SECRET!);
-    req.user = decoded;
+    const decoded: any = jwt.verify(token, process.env.ACCESS_SECRET!);
+
+    const user = await User.findById(decoded.id).select("-password");
+
+    req.user = user;
+
     next();
-  }catch(err){
-    return res.status(401).json({success:false,message:"Invalid token"});
+  } catch (err) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
-
 };
 
 export default authentication;

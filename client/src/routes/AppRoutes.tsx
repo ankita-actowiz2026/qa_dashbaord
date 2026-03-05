@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import AppRoutesAdmin from "./admin/AppRoutesAdmin";
-import AppRoutesFront from "./front/AppRouteFront";
+import AppRoutesFront from "./user/AppRouteFront";
 const AppRoutes = () => {
   
   return (

@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { yupResolver } from "@hookform/resolvers/yup";
 import type { loginInterface } from "../../interface/login.interface";
-import loginValidate from "../../validation/front/login.validation";
+import loginValidate from "../../validation/user/login.validation";
 import { useNavigate, useLocation } from "react-router";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";

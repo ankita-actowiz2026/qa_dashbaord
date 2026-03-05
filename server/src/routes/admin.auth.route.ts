@@ -7,5 +7,5 @@ import  {authController} from '../controllers/admin.auth.controller'
 
 adminAuthRouter.post("/login",validateLogin, isRequestValidated, authController.login);
 adminAuthRouter.post("/logout", authController.logout)
-adminAuthRouter.get("/me", authentication, authController.me);
+adminAuthRouter.get("/profile", authentication, authController.profile);
 export default adminAuthRouter;
