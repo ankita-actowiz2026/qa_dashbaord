@@ -16,8 +16,5 @@ const cleanDataSchema = new mongoose.Schema(
   }
 );
 
- const CleanDataModel = mongoose.model(
-  "dynamic_rows",
-  cleanDataSchema
-);
+ const CleanDataModel = mongoose.model("CleanData",cleanDataSchema);
 export default CleanDataModel;

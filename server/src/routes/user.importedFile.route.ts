@@ -6,7 +6,14 @@ import multer from "multer";
 
 // Configure multer for large file uploads
 export const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, './uploads');
+    },
+    filename: (req, file, cb) => {
+      cb(null, Date.now() + '-' + file.originalname);
+    }
+  }),
   limits: { 
     fileSize: 2048 * 1024 * 1024 // 2GB limit for large files
   },

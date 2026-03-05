@@ -92,7 +92,7 @@ const Header = () => {
               </NavLink>
               {/* to="/post/ListWithServerPagination" */}
               <NavLink
-                to="/post/list"
+                to="/report"
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   isActive

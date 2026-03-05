@@ -33,9 +33,20 @@ export default interface IImportedFile {
 
 
 export interface GetImportedFilesQuery {
+  user_id?: mongoose.Types.ObjectId;
   search?: string;
   page?: number;
   limit?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+}
+export interface  SummaryReportParams {
+  user_id?: string
+}
+export interface SummaryReportQuery {
+  user_id?: string
+  page?: string
+  limit?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }

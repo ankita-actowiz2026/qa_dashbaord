@@ -17,6 +17,7 @@ import adminUserRouter from "./routes/admin.user.route";
 
 import importedFileRouter from "./routes/user.importedFile.route";
 import authRouter from "./routes/user.auth.route";
+import reportRouter from "./routes/user.report.route";
 import errorHandler from "./middleware/error.handler";
 import  ApiError  from "./utils/api.error";
 
@@ -38,6 +39,7 @@ app.use("/admin/user", adminUserRouter);
 
  app.use("/api/qa_file", importedFileRouter);
  app.use("/api/auth", authRouter);
+ app.use("/api/report", reportRouter);
 
 app.use('/uploads', (req, res, next) => {
   res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
