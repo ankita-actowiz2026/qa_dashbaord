@@ -52,10 +52,8 @@ function UserList() {
             search,
             sortField,
             sortOrder,
-          },
-          headers: {
-            Authorization: `Bearer ${tokenData.accessToken}`,
-          },
+          },          
+          withCredentials: true,
         },
       );
 

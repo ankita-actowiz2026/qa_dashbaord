@@ -55,17 +55,10 @@ const Login = () => {
       const result = await axios.post(
         BACKEND_URL + "/admin/auth/login",
         userData,
-      );
-      const user_data = {
-        accessToken: result.data.data.accessToken,
-        user: {
-          username: result.data.data.user.name,
-          id: result.data.data.user._id,
-          role: "admin",
+        {
+          withCredentials: true,
         },
-      };
-      localStorage.setItem("admin_data", JSON.stringify(user_data));
-
+      );
       navigate("/admin/dashboard");
     } catch (error: any) {
       setMsg(error.response?.data?.message || "Login failed");

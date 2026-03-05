@@ -41,10 +41,8 @@ function UserAdd() {
       try {
         const tokenData = JSON.parse(localStorage.getItem("admin_data") || "{}");
         const { data } = await axios.get(BACKEND_URL + `/admin/user/${id}`, {
-          headers: {
-            Authorization: `Bearer ${tokenData.accessToken}`,
-          },
-        });
+          withCredentials: true,
+        },);
         Object.entries(data.data).forEach(([k, v]) =>
           setValue(k as keyof IUser, v),
         );        
@@ -102,10 +100,8 @@ function UserAdd() {
           BACKEND_URL + "/admin/user",
           send_data,
           {
-            headers: {
-              Authorization: `Bearer ${tokenData.accessToken}`,
-            },
-          }
+          withCredentials: true,
+        },
         );
       } else {
         res = await apiClient.put( BACKEND_URL + "/admin/user/" + id, send_data,

@@ -1,16 +1,13 @@
-export const getAuthData = () => {
-  const data = localStorage.getItem("user_data");
+import axios from "axios";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  if (!data) return null;
-
+export const isAuthenticated = async () => {
   try {
-    return JSON.parse(data);
-  } catch {
-    return null;
+    const res = await axios.get(BACKEND_URL+"/admin/auth/me", {
+      withCredentials: true,
+    });
+    return res.data.success;
+  } catch (error) {
+    return false;
   }
-};
-
-export const isAuthenticated = () => {
-  const auth = getAuthData();
-  return !!auth?.accessToken;
 };

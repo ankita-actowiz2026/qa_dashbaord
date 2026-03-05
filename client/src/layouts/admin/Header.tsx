@@ -20,9 +20,7 @@ const Header = ({ title, userName, onMenuClick, onLogout }: HeaderProps) => {
         BACKEND_URL + "/admin/auth/logout",
         {},
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true,
         },
       );
       localStorage.removeItem("admin_data");

@@ -8,36 +8,20 @@ interface AuthRequest extends Request {
 }
 
 const authentication = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const authHeader = req.headers.authorization;
+  const token = req.cookies.accessToken;
 
-    if (!authHeader?.startsWith("Bearer ")) {
-      throw new ApiError("Authorization header missing", 401);
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.ACCESS_SECRET!) as JwtPayload;
-    if (!decoded || !decoded.id) {
-      throw new ApiError("Invalid token payload", 401);
-    }
-
-    const user = await User.findById(decoded.id).select("_id email role");
-    if (!user) {
-      throw new ApiError("User not found", 401);
-    }
-
-    req.user = user;
-    next();
-
-  } catch (error: any) {
-    if (error.name === "TokenExpiredError") {
-      return next(new ApiError("Token expired", 401));
-    }
-    if (error.name === "JsonWebTokenError") {
-      return next(new ApiError("Invalid token", 401));
-    }
-    next(error);
+  if(!token){
+    return res.status(401).json({success:false,message:"Unauthorized"});
   }
+
+  try{
+    const decoded = jwt.verify(token,process.env.ACCESS_SECRET!);
+    req.user = decoded;
+    next();
+  }catch(err){
+    return res.status(401).json({success:false,message:"Invalid token"});
+  }
+
 };
 
 export default authentication;

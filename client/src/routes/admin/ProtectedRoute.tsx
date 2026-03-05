@@ -1,21 +1,32 @@
 import { Navigate } from "react-router-dom";
-//import { isAuthenticated } from "../../utils/admin/auth";
-import { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import { isAuthenticated } from "../../utils/admin/auth";
 
 interface Props {
-  children: ReactNode;
+  children: JSX.Element;
 }
+
 const ProtectedRoute = ({ children }: Props) => {
-  const auth_data: string | null = localStorage.getItem("admin_data");
-  const new_auth_data = auth_data ? JSON.parse(auth_data) : null;
-  if (!(auth_data && new_auth_data?.accessToken)) {
-  
-    return (
-      <Navigate to="/admin/login" replace state={{ msg: "Please login" }} />
-    );
+  const [loading, setLoading] = useState(true);
+  const [auth, setAuth] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const result = await isAuthenticated();
+      setAuth(result);
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+
+  if (!auth) {
+    return <Navigate to="/admin/login" replace />;
   }
 
-  return <>{children}</>;
+  return children;
 };
 
 export default ProtectedRoute;
