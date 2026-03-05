@@ -4,7 +4,7 @@ import Login from "../../pages/front/Login";
 import FrontLayout from "../../layouts/front/FrontLayout";
 
 
-import PrivateRoute from "../../routes/front/PrivateRoute";
+import ProtectedRoute from "../../routes/front/ProtectedRoute";
 import PublicRoute from "../../routes/front/PublicRoute";
 import Dashboard from "../../pages/front/Dashboard";
 import PageNotFound from "../../pages/front/PageNotFound";
@@ -25,7 +25,7 @@ function AppRouteFront() {
       <Route path="/" element={<Navigate to="/Login" />} />      
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />      
 
-      <Route path="/" element={<PrivateRoute><FrontLayout /></PrivateRoute>}>
+      <Route path="/" element={<ProtectedRoute><FrontLayout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/import_file" element={<ImportFile />} />

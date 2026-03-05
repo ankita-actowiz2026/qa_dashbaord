@@ -740,15 +740,13 @@ function ImportFile() {
       const formData = new FormData();
       formData.append("file", data.file[0]);
       formData.append("columnConfig", JSON.stringify(columnConfig));
-      const tokenData = JSON.parse(localStorage.getItem("user_data") || "{}"); 
-
       const response = await axios.post(
         `${BACKEND_URL}/api/qa_file`,
         formData,
         {
+          withCredentials: true,
           headers: {
-            "Content-Type": "multipart/form-data",          
-             Authorization: `Bearer ${tokenData.accessToken}`,            
+            "Content-Type": "multipart/form-data",                    
           }
         }
       );

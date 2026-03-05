@@ -271,10 +271,8 @@ function ImportFile() {
         `${BACKEND_URL}/api/import/upload`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
+          withCredentials: true,
+        },
       );
 
       console.log("File uploaded successfully:", response.data);

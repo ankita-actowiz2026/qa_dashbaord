@@ -5,8 +5,8 @@ import type { loginInterface } from "../../interface/login.interface";
 import loginValidate from "../../validation/front/login.validation";
 import { useNavigate, useLocation } from "react-router";
 import { useAuth } from "../../context/AuthContext";
-import apiClient from "../../utils/front/apiClient";
-
+import axios from "axios";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const Login = () => {
   let navigate = useNavigate();
   const [msg, setMsg] = useState("");
@@ -44,22 +44,12 @@ const Login = () => {
         password: data.password,
       };
 
-      const result = await apiClient.post("/api/auth/login", userData);
-      const user_data = {
-        accessToken: result.data.data.accessToken,
-        user: {
-          username: result.data.data.user.name,
-          id: result.data.data.user._id,
-        },
-      };
-      //console.log(user_data);
-      //localStorage.setItem("user_data", JSON.stringify(user_data));
-
-      //context API
-      login(user_data.accessToken, user_data.user);
-      //end context API
-      navigate("/post/list");
+      const result = await axios.post(`${BACKEND_URL}/api/auth/login`, userData, {
+        withCredentials: true,
+      });          
+      navigate("/dashboard");
     } catch (error: any) {
+      console.log(error)
       setMsg(error.response?.data?.message || "Login failed");
       setMsgType("danger");
     }

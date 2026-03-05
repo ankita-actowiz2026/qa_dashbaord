@@ -14,8 +14,6 @@ const Header = ({ title, userName, onMenuClick, onLogout }: HeaderProps) => {
   const navigate = useNavigate();
   const handleLogout = async () => {
     try {
-      const user_data = localStorage.getItem("user_data");
-      const token = JSON.parse(user_data || "{}")?.accessToken ?? null;
       await axios.post(
         BACKEND_URL + "/admin/auth/logout",
         {},

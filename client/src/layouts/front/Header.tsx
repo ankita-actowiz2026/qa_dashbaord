@@ -14,13 +14,10 @@ const Header = () => {
   const handleLogout = async () => {
     try {
      
-      const tokenData = JSON.parse(localStorage.getItem("user_data") || "{}");
 
       await axios.post(BACKEND_URL + "/api/auth/logout",{},{
-            headers: {
-              Authorization: `Bearer ${tokenData.accessToken}`,
-            },
-          }
+          withCredentials: true,
+        },
 );
     } catch (err) {
       console.error("Server logout failed", err);
@@ -89,8 +86,7 @@ const Header = () => {
                 }
               >
                 Import
-              </NavLink>
-              {/* to="/post/ListWithServerPagination" */}
+              </NavLink>            
               <NavLink
                 to="/report"
                 onClick={() => setOpen(false)}

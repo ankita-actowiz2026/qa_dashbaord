@@ -1,4 +1,3 @@
-import apiClient from "../../../utils/front/apiClient";
 import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -104,11 +103,9 @@ function UserAdd() {
         },
         );
       } else {
-        res = await apiClient.put( BACKEND_URL + "/admin/user/" + id, send_data,
+        res = await axios.put( BACKEND_URL + "/admin/user/" + id, send_data,
           {
-            headers: {
-              Authorization: `Bearer ${tokenData.accessToken}`,
-            },
+            withCredentials: true,
           });
       }
 

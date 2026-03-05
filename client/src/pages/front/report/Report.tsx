@@ -44,12 +44,11 @@ function Report() {
     try {
       setLoading(true);
       setError('');
-      const tokenData = JSON.parse(localStorage.getItem("user_data") || "{}"); 
 
       const response = await axios.get(
-        `${BACKEND_URL}/api/report?page=${page}&limit=${limit}`,{ headers: {
-            Authorization: `Bearer ${tokenData.accessToken}`,
-          }}
+        `${BACKEND_URL}/api/report?page=${page}&limit=${limit}`,{
+          withCredentials: true,
+        },
       );
 
       if (response.data.success) {
@@ -69,12 +68,11 @@ function Report() {
   const handleExportSummary = async (importedFileId: string) => {
     try {
       setExporting({...exporting, summary: true});
-      const tokenData = JSON.parse(localStorage.getItem("user_data") || "{}"); 
 
       const response = await axios.get(
-        `${BACKEND_URL}/api/report/download_summary/${importedFileId}`,{ headers: {
-            Authorization: `Bearer ${tokenData.accessToken}`,
-          }}
+        `${BACKEND_URL}/api/report/download_summary/${importedFileId}`,{
+          withCredentials: true,
+        },
       );
 
       if (response.data.success && response.data.data.pdfUrl) {
@@ -92,12 +90,11 @@ function Report() {
   const handleExportCleanData = async (importedFileId: string) => {
     try {
       setExporting({...exporting, clean: true});
-      const tokenData = JSON.parse(localStorage.getItem("user_data") || "{}"); 
 
       const response = await axios.get(
-        `${BACKEND_URL}/api/report/download_clean_data/${importedFileId}`,{ headers: {
-            Authorization: `Bearer ${tokenData.accessToken}`,
-          }}
+        `${BACKEND_URL}/api/report/download_clean_data/${importedFileId}`,{
+          withCredentials: true,
+        },
       );
 
       if (response.data.success && response.data.data.dataUrl) {

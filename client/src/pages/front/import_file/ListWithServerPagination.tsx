@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import type { IPost } from "../../../interface/post.interface";
 import PostRow from "./PostRow";
-import apiClient from "../../../utils/front/apiClient";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 function ListWithServerPagination() {
@@ -53,10 +52,8 @@ function ListWithServerPagination() {
             search,
             sortField,
             sortOrder,
-          },
-          headers: {
-            Authorization: `Bearer ${tokenData.accessToken}`,
-          },
+          },          
+          withCredentials: true,
         },
       );
 
@@ -87,7 +84,9 @@ function ListWithServerPagination() {
     const previousData = postData;
     setPostData((prev) => prev.filter((p) => p._id !== id));
     try {
-      const res = await apiClient.delete(`/api/post/${id}`);
+      const res = await axios.delete(`${BACKEND_URL}/api/post/${id}`, {
+        withCredentials: true,
+      });
       setMsg(res.data.message);
       setMsgType("success");
     } catch (error: any) {
