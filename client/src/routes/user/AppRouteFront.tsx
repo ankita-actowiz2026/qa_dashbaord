@@ -9,7 +9,7 @@ import PublicRoute from "../../routes/user/PublicRoute";
 import Dashboard from "../../pages/user/Dashboard";
 import PageNotFound from "../../pages/user/PageNotFound";
 import ImportFile from "../../pages/user/import_file/ImportFile";
-import Report from "../../pages/user/report/Report";
+import Report from "../../pages/report/Report";
 
 // import { injectAuthContext } from "../../utils/user/apiClient";
 
@@ -29,7 +29,7 @@ function AppRouteFront() {
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/import_file" element={<ImportFile />} />        
-        <Route path="/report" element={<Report type="user" />} />
+        <Route path="/report" element={<Report type="QA" />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

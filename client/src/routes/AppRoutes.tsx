@@ -1,13 +1,16 @@
 import { Routes, Route } from "react-router-dom";
 import AppRoutesAdmin from "./admin/AppRoutesAdmin";
 import AppRoutesFront from "./user/AppRouteFront";
+import  { AuthProvider }   from "../context/AuthContext";  
 const AppRoutes = () => {
-  
+
   return (
+    <AuthProvider>
     <Routes>
       <Route path="/admin/*" element={<AppRoutesAdmin />} />
       <Route path="/*" element={<AppRoutesFront />} />
     </Routes>
+    </AuthProvider>
   );
 };
 export default AppRoutes;

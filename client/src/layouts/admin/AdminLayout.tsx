@@ -46,6 +46,14 @@ const AdminLayout = () => {
             {sidebarOpen && "Dashboard"}
           </NavLink>
 
+          <NavLink
+            to="/admin/import_file"
+            className={({ isActive }) => navItemClass(isActive)}
+          >
+            <FiHome size={18} />
+            {sidebarOpen && "Import"}
+          </NavLink>
+
           {/* User Menu */}
           <div>
             <button

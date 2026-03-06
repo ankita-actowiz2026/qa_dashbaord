@@ -34,39 +34,39 @@ import { parseExcelFileStream } from "../services/excelParser";
 
 
     // 1️⃣ Save summary
-    const importedFile = await ImportedFile.create({
-      user_id: req.user._id,
-      file_name: req.file.originalname,
+    // const importedFile = await ImportedFile.create({
+    //   user_id: req.user._id,
+    //   file_name: req.file.originalname,
 
-      total_records: result.total_records,
-      valid_records: result.valid_records,
-      invalid_records: result.invalid_records,
-      duplicate_count: result.duplicate_count,
-      missing_required_count: result.missing_required_count,
-      datatype_error_count: result.datatype_error_count,
-      junk_character_count: 0,
-      error_msg: result.error_msg
-    });
+    //   total_records: result.total_records,
+    //   valid_records: result.valid_records,
+    //   invalid_records: result.invalid_records,
+    //   duplicate_count: result.duplicate_count,
+    //   missing_required_count: result.missing_required_count,
+    //   datatype_error_count: result.datatype_error_count,
+    //   junk_character_count: 0,
+    //   error_msg: result.error_msg
+    // });
 
-    // 2️⃣ Insert valid rows
-    const cleanDocs = result.clear_data.map((row: any) => ({
-      importedfile_id: importedFile._id,
-      data: row
-    }));
+    // // 2️⃣ Insert valid rows
+    // const cleanDocs = result.clear_data.map((row: any) => ({
+    //   importedfile_id: importedFile._id,
+    //   data: row
+    // }));
 
-    if (cleanDocs.length) {
-      await CleanData.insertMany(cleanDocs);
-    }
-
-    res.status(200).json({
-      success: true,
-      importedFileId: importedFile._id
-    });
+    // if (cleanDocs.length) {
+    //   await CleanData.insertMany(cleanDocs);
+    // }
 
     // res.status(200).json({
     //   success: true,
-    //   data: result,
+    //   importedFileId: importedFile._id
     // });
+
+    res.status(200).json({
+      success: true,
+      data: result,
+    });
   } catch (error) {
     next(error);
   }

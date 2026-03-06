@@ -1,19 +1,28 @@
-import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { isAuthenticated } from "../../utils/user/auth";
 
-type Props = {
-  children?: React.ReactNode;
-};
-const PublicRoute = ({ children }: Props) => {
-  // const auth_data: string | null = localStorage.getItem("auth_data");
-  // if (auth_data) {
-  const { accessToken, loading } = useAuth();
+const PublicRoute = ({ children }: { children: JSX.Element }) => {
+  const [loading, setLoading] = useState(true);
+  const [auth, setAuth] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const result = await isAuthenticated();
+      setAuth(result);
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
   if (loading) return <div>Loading...</div>;
-  if (accessToken) {
+
+  if (auth) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  return children ? <>{children}</> : <Outlet />;
+  return children;
 };
 
 export default PublicRoute;

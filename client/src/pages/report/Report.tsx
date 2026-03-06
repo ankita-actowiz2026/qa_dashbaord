@@ -33,7 +33,7 @@ interface ApiResponse {
 
 // const role = authUser?.role;
 interface Props {
-  type: "admin" | "user";
+  type: "Admin" | "QA";
 }
 function Report({ type }: Props) {
   const [reportData, setReportData] = useState<ReportData[]>([]);
@@ -153,10 +153,14 @@ function Report({ type }: Props) {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-100 border-b border-gray-200">                     
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">User Name</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
-                      <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">File Name</th>
+                    <tr className="bg-gray-100 border-b border-gray-200">   
+                      {type=="Admin"?(
+                        <>
+                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">User Name</th>
+                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
+                        </>
+                      ):""}                  
+                      {/* <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">File Name</th> */}
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Total</th>
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Valid</th>
                       <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Invalid</th>
@@ -172,11 +176,12 @@ function Report({ type }: Props) {
                       {reportData.map((row) => (
                         <ReportRow
                           key={row._id}
-                          row={row}
+                          row={row}                          
                           exportingSummary={exporting.summary}
                           exportingClean={exporting.clean}
                           onExportSummary={handleExportSummary}
                           onExportClean={handleExportCleanData}
+                          type={type}
                         />
                       ))}
                     </tbody>

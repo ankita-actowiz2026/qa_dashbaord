@@ -6,6 +6,7 @@ interface ReportRowProps {
   exportingClean: boolean;
   onExportSummary: (id: string) => void;
   onExportClean: (id: string) => void;
+  type: "Admin" | "QA";
 }
 
 function ReportRow({
@@ -14,15 +15,19 @@ function ReportRow({
   exportingClean,
   onExportSummary,
   onExportClean,
+  type
 }: ReportRowProps) {
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-100 transition-colors">
+      {type=="Admin"?(
+                        <>
       <td className="px-6 py-4 text-sm">{row.user_name}</td>
       <td className="px-6 py-4 text-sm">{row.user_email}</td>
-
-      <td className="px-6 py-4 text-sm truncate max-w-xs">
+       </> 
+      ):""}
+      {/* <td className="px-6 py-4 text-sm truncate max-w-xs">
         {row.file_name}
-      </td>
+      </td> */}
 
       <td className="px-6 py-4 text-center font-medium">
         {row.total_records}

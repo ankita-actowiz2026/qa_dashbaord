@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { loginInterface } from "../../interface/login.interface";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -19,6 +20,7 @@ const schema = yup.object({
 });
 
 const Login = () => {
+  const { login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [msg, setMsg] = useState("");
@@ -59,6 +61,16 @@ const Login = () => {
           withCredentials: true,
         },
       );
+
+       const user_data = {
+        accessToken: result.data.data.accessToken,
+        user: {
+          username: result.data.data.user.name,
+          id: result.data.data.user._id,
+          role: result.data.data.user.role,
+        },
+      };      
+      login(user_data.accessToken, user_data.user);
       navigate("/admin/dashboard");
     } catch (error: any) {
       setMsg(error.response?.data?.message || "Login failed");
