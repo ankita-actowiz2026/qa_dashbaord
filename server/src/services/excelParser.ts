@@ -29,18 +29,17 @@ export const parseExcelFileStream = async (
 ) => {
 
   const ruleMap: Record<string, ColumnRule> = {};
-
   columnConfig.forEach((col) => {
     ruleMap[col.name] = col;
   });
-console.log(ruleMap)
-  const duplicateTracker: Record<string, Set<any>> = {};
 
+  const duplicateTracker: Record<string, Set<any>> = {};
   columnConfig.forEach((col) => {
     if (!col.is_allow_duplicate) {
       duplicateTracker[col.name] = new Set();
     }
   });
+
   let headers: string[] = [];
   let headerInitialized = false;
 
@@ -48,13 +47,9 @@ console.log(ruleMap)
   let valid_records = 0;
   let invalid_records = 0;
 
-  let duplicate_count = 0;
-  let missing_required_count = 0;
-  let datatype_error_count = 0;
-  let junk_character_count = 0;
-
-  const error_msg: ErrorMsg[] = [];
   const clear_data: any[] = [];
+
+  const columnStats: Record<string, any> = {};
 
   const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
     sharedStrings: "cache",
@@ -69,150 +64,173 @@ console.log(ruleMap)
 
       // HEADER
       if (!headerInitialized) {
+
         headers = values.slice(1).map((h) => String(h).trim());
-        headerInitialized = true;        
+        headerInitialized = true;
+
+        headers.forEach((header) => {
+          columnStats[header] = {
+            total_records: 0,
+            valid_records: 0,
+            invalid_records: 0,
+            duplicate_count: 0,
+            missing_required_count: 0,
+            datatype_error_count: 0,
+            junk_character_count: 0,
+            error_msg: []
+          };
+        });
+
         continue;
       }
 
-      const rowNumber = row.number;
       total_records++;
+      const rowNumber = row.number;
 
       let rowValid = true;
       const rowData: any = {};
-      
+
       for (let i = 1; i <= headers.length; i++) {
 
         const columnName = headers[i - 1];
         const rule = ruleMap[columnName];
-         
-        
         if (!rule) continue;
+
+        const columnStat = columnStats[columnName];
+
+        let columnValid = true;
 
         const value = values[i];
         const strValue = value ? String(value).trim() : "";
 
         rowData[columnName] = strValue;
 
+        if (strValue !== "") {
+          columnStat.total_records++;
+        }
+
         // REQUIRED
-        
-         if (rule.is_mandatory && !strValue) {
-            missing_required_count++;
-            rowValid = false;
+        if (rule.is_mandatory && !strValue) {
 
-            error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Missing Required",
-            error_description: `${columnName} is mandatory`
+          columnStat.missing_required_count++;
+          columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+
+          if (columnStat.error_msg.length < 50) {
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Missing Required",
+              error_description: `${columnName} is mandatory`
             });
+          }
 
-            continue;
+          continue;
         }
 
         if (!strValue) continue;
 
-        // TYPE
+        // NUMBER TYPE
         if (rule.type === "Number") {
 
           if (isNaN(Number(strValue))) {
 
-            datatype_error_count++;
+            columnStat.datatype_error_count++;
+            columnStat.invalid_records++;
+
+            columnValid = false;
             rowValid = false;
 
-            error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Datatype Error",
-              error_description: `${columnName} must be a number`
-            });
+            if (columnStat.error_msg.length < 50) {
+              columnStat.error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Datatype Error",
+                error_description: `${columnName} must be a number`
+              });
+            }
+          }
+        }
+
+        // DATE TYPE
+        if (rule.type === "Date") {
+
+          let dateValue = new Date(value);
+
+          if (typeof value === "number") {
+            const excelEpoch = new Date(1899, 11, 30);
+            dateValue = new Date(excelEpoch.getTime() + value * 86400000);
+          }
+
+          if (isNaN(dateValue.getTime())) {
+
+            columnStat.datatype_error_count++;
+            columnStat.invalid_records++;
+
+            columnValid = false;
+            rowValid = false;
+
+            if (columnStat.error_msg.length < 50) {
+              columnStat.error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Datatype Error",
+                error_description: `${columnName} must be a valid date`
+              });
+            }
+
+          } else {
+
+            if (rule.min_date && dateValue < new Date(rule.min_date)) {
+
+              columnStat.invalid_records++;
+              columnValid = false;
+              rowValid = false;
+
+              columnStat.error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Date Range Error",
+                error_description: `${columnName} must be after ${rule.min_date}`
+              });
+
+            }
+
+            if (rule.max_date && dateValue > new Date(rule.max_date)) {
+
+              columnStat.invalid_records++;
+              columnValid = false;
+              rowValid = false;
+
+              columnStat.error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Date Range Error",
+                error_description: `${columnName} must be before ${rule.max_date}`
+              });
+
+            }
 
           }
 
         }
-        // ✅ ADD DATE VALIDATION HERE
-if (rule.type === "Date") {
 
-  const excelEpoch = new Date(1899, 11, 30);
-  const jsDate = new Date(excelEpoch.getTime() + value * 86400000);
-
-  const month = String(jsDate.getMonth() + 1).padStart(2, "0");
-  const day = String(jsDate.getDate()).padStart(2, "0");
-  const year = jsDate.getFullYear();
-  let strValue=`${month}-${day}-${year}`
-  
-// MM-DD-YYYY format check // in xlsx file dd-mm-yyyy
-  const dateRegex = /^(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])-\d{4}$/;
-  
-  if (!dateRegex.test(strValue)) {
-
-    datatype_error_count++;
-    rowValid = false;
-
-    error_msg.push({
-      row: rowNumber,
-      column: columnName,
-      error_type: "Datatype Error",
-      error_description: `${columnName} must be in MM-DD-YYYY format`
-    });
-
-    continue;
-  }
-  const dateValue = new Date(strValue);
-  if (isNaN(dateValue.getTime())) {
-
-    datatype_error_count++;
-    rowValid = false;
-
-    error_msg.push({
-      row: rowNumber,
-      column: columnName,
-      error_type: "Datatype Error222",
-      error_description: `${columnName} must be a valid date`
-    });
-
-  } else {
-
-    // MIN DATE CHECK
-    if (rule.min_date && dateValue < new Date(rule.min_date)) {
-
-      rowValid = false;
-
-      error_msg.push({
-        row: rowNumber,
-        column: columnName,
-        error_type: "Date Range Error",
-        error_description: `${columnName} must be after ${rule.min_date}`
-      });
-
-    }
-
-    // MAX DATE CHECK
-    if (rule.max_date && dateValue > new Date(rule.max_date)) {
-
-      rowValid = false;
-
-      error_msg.push({
-        row: rowNumber,
-        column: columnName,
-        error_type: "Date Range Error",
-        error_description: `${columnName} must be before ${rule.max_date}`
-      });
-
-    }
-
-  }
-
-}
+        // EMAIL
         if (rule.type === "Email") {
 
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
           if (!emailRegex.test(strValue)) {
 
-            datatype_error_count++;
+            columnStat.datatype_error_count++;
+            columnStat.invalid_records++;
+
+            columnValid = false;
             rowValid = false;
 
-            error_msg.push({
+            columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
               error_type: "Datatype Error",
@@ -223,16 +241,20 @@ if (rule.type === "Date") {
 
         }
 
-        // SPECIAL CHAR//@ # $ % & * - _ .
+        // SPECIAL CHARACTER BLOCK
         if (rule.block_special_chars) {
 
           const regex = /[^a-zA-Z0-9]/;
 
           if (regex.test(strValue)) {
 
+            columnStat.junk_character_count++;
+            columnStat.invalid_records++;
+
+            columnValid = false;
             rowValid = false;
 
-            error_msg.push({
+            columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
               error_type: "Special Character",
@@ -242,102 +264,79 @@ if (rule.type === "Date") {
           }
 
         }
-        if (rule.allow_alpha_numeric) {
 
-          const regex = /[^a-zA-Z0-9]/;
-
-          if (regex.test(strValue)) {
-
-            rowValid = false;
-
-            error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Special Character",
-              error_description: `${columnName} contains special characters`
-            });
-
-          }
-
-        }
-        //._- not allow
+        // JUNK CHARACTER
         if (rule.not_allow_junk) {
-  const junkRegex = /[^a-zA-Z0-9\s@._-]/;
 
-  if (junkRegex.test(strValue)) {
+          const junkRegex = /[^a-zA-Z0-9\s@._-]/;
 
-    rowValid = false;
-    junk_character_count++;
+          if (junkRegex.test(strValue)) {
 
-    error_msg.push({
-      row: rowNumber,
-      column: columnName,
-      error_type: "Junk Character",
-      error_description: `${columnName} contains junk characters`
-    });
+            columnStat.junk_character_count++;
+            columnStat.invalid_records++;
 
-  }
-
-}
-        
-        // LENGTH
-        if (rule.type === "Number") {
-          const numValue = Number(strValue);
-          
-          if (isNaN(numValue)) {
+            columnValid = false;
             rowValid = false;
-            error_msg.push({
+
+            columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
-              error_type: "Datatype Error---n",
-              error_description: `${columnName} must be a valid number`
+              error_type: "Junk Character",
+              error_description: `${columnName} contains junk characters`
             });
 
-          } else {
-            // Minimum range check
-            
-             
-             // Minimum check
+          }
+
+        }
+
+        // NUMBER RANGE
+        if (rule.type === "Number") {
+
+          const numValue = Number(strValue);
+
+          if (!isNaN(numValue)) {
+
             if (rule.min_length !== null && numValue < rule.min_length) {
 
+              columnStat.invalid_records++;
+              columnValid = false;
               rowValid = false;
 
-              error_msg.push({
+              columnStat.error_msg.push({
                 row: rowNumber,
                 column: columnName,
-                error_type: "Range Error---n",
+                error_type: "Range Error",
                 error_description: `${columnName} must be >= ${rule.min_length}`
               });
 
             }
 
-            // Maximum check
             if (rule.max_length !== null && numValue > rule.max_length) {
 
+              columnStat.invalid_records++;
+              columnValid = false;
               rowValid = false;
 
-              error_msg.push({
+              columnStat.error_msg.push({
                 row: rowNumber,
                 column: columnName,
-                error_type: "Range Error---n",
+                error_type: "Range Error",
                 error_description: `${columnName} must be <= ${rule.max_length}`
               });
 
             }
 
+          }
 
-          
-         
+        } else {
 
-        }
+          if (rule.min_length !== null && strValue.length < rule.min_length) {
 
-        }
-        else{
-          if (rule.min_length && strValue.length < rule.min_length) {
-
+            columnStat.invalid_records++;
+            columnValid = false;
             rowValid = false;
 
-            error_msg.push({
+            columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
               error_type: "Length Error",
@@ -346,11 +345,13 @@ if (rule.type === "Date") {
 
           }
 
-          if (rule.max_length && strValue.length > rule.max_length) {
+          if (rule.max_length !== null && strValue.length > rule.max_length) {
 
+            columnStat.invalid_records++;
+            columnValid = false;
             rowValid = false;
 
-            error_msg.push({
+            columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
               error_type: "Length Error",
@@ -358,51 +359,84 @@ if (rule.type === "Date") {
             });
 
           }
-      }
+
+        }
 
         // BLOCKED WORD
-        if (rule.blocked_words?.includes(strValue)) {
+        if(columnName=="URL")
+        {
+          console.log(rule.blocked_words+"===="+strValue)
+        }
+        if (rule.blocked_words && rule.blocked_words.length > 0) {
 
+        const hasBlockedWord = rule.blocked_words.some(word =>
+          strValue.toLowerCase().includes(word.toLowerCase())
+        );
+
+        if (hasBlockedWord) {
+
+          columnStat.invalid_records++;
+          columnValid = false;
           rowValid = false;
 
-          error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Blocked Word",
-            error_description: `${strValue} is not allowed`
-          });
+          if (columnStat.error_msg.length < 50) {
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Blocked Word",
+              error_description: `${strValue} contains blocked word`
+            });
+          }
 
         }
 
-        // PREDEFINED
+      }
+      console.log(columnName)
+      if(columnName=="Store_Type")
+      {
+        console.log("++++++++++++++++++++++++")
+        console.log(rule.predefined_values)
+        console.log(strValue)
+        console.log("----------------------")
+
+      }
+        // PREDEFINED VALUES
         if (
-          rule.predefined_values &&
-          rule.predefined_values.length > 0 &&
-          !rule.predefined_values.includes(strValue)
-        ) {
+  rule.predefined_values?.length &&
+  !rule.predefined_values
+    .map(v => String(v).trim().toLowerCase())
+    .includes(strValue.trim().toLowerCase())
+) {
 
-          rowValid = false;
+  columnStat.invalid_records++;
+  columnValid = false;
+  rowValid = false;
 
-          error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Value is not as per predefined Value",
-            error_description: `${strValue} not allowed`
-          });
+  if (columnStat.error_msg.length < 50) {
+    columnStat.error_msg.push({
+      row: rowNumber,
+      column: columnName,
+      error_type: "Predefined Value Error",
+      error_description: `${strValue} not allowed`
+    });
+  }
 
-        }
+}
 
-        // DUPLICATE
+        // DUPLICATE CHECK
         if (!rule.is_allow_duplicate) {
 
           const tracker = duplicateTracker[columnName];
 
           if (tracker.has(strValue)) {
 
-            duplicate_count++;
+            columnStat.duplicate_count++;
+            columnStat.invalid_records++;
+
+            columnValid = false;
             rowValid = false;
 
-            error_msg.push({
+            columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
               error_type: "Duplicate",
@@ -410,9 +444,15 @@ if (rule.type === "Date") {
             });
 
           } else {
+
             tracker.add(strValue);
+
           }
 
+        }
+
+        if (columnValid && strValue !== "") {
+          columnStat.valid_records++;
         }
 
       }
@@ -429,6 +469,7 @@ if (rule.type === "Date") {
       }
 
     }
+
     break;
   }
 
@@ -436,11 +477,9 @@ if (rule.type === "Date") {
     total_records,
     valid_records,
     invalid_records,
-    duplicate_count,
-    missing_required_count,
-    datatype_error_count,
-    junk_character_count,
-    error_msg,
-    clear_data
+    column_wise_stats: columnStats,
+    clear_data,
+    ruleMap
   };
+
 };
