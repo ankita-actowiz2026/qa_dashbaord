@@ -30,9 +30,8 @@ app.use(cors({origin: process.env.FRONTEND_URL,credentials: true,})); //Allows b
 //credentials: true => if you are passing cookie from frontend
 app.use(helmet({crossOriginResourcePolicy: false,}));
 app.use(rateLimit({windowMs: 15 * 60 * 1000,max: 100,}));//One IP can only make 100 requests every 15 minutes.
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-
+app.use(express.json({ limit: "200mb" }));
+app.use(express.urlencoded({ limit: "200mb", extended: true }));
 
 app.use("/admin/auth", adminAuthRouter);
 app.use("/admin/user", adminUserRouter);

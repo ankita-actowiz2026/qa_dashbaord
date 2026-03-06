@@ -218,34 +218,132 @@ export const parseExcelFileStream = async (
         }
 
         // DATE TYPE
-        if (rule.type === "Date") {
+        // if (rule.type === "Date") {
 
-          let dateValue = new Date(strValue);
+        //   let dateValue = new Date(strValue);
 
-          if (typeof value === "number") {
-            const excelEpoch = new Date(1899, 11, 30);
-            dateValue = new Date(excelEpoch.getTime() + value * 86400000);
-          }
+        //   if (typeof value === "number") {
+        //     const excelEpoch = new Date(1899, 11, 30);
+        //     dateValue = new Date(excelEpoch.getTime() + value * 86400000);
+        //   }
 
-          if (isNaN(dateValue.getTime())) {
+        //   if (isNaN(dateValue.getTime())) {
 
-            columnStat.datatype_error_count++;
-            columnStat.invalid_records++;
+        //     columnStat.datatype_error_count++;
+        //     columnStat.invalid_records++;
 
-            columnValid = false;
-            rowValid = false;
+        //     columnValid = false;
+        //     rowValid = false;
 
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Datatype Error",
-              error_description: `${columnName} must be valid date`
-            });
+        //     columnStat.error_msg.push({
+        //       row: rowNumber,
+        //       column: columnName,
+        //       error_type: "Datatype Error",
+        //       error_description: `${columnName} must be valid date`
+        //     });
 
-          }
+        //   }
 
-        }
+        // }
+if (rule.type === "Date") {
 
+  let jsDate: Date;
+
+  // Excel numeric date
+  if (typeof value === "number") {
+    const excelEpoch = new Date(1899, 11, 30);
+    jsDate = new Date(excelEpoch.getTime() + value * 86400000);
+  } 
+  // If string date
+  else {
+    jsDate = new Date(value);
+  }
+
+  if (isNaN(jsDate.getTime())) {
+
+    columnStat.datatype_error_count++;
+    columnStat.invalid_records++;
+    columnValid = false;
+    rowValid = false;
+
+    if (columnStat.error_msg.length < 50) {
+      columnStat.error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Datatype Error",
+        error_description: `${columnName} must be a valid date`
+      });
+    }
+
+    continue;
+  }
+
+  // Convert to MM-DD-YYYY
+  const month = String(jsDate.getMonth() + 1).padStart(2, "0");
+  const day = String(jsDate.getDate()).padStart(2, "0");
+  const year = jsDate.getFullYear();
+
+  const formattedDate = `${month}-${day}-${year}`;
+
+  // Format validation
+  const dateRegex = /^(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])-\d{4}$/;
+
+  if (!dateRegex.test(formattedDate)) {
+
+    columnStat.datatype_error_count++;
+    columnStat.invalid_records++;
+    columnValid = false;
+    rowValid = false;
+
+    if (columnStat.error_msg.length < 50) {
+      columnStat.error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Datatype Error",
+        error_description: `${columnName} must be in MM-DD-YYYY format`
+      });
+    }
+
+    continue;
+  }
+
+  const dateValue = new Date(formattedDate);
+
+  // MIN DATE CHECK
+  if (rule.min_date && dateValue < new Date(rule.min_date)) {
+
+    columnStat.invalid_records++;
+    columnValid = false;
+    rowValid = false;
+
+    if (columnStat.error_msg.length < 50) {
+      columnStat.error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Date Range Error",
+        error_description: `${columnName} must be after ${rule.min_date}`
+      });
+    }
+  }
+
+  // MAX DATE CHECK
+  if (rule.max_date && dateValue > new Date(rule.max_date)) {
+
+    columnStat.invalid_records++;
+    columnValid = false;
+    rowValid = false;
+
+    if (columnStat.error_msg.length < 50) {
+      columnStat.error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Date Range Error",
+        error_description: `${columnName} must be before ${rule.max_date}`
+      });
+    }
+  }
+
+}
         // EMAIL
         if (rule.type === "Email") {
 
@@ -397,7 +495,7 @@ export const parseExcelFileStream = async (
 
       if (rowValid) {
         valid_records++;
-        clear_data.push(rowData);
+       // clear_data.push(rowData);
       } else {
         invalid_records++;
       }
@@ -412,7 +510,7 @@ export const parseExcelFileStream = async (
     valid_records,
     invalid_records,
     column_wise_stats: columnStats,
-    clear_data,
+    //clear_data,
     ruleMap
   };
 
