@@ -5,6 +5,7 @@ import CleanData from "../models/cleanData.model";
 const BATCH_SIZE = 5000;
 import path from "path";
 import { parseExcelFileStream } from "../services/excelParser";
+import fs from "fs/promises";
 
 
 
@@ -16,6 +17,8 @@ import { parseExcelFileStream } from "../services/excelParser";
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  let filePath: string | null = null;
+
   try {
 
     if (!req.file) {
@@ -26,7 +29,7 @@ import { parseExcelFileStream } from "../services/excelParser";
       return;
     }
 
-    const filePath = path.resolve(req.file.path);
+    filePath = path.resolve(req.file.path);
 
     const columnConfig = JSON.parse(req.body.columnConfig);
 
@@ -69,6 +72,18 @@ import { parseExcelFileStream } from "../services/excelParser";
     });
   } catch (error) {
     next(error);
+  } finally {
+
+    //Delete uploaded file after processing
+    if (filePath) {
+      try {
+        await fs.unlink(filePath);
+        console.log("Uploaded file deleted:", filePath);
+      } catch (err) {
+        console.error("Error deleting file:", err);
+      }
+    }
+
   }
 };
 

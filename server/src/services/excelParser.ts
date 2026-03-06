@@ -9,6 +9,8 @@ interface ColumnRule {
   allow_alpha_numeric?: boolean;
   min_length?: number | null;
   max_length?: number | null;
+  max_date?: string | null;
+  min_date?: string | null;
   blocked_words?: string[];
   predefined_values?: string[];
 }
@@ -66,10 +68,7 @@ console.log(ruleMap)
       // HEADER
       if (!headerInitialized) {
         headers = values.slice(1).map((h) => String(h).trim());
-        headerInitialized = true;
-        console.log("==========")
-        console.log(headers.length)
-        console.log("==========")
+        headerInitialized = true;        
         continue;
       }
 
@@ -78,18 +77,13 @@ console.log(ruleMap)
 
       let rowValid = true;
       const rowData: any = {};
-      console.log("++++++++")
-console.log(values.length)
-console.log("++++++++")
+      
       for (let i = 1; i <= headers.length; i++) {
 
         const columnName = headers[i - 1];
         const rule = ruleMap[columnName];
          
-        if(columnName === "email"){
-            console.log("call")
-        }
-
+        
         if (!rule) continue;
 
         const value = values[i];
@@ -98,10 +92,7 @@ console.log("++++++++")
         rowData[columnName] = strValue;
 
         // REQUIRED
-       
-        if(columnName === "email"){
-          console.log(strValue +"==="+rule.is_mandatory)
-        }
+        
          if (rule.is_mandatory && !strValue) {
             missing_required_count++;
             rowValid = false;
@@ -136,7 +127,80 @@ console.log("++++++++")
           }
 
         }
+        // ✅ ADD DATE VALIDATION HERE
+if (rule.type === "Date") {
 
+  const excelEpoch = new Date(1899, 11, 30);
+  const jsDate = new Date(excelEpoch.getTime() + value * 86400000);
+
+  const month = String(jsDate.getMonth() + 1).padStart(2, "0");
+  const day = String(jsDate.getDate()).padStart(2, "0");
+  const year = jsDate.getFullYear();
+  let strValue=`${month}-${day}-${year}`
+  
+// MM-DD-YYYY format check // in xlsx file dd-mm-yyyy
+  const dateRegex = /^(0?[1-9]|1[0-2])-(0?[1-9]|[12][0-9]|3[01])-\d{4}$/;
+  
+  if (!dateRegex.test(strValue)) {
+
+    datatype_error_count++;
+    rowValid = false;
+
+    error_msg.push({
+      row: rowNumber,
+      column: columnName,
+      error_type: "Datatype Error",
+      error_description: `${columnName} must be in MM-DD-YYYY format`
+    });
+
+    continue;
+  }
+  const dateValue = new Date(strValue);
+  if (isNaN(dateValue.getTime())) {
+
+    datatype_error_count++;
+    rowValid = false;
+
+    error_msg.push({
+      row: rowNumber,
+      column: columnName,
+      error_type: "Datatype Error222",
+      error_description: `${columnName} must be a valid date`
+    });
+
+  } else {
+
+    // MIN DATE CHECK
+    if (rule.min_date && dateValue < new Date(rule.min_date)) {
+
+      rowValid = false;
+
+      error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Date Range Error",
+        error_description: `${columnName} must be after ${rule.min_date}`
+      });
+
+    }
+
+    // MAX DATE CHECK
+    if (rule.max_date && dateValue > new Date(rule.max_date)) {
+
+      rowValid = false;
+
+      error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Date Range Error",
+        error_description: `${columnName} must be before ${rule.max_date}`
+      });
+
+    }
+
+  }
+
+}
         if (rule.type === "Email") {
 
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -178,6 +242,7 @@ console.log("++++++++")
         }
 
         // LENGTH
+
         if (rule.min_length && strValue.length < rule.min_length) {
 
           rowValid = false;
