@@ -6,8 +6,8 @@ class AuthController {
  login = async (req: Request<{}, {},ILogin>, res: Response, next: NextFunction): Promise<void> => {
         try {
           const response = await authService.login(req.body);
-          const { user, accessToken,  } = response as { user: any; accessToken: string; };
-          res.cookie("accessToken", accessToken, {
+          const { user, adminToken,  } = response as { user: any; adminToken: string; };
+          res.cookie("adminToken", adminToken, {
             httpOnly: true,
             secure: false,
             sameSite: "lax",
@@ -21,7 +21,7 @@ class AuthController {
       };
  logout = async (req: Request, res: Response, next: NextFunction) => {
       try {
-          res.clearCookie("accessToken", {
+          res.clearCookie("adminToken", {
             httpOnly: true,
             secure: false,
             sameSite: "lax",

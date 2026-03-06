@@ -16,5 +16,5 @@ const cleanDataSchema = new mongoose.Schema(
   }
 );
 
- const CleanDataModel = mongoose.model("CleanData",cleanDataSchema);
-export default CleanDataModel;
+ const CleanData = mongoose.model("CleanData",cleanDataSchema);
+export default CleanData;

@@ -2,8 +2,8 @@ import  {Schema, model,} from 'mongoose'
 import  IImportedFile, {IErrorDetail, IRuleDetail}  from "../interface/importedFile.interface";
 const ErrorSchema = new Schema<IErrorDetail>(
   {
-    row_number: { type: Number, required: true },
-    column_name: { type: String, required: true, trim: true },
+    row: { type: Number, required: true },
+    column: { type: String, required: true, trim: true },
     error_type: { type: String, required: true },
     error_description: { type: String, required: true },
   },

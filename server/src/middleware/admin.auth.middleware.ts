@@ -7,23 +7,23 @@ interface AuthRequest extends Request {
   user?: any;
 }
 
-export const authentication = async (
+export const authAdmin = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies.adminToken || req.cookies.userToken;
+    const token = req.cookies.adminToken;
 
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized user" });
+      return res.status(401).json({ message: "Unauthorized admin" });
     }
 
     const decoded: any = jwt.verify(token, process.env.ACCESS_SECRET!);
 
     const user = await User.findById(decoded.id).select("_id name email role");
 
-    if (!user || user.role !== "QA" && user.role !== "Admin") {
+    if (!user || user.role !== "admin") {
       return res.status(403).json({ message: "Forbidden" });
     }
 
@@ -35,4 +35,4 @@ export const authentication = async (
   }
 };
 
-export default authentication;
+export default authAdmin;

@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 export interface IErrorDetail {
-  row_number: number;
-  column_name: string;
+  row: number;
+  column: string;
   error_type: string;
   error_description: string;
 }

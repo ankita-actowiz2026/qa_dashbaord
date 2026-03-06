@@ -6,7 +6,7 @@ import  {SummaryReportParams, SummaryReportQuery}   from "../interface/importedF
   sortOrder?: 'asc' | 'desc';
 }
 import  ApiError  from "../utils/api.error";
-
+import { UserType } from "../interface/user.interface";
 declare global {
   namespace Express {
     interface Request {
@@ -28,8 +28,8 @@ class ReportController {
         throw new ApiError("User not authenticated", 401);
       }
       console.log(req.user.role)
-      const user_id = (req.user.role=="QA"?req.user.id:undefined);
-
+      const user_id = (req.user.role==UserType.QA?req.user.id:undefined);
+      console.log(user_id)
       const user = await reportService.showSummary({
         user_id,
         page: req.query.page ? Number(req.query.page) : undefined,

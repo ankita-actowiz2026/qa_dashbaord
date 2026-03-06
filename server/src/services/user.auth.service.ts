@@ -3,7 +3,7 @@ import  IUser ,{ILoginResponse, ILogin}  from "../interface/user.interface";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 import  ApiError  from "../utils/api.error";
-import crypto from "crypto";
+import { UserType } from "../interface/user.interface";
 
 export class AuthService {
   async register(data: IUser ): Promise<IUser> {
@@ -21,7 +21,7 @@ export class AuthService {
     return user;
   }
   async login(data: ILogin ): Promise<ILoginResponse | null | String> {
-    const user  = await User.findOne({"email":data.email,"role":"QA",status:"active"})
+    const user  = await User.findOne({"email":data.email,"role":UserType.QA,status:"active"})
     if(!user){        
         throw new ApiError("User not exist", 404);        
     }
@@ -33,19 +33,14 @@ export class AuthService {
     if (!process.env.ACCESS_SECRET || !process.env.REFRESH_SECRET  ) {
       throw new ApiError("ACCESS_SECRET or REFRESH_SECRET not configured",500);
     }
-
-    const accessToken = jwt.sign({ id: user._id }, process.env.ACCESS_SECRET!, {
-    expiresIn: "1d",
-  });
-
-
-
-
+    const userToken = jwt.sign({ id: user._id ,role: UserType.QA}, process.env.ACCESS_SECRET!, {
+        expiresIn: "1d",
+    });
     const userObj = user.toObject();
    // delete (userObj as any).password;
 
     return {
-      user: userObj, "accessToken":accessToken,
+      user: userObj, "userToken":userToken,
     };
   }
 

@@ -11,19 +11,19 @@ export enum Status {
   INACTIVE = 'inactive',
 }
 export enum UserType {
-  ADMIN = 'admin',
+  ADMIN = 'Admin',
   QA = 'QA',
 }
 
 export interface ILoginResponse {
   //user: Omit<IUser, "password">;
   user: IUser;
-  accessToken: string;
+  userToken: string;
 }
 export interface ILoginResponseAdmin {
   //user: Omit<IUser, "password">;
   user: IUser;
-  accessToken: string;  
+  adminToken: string;  
 }
 export interface ILogin {
   email: string;

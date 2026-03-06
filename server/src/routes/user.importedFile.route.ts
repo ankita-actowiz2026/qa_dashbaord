@@ -1,5 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
-import { importedFileController } from '../controllers/user.importedFile.controller'
+import { addImportedFile } from '../controllers/user.importedFile.controller'
 import { validateAdd, isRequestValidated, validateEdit, validateId } from '../validations/user.importedFile.validations'
 
 import multer from "multer";
@@ -40,7 +40,7 @@ importedFileRouter.post('/',
   setExtendedTimeout,
   authentication,
   upload.single("file"),  
-  importedFileController.addImportedFile
+  addImportedFile
 )
 
 // importedFileRouter.get('/', authentication, importedFileController.getImportedFiles)
