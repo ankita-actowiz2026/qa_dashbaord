@@ -28,6 +28,30 @@ export const parseExcelFileStream = async (
   columnConfig: ColumnRule[]
 ) => {
 
+  // 🔹 Extract correct value from ExcelJS cell
+  const getCellValue = (cell: any): string => {
+
+    if (cell === null || cell === undefined) return "";
+
+    if (typeof cell === "object") {
+
+      if (cell.richText) {
+        return cell.richText.map((t: any) => t.text).join("").trim();
+      }
+
+      if (cell.text) {
+        return String(cell.text).trim();
+      }
+
+      if (cell.result) {
+        return String(cell.result).trim();
+      }
+
+    }
+
+    return String(cell).trim();
+  };
+
   const ruleMap: Record<string, ColumnRule> = {};
   columnConfig.forEach((col) => {
     ruleMap[col.name] = col;
@@ -48,10 +72,10 @@ export const parseExcelFileStream = async (
   let invalid_records = 0;
 
   const clear_data: any[] = [];
-
   const columnStats: Record<string, any> = {};
 
   const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
+    entries: "emit",
     sharedStrings: "cache",
     hyperlinks: "ignore",
   });
@@ -65,10 +89,12 @@ export const parseExcelFileStream = async (
       // HEADER
       if (!headerInitialized) {
 
-        headers = values.slice(1).map((h) => String(h).trim());
+        headers = values.slice(1).map((h) => getCellValue(h));
+
         headerInitialized = true;
 
         headers.forEach((header) => {
+
           columnStats[header] = {
             total_records: 0,
             valid_records: 0,
@@ -79,6 +105,7 @@ export const parseExcelFileStream = async (
             junk_character_count: 0,
             error_msg: []
           };
+
         });
 
         continue;
@@ -101,7 +128,7 @@ export const parseExcelFileStream = async (
         let columnValid = true;
 
         const value = values[i];
-        const strValue = value ? String(value).trim() : "";
+        const strValue = getCellValue(value);
 
         rowData[columnName] = strValue;
 
@@ -135,7 +162,9 @@ export const parseExcelFileStream = async (
         // NUMBER TYPE
         if (rule.type === "Number") {
 
-          if (isNaN(Number(strValue))) {
+          const numValue = Number(strValue);
+
+          if (isNaN(numValue)) {
 
             columnStat.datatype_error_count++;
             columnStat.invalid_records++;
@@ -151,13 +180,47 @@ export const parseExcelFileStream = async (
                 error_description: `${columnName} must be a number`
               });
             }
+
+          } else {
+
+            if (rule.min_length !== null && numValue < rule.min_length) {
+
+              columnStat.invalid_records++;
+              columnValid = false;
+              rowValid = false;
+
+              columnStat.error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Range Error",
+                error_description: `${columnName} must be >= ${rule.min_length}`
+              });
+
+            }
+
+            if (rule.max_length !== null && numValue > rule.max_length) {
+
+              columnStat.invalid_records++;
+              columnValid = false;
+              rowValid = false;
+
+              columnStat.error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Range Error",
+                error_description: `${columnName} must be <= ${rule.max_length}`
+              });
+
+            }
+
           }
+
         }
 
         // DATE TYPE
         if (rule.type === "Date") {
 
-          let dateValue = new Date(value);
+          let dateValue = new Date(strValue);
 
           if (typeof value === "number") {
             const excelEpoch = new Date(1899, 11, 30);
@@ -172,46 +235,12 @@ export const parseExcelFileStream = async (
             columnValid = false;
             rowValid = false;
 
-            if (columnStat.error_msg.length < 50) {
-              columnStat.error_msg.push({
-                row: rowNumber,
-                column: columnName,
-                error_type: "Datatype Error",
-                error_description: `${columnName} must be a valid date`
-              });
-            }
-
-          } else {
-
-            if (rule.min_date && dateValue < new Date(rule.min_date)) {
-
-              columnStat.invalid_records++;
-              columnValid = false;
-              rowValid = false;
-
-              columnStat.error_msg.push({
-                row: rowNumber,
-                column: columnName,
-                error_type: "Date Range Error",
-                error_description: `${columnName} must be after ${rule.min_date}`
-              });
-
-            }
-
-            if (rule.max_date && dateValue > new Date(rule.max_date)) {
-
-              columnStat.invalid_records++;
-              columnValid = false;
-              rowValid = false;
-
-              columnStat.error_msg.push({
-                row: rowNumber,
-                column: columnName,
-                error_type: "Date Range Error",
-                error_description: `${columnName} must be before ${rule.max_date}`
-              });
-
-            }
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${columnName} must be valid date`
+            });
 
           }
 
@@ -289,141 +318,52 @@ export const parseExcelFileStream = async (
 
         }
 
-        // NUMBER RANGE
-        if (rule.type === "Number") {
-
-          const numValue = Number(strValue);
-
-          if (!isNaN(numValue)) {
-
-            if (rule.min_length !== null && numValue < rule.min_length) {
-
-              columnStat.invalid_records++;
-              columnValid = false;
-              rowValid = false;
-
-              columnStat.error_msg.push({
-                row: rowNumber,
-                column: columnName,
-                error_type: "Range Error",
-                error_description: `${columnName} must be >= ${rule.min_length}`
-              });
-
-            }
-
-            if (rule.max_length !== null && numValue > rule.max_length) {
-
-              columnStat.invalid_records++;
-              columnValid = false;
-              rowValid = false;
-
-              columnStat.error_msg.push({
-                row: rowNumber,
-                column: columnName,
-                error_type: "Range Error",
-                error_description: `${columnName} must be <= ${rule.max_length}`
-              });
-
-            }
-
-          }
-
-        } else {
-
-          if (rule.min_length !== null && strValue.length < rule.min_length) {
-
-            columnStat.invalid_records++;
-            columnValid = false;
-            rowValid = false;
-
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Length Error",
-              error_description: `Minimum length ${rule.min_length}`
-            });
-
-          }
-
-          if (rule.max_length !== null && strValue.length > rule.max_length) {
-
-            columnStat.invalid_records++;
-            columnValid = false;
-            rowValid = false;
-
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Length Error",
-              error_description: `Maximum length ${rule.max_length}`
-            });
-
-          }
-
-        }
-
         // BLOCKED WORD
-        if(columnName=="URL")
-        {
-          console.log(rule.blocked_words+"===="+strValue)
-        }
-        if (rule.blocked_words && rule.blocked_words.length > 0) {
+        if (rule.blocked_words?.length) {
 
-        const hasBlockedWord = rule.blocked_words.some(word =>
-          strValue.toLowerCase().includes(word.toLowerCase())
-        );
+          const hasBlockedWord = rule.blocked_words.some(word =>
+            strValue.toLowerCase().includes(word.toLowerCase())
+          );
 
-        if (hasBlockedWord) {
+          if (hasBlockedWord) {
 
-          columnStat.invalid_records++;
-          columnValid = false;
-          rowValid = false;
+            columnStat.invalid_records++;
+            columnValid = false;
+            rowValid = false;
 
-          if (columnStat.error_msg.length < 50) {
             columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
               error_type: "Blocked Word",
               error_description: `${strValue} contains blocked word`
             });
+
           }
 
         }
 
-      }
-      console.log(columnName)
-      if(columnName=="Store_Type")
-      {
-        console.log("++++++++++++++++++++++++")
-        console.log(rule.predefined_values)
-        console.log(strValue)
-        console.log("----------------------")
-
-      }
         // PREDEFINED VALUES
         if (
-  rule.predefined_values?.length &&
-  !rule.predefined_values
-    .map(v => String(v).trim().toLowerCase())
-    .includes(strValue.trim().toLowerCase())
-) {
+          rule.predefined_values?.length &&
+          !rule.predefined_values
+            .map(v => String(v).trim().toLowerCase())
+            .includes(strValue.toLowerCase())
+        ) {
 
-  columnStat.invalid_records++;
-  columnValid = false;
-  rowValid = false;
+          columnStat.invalid_records++;
+          columnValid = false;
+          rowValid = false;
 
-  if (columnStat.error_msg.length < 50) {
-    columnStat.error_msg.push({
-      row: rowNumber,
-      column: columnName,
-      error_type: "Predefined Value Error",
-      error_description: `${strValue} not allowed`
-    });
-  }
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Predefined Value Error",
+            error_description: `${strValue} not allowed`
+          });
 
-}
+        }
 
-        // DUPLICATE CHECK
+        // DUPLICATE
         if (!rule.is_allow_duplicate) {
 
           const tracker = duplicateTracker[columnName];
@@ -444,9 +384,7 @@ export const parseExcelFileStream = async (
             });
 
           } else {
-
             tracker.add(strValue);
-
           }
 
         }
@@ -458,14 +396,10 @@ export const parseExcelFileStream = async (
       }
 
       if (rowValid) {
-
         valid_records++;
         clear_data.push(rowData);
-
       } else {
-
         invalid_records++;
-
       }
 
     }
