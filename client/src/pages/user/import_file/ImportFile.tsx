@@ -529,10 +529,35 @@ const handleNumberMaxChange = (column: string, value: string) => {
 };
     const validateLengthFields = (): boolean => {
     const errors: Record<string, string> = {};
-    const allowedLengthTypes = ["Text", "Email", "Boolean"];
+    const allowedLengthTypes = ["Text", "Email", "Boolean","Number","Decimal"];
 
     columns.forEach((col) => {
       if (!allowedLengthTypes.includes(columnMappings[col])) return;
+
+      //  if (columnMappings[col] === "Number" || columnMappings[col] === "Decimal") {
+      //   const min = numberMinValue[col]?.trim();
+      //   const max = numberMaxValue[col]?.trim();
+
+      //   if (!min || !max) {
+      //     errors[col] = "Min and Max length are required11111";
+      //     return;
+      //   }
+
+      //   if (isNaN(Number(min)) || isNaN(Number(max))) {
+      //     errors[col] = "Length must be numbers";
+      //     return;
+      //   }
+
+      //   if (Number(min) <= 0 || Number(max) <= 0) {
+      //     errors[col] = "Length must be positive";
+      //     return;
+      //   }
+
+      //   if (Number(max) < Number(min)) {
+      //     errors[col] = "Max length must be >= Min length";
+      //     return;
+      //   }
+      // }
 
       if (lengthType[col] === "variable") {
         const max = fixedLength[col]?.trim(); // using fixedLength as variable length input
@@ -553,7 +578,7 @@ const handleNumberMaxChange = (column: string, value: string) => {
         const max = maxLength[col]?.trim();
 
         if (!min || !max) {
-          errors[col] = "Min and Max length are required";
+          errors[col] = "Min and Max length are required11111";
           return;
         }
 
@@ -611,50 +636,38 @@ const handleNumberMaxChange = (column: string, value: string) => {
       return true;
     };
 const validateNumberRanges = (): boolean => {
-  const errors: Record<string, string> = {};
 
-  columns.forEach((col) => {
-    if (columnMappings[col] === "Number" || columnMappings[col] === "Decimal") {
-      const min = numberMinValue[col]?.trim();
-      const max = numberMaxValue[col]?.trim();
-
-      if (min && isNaN(Number(min))) {
-        errors[col] = "Minimum value must be a number";
-        return;
-      }
-
-      if (max && isNaN(Number(max))) {
-        errors[col] = "Maximum value must be a number";
-        return;
-      }
-
-      const validateNumberRanges = (): boolean => {
   const errors: Record<string, string> = {};
 
   for (const col of columns) {
 
-    if (columnMappings[col] === "Number" || columnMappings[col] === "Decimal") {
+    const type = columnMappings[col];
 
-      const min = numberMinValue[col]?.trim();
-      const max = numberMaxValue[col]?.trim();
+    // Only validate Number and Decimal
+    if (type !== "Number" && type !== "Decimal") continue;
 
-      // Validate min number
-      if (min && isNaN(Number(min))) {
-        errors[col] = "Minimum value must be a number";
-        continue;
-      }
+    const minRaw = numberMinValue[col];
+    const maxRaw = numberMaxValue[col];
 
-      // Validate max number
-      if (max && isNaN(Number(max))) {
-        errors[col] = "Maximum value must be a number";
-        continue;
-      }
+    const min = minRaw !== undefined && minRaw !== "" ? Number(minRaw) : null;
+    const max = maxRaw !== undefined && maxRaw !== "" ? Number(maxRaw) : null;
 
-      // Validate min < max
-      if (min && max && Number(min) >= Number(max)) {
-        errors[col] = "Min value must be less than Max value";
-        continue;
-      }
+    // Validate min number
+    if (minRaw && isNaN(min)) {
+      errors[col] = "Minimum value must be a valid number";
+      continue;
+    }
+
+    // Validate max number
+    if (maxRaw && isNaN(max)) {
+      errors[col] = "Maximum value must be a valid number";
+      continue;
+    }
+
+    // Validate range
+    if (min !== null && max !== null && min >= max) {
+      errors[col] = "Min value must be less than Max value";
+      continue;
     }
   }
 
@@ -662,16 +675,10 @@ const validateNumberRanges = (): boolean => {
 
   return Object.keys(errors).length === 0;
 };
-    }
-  });
-
-  setNumberRangeErrors(errors);
-  return Object.keys(errors).length === 0;
-};
     const onSubmit = async (data: any) => {
       try {
         // Validate length fields first
-        const validateResult= validateLengthFields()
+        const validateResult=true// validateLengthFields()
         
 
         // Validate date ranges with Yup
@@ -688,6 +695,7 @@ const validateNumberRanges = (): boolean => {
         const validateDateRangeResult= validateDateRanges()
         const validateNumberRangeResult = validateNumberRanges();
         // Validate date ranges (runtime validation)
+        alert(validateNumberRangeResult)
         if (validateResult === false ||validateDateRangeResult === false ||validateNumberRangeResult === false) {
           return;
         }
@@ -790,8 +798,7 @@ const validateNumberRanges = (): boolean => {
         console.error("File upload failed:", err);
       }
     };
-console.log("~~~~~~>"+dateMinValue['Id'])
-console.log(dateMaxValue['Id'])
+
     return (
       <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-6 text-gray-800">Import File</h2>
@@ -944,43 +951,34 @@ console.log(dateMaxValue['Id'])
 {(columnMappings[column] === "Number" ||
   columnMappings[column] === "Decimal") && (
   <div className="pt-2 border-t border-gray-200 space-y-2">
+  <div className="flex items-center gap-2">
 
-    <div className="flex items-center gap-2">
-      <label className="text-xs font-semibold text-gray-600 w-20">
-        Min Value
-      </label>
+    <input
+      type="number"
+      placeholder="Min Value"
+      value={numberMinValue[column] || ""}
+      onChange={(e) =>
+        handleNumberMinChange(column, e.target.value)
+      }
+      className="border p-1 rounded text-sm w-30"
+    />
 
-      <input
-        type="number"
-        value={numberMinValue[column] || ""}
-        onChange={(e) =>
-          handleNumberMinChange(column, e.target.value)
-        }
-        className="flex-1 px-2 py-1 border rounded text-sm"
-      />
-    </div>
+    <input
+      type="number"
+      placeholder="Max Value"
+      value={numberMaxValue[column] || ""}
+      onChange={(e) => handleNumberMaxChange(column, e.target.value)}
+      className="border p-1 rounded text-sm w-30"
+    />
 
-    <div className="flex items-center gap-2">
-      <label className="text-xs font-semibold text-gray-600 w-20">
-        Max Value
-      </label>
-
-      <input
-  type="number"
-  value={numberMaxValue[column] || ""}
-  onChange={(e) => handleNumberMaxChange(column, e.target.value)}
-  className="flex-1 px-2 py-1 border rounded text-sm"
-/>
-
-{numberRangeErrors[column] && (
-  <p className="text-red-500 text-xs mt-1">
-    {numberRangeErrors[column]}
-  </p>
-)}
-    </div>
-
-    
   </div>
+
+  {numberRangeErrors[column] && (
+    <p className="text-red-500 text-xs">
+      {numberRangeErrors[column]}
+    </p>
+  )}
+</div>
 )}  
                     {/* Length Configuration */}
                     {["Text", "Email"].includes(columnMappings[column]) && (
@@ -1021,7 +1019,7 @@ console.log(dateMaxValue['Id'])
                             placeholder="Max Length"
                             value={fixedLength[column] || ""}
                             onChange={(e) => handleFixedLengthChange(column, e.target.value)}
-                            className="border p-1 rounded text-sm"
+                            className="border p-1 rounded text-sm w-30"
                           />
                         )}
 
@@ -1032,7 +1030,7 @@ console.log(dateMaxValue['Id'])
                               placeholder="Min"
                               value={minLength[column] || ""}
                               onChange={(e) => handleMinLengthChange(column, e.target.value)}
-                              className="border p-1 rounded text-sm w-20"
+                              className="border p-1 rounded text-sm w-30"
                             />
 
                             <input
@@ -1040,7 +1038,7 @@ console.log(dateMaxValue['Id'])
                               placeholder="Max"
                               value={maxLength[column] || ""}
                               onChange={(e) => handleMaxLengthChange(column, e.target.value)}
-                              className="border p-1 rounded text-sm w-20"
+                              className="border p-1 rounded text-sm w-30"
                             />
                           </div>
                         )}

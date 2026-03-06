@@ -7,6 +7,7 @@ interface ColumnRule {
   is_allow_duplicate?: boolean;
   block_special_chars?: boolean;
   allow_alpha_numeric?: boolean;
+  not_allow_junk?: boolean;
   min_length?: number | null;
   max_length?: number | null;
   max_date?: string | null;
@@ -50,6 +51,7 @@ console.log(ruleMap)
   let duplicate_count = 0;
   let missing_required_count = 0;
   let datatype_error_count = 0;
+  let junk_character_count = 0;
 
   const error_msg: ErrorMsg[] = [];
   const clear_data: any[] = [];
@@ -221,7 +223,7 @@ if (rule.type === "Date") {
 
         }
 
-        // SPECIAL CHAR
+        // SPECIAL CHAR//@ # $ % & * - _ .
         if (rule.block_special_chars) {
 
           const regex = /[^a-zA-Z0-9]/;
@@ -240,34 +242,123 @@ if (rule.type === "Date") {
           }
 
         }
+        if (rule.allow_alpha_numeric) {
 
+          const regex = /[^a-zA-Z0-9]/;
+
+          if (regex.test(strValue)) {
+
+            rowValid = false;
+
+            error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Special Character",
+              error_description: `${columnName} contains special characters`
+            });
+
+          }
+
+        }
+        //._- not allow
+        if (rule.not_allow_junk) {
+  const junkRegex = /[^a-zA-Z0-9\s@._-]/;
+
+  if (junkRegex.test(strValue)) {
+
+    rowValid = false;
+    junk_character_count++;
+
+    error_msg.push({
+      row: rowNumber,
+      column: columnName,
+      error_type: "Junk Character",
+      error_description: `${columnName} contains junk characters`
+    });
+
+  }
+
+}
+        
         // LENGTH
+        if (rule.type === "Number") {
+          const numValue = Number(strValue);
+          
+          if (isNaN(numValue)) {
+            rowValid = false;
+            error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error---n",
+              error_description: `${columnName} must be a valid number`
+            });
 
-        if (rule.min_length && strValue.length < rule.min_length) {
+          } else {
+            // Minimum range check
+            
+             
+             // Minimum check
+            if (rule.min_length !== null && numValue < rule.min_length) {
 
-          rowValid = false;
+              rowValid = false;
 
-          error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Length Error",
-            error_description: `Minimum length ${rule.min_length}`
-          });
+              error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Range Error---n",
+                error_description: `${columnName} must be >= ${rule.min_length}`
+              });
+
+            }
+
+            // Maximum check
+            if (rule.max_length !== null && numValue > rule.max_length) {
+
+              rowValid = false;
+
+              error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Range Error---n",
+                error_description: `${columnName} must be <= ${rule.max_length}`
+              });
+
+            }
+
+
+          
+         
 
         }
 
-        if (rule.max_length && strValue.length > rule.max_length) {
-
-          rowValid = false;
-
-          error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Length Error",
-            error_description: `Maximum length ${rule.max_length}`
-          });
-
         }
+        else{
+          if (rule.min_length && strValue.length < rule.min_length) {
+
+            rowValid = false;
+
+            error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Length Error",
+              error_description: `Minimum length ${rule.min_length}`
+            });
+
+          }
+
+          if (rule.max_length && strValue.length > rule.max_length) {
+
+            rowValid = false;
+
+            error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Length Error",
+              error_description: `Maximum length ${rule.max_length}`
+            });
+
+          }
+      }
 
         // BLOCKED WORD
         if (rule.blocked_words?.includes(strValue)) {
@@ -348,6 +439,7 @@ if (rule.type === "Date") {
     duplicate_count,
     missing_required_count,
     datatype_error_count,
+    junk_character_count,
     error_msg,
     clear_data
   };
