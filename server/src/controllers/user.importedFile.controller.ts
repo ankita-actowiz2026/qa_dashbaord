@@ -6,21 +6,18 @@ const BATCH_SIZE = 5000;
 import path from "path";
 import { parseExcelFileStream } from "../services/excelParser";
 import fs from "fs/promises";
-
-
-
-  /**
-   * Add/Upload Imported File
-   */
- export const addImportedFile = async (
+import { ColumnRule } from "../interface/importedFile.interface";
+/**
+ * Add/Upload Imported File
+ */
+export const addImportedFile = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   let filePath: string | null = null;
 
   try {
-
     if (!req.file) {
       res.status(400).json({
         success: false,
@@ -31,10 +28,10 @@ import fs from "fs/promises";
 
     filePath = path.resolve(req.file.path);
 
-    const columnConfig = JSON.parse(req.body.columnConfig);
-
+    const columnConfig: Record<string, ColumnRule> = JSON.parse(
+      req.body.columnConfig,
+    );
     const result = await parseExcelFileStream(filePath, columnConfig);
-
 
     // 1️⃣ Save summary
     // const importedFile = await ImportedFile.create({
@@ -73,7 +70,6 @@ import fs from "fs/promises";
   } catch (error) {
     next(error);
   } finally {
-
     //Delete uploaded file after processing
     if (filePath) {
       try {
@@ -83,8 +79,5 @@ import fs from "fs/promises";
         console.error("Error deleting file:", err);
       }
     }
-
   }
 };
-
-
