@@ -28,70 +28,6 @@ export const buildDateRegex = (format: string): RegExp => {
   return new RegExp(`^${pattern}$`);
 };
 
-function validateDependency(
-  dependency: Record<string, any>,
-  rowData: Record<string, any>,
-  rowNumber: number,
-  columnStats: any,
-) {
-  const keys = Object.keys(dependency);
-
-  if (!keys.length) return true;
-
-  const firstKey = keys[0];
-  const firstExpected = dependency[firstKey];
-  const firstValue = rowData[firstKey];
-  console.log(firstKey + "==" + firstExpected + "==" + firstValue);
-  // Case 1 → first dependency false
-  if (firstExpected === false) return true;
-
-  // Case 2 → first dependency true
-  if (firstExpected === true) {
-    for (let i = 1; i < keys.length; i++) {
-      const col = keys[i];
-      const value = rowData[col];
-
-      if (!value) {
-        columnStats[col].invalid_records++;
-        columnStats[col].dependency_error =
-          (columnStats[col].dependency_error || 0) + 1;
-
-        columnStats[col].error_msg.push({
-          row: rowNumber,
-          column: col,
-          error_type: "Dependency Error",
-          error_description: `${col} must be filled because ${firstKey} is true`,
-        });
-
-        return false;
-      }
-    }
-  }
-
-  // Case 3 → fixed value dependency
-  if (firstExpected !== true && firstExpected !== false) {
-    for (let i = 1; i < keys.length; i++) {
-      const col = keys[i];
-
-      if (rowData[col] !== firstValue) {
-        columnStats[col].invalid_records++;
-        columnStats[col].dependency_error =
-          (columnStats[col].dependency_error || 0) + 1;
-
-        columnStats[col].error_msg.push({
-          row: rowNumber,
-          column: col,
-          error_type: "Dependency Error",
-          error_description: `${col} must match value of ${firstKey}`,
-        });
-
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
 export const validateRow = (
   rowData: any,
   rowNumber: number,
@@ -117,8 +53,7 @@ export const validateRow = (
       columnStat.total_records++;
     }
     //has_empty
-    // if (columnName == "Id")
-    //   console.log(!rule.has_empty + "=+empty+==" + strValue);
+
     if (!rule.has_empty && !strValue) {
       columnStat.missing_required_count++;
       console.log("[[" + columnValid);
@@ -339,6 +274,11 @@ export const validateRow = (
         error_description: `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
       });
     }
+    console.log(columnName);
+    if (columnName == "Id") {
+      console.log("+++++++++++++++");
+      console.log(rule.not_match_found_normalized);
+    }
 
     if (
       rule.not_match_found_normalized?.length &&
@@ -360,20 +300,6 @@ export const validateRow = (
       }
     }
 
-    for (const rule of Object.values(ruleMap)) {
-      if (rule.dependency) {
-        const valid = validateDependency(
-          rule.dependency,
-          rowData,
-          rowNumber,
-          columnStats,
-        );
-
-        if (!valid) {
-          rowValid = false;
-        }
-      }
-    }
     //if (columnName == "Id") console.log(columnValid + "=++==" + strValue);
     if (columnValid && strValue !== "") {
       columnStat.valid_records++;
