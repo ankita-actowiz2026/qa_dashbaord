@@ -9,21 +9,69 @@ export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
 export const validateEdit = [];
 //if (columnName == "Id") console.log(columnValid);
+
+export const parseDateByFormat = (
+  dateStr: string,
+  format: string,
+): Date | null => {
+  try {
+    const parts: any = {};
+
+    const tokens = {
+      "%d": "(\\d{2})",
+      "%m": "(\\d{2})",
+      "%Y": "(\\d{4})",
+    };
+
+    let regexPattern = format;
+
+    Object.entries(tokens).forEach(([k, v]) => {
+      regexPattern = regexPattern.replace(k, v);
+    });
+
+    const regex = new RegExp(`^${regexPattern}`);
+    const match = dateStr.match(regex);
+
+    if (!match) return null;
+
+    let index = 1;
+
+    if (format.includes("%d")) {
+      parts.day = parseInt(match[index++]);
+    }
+
+    if (format.includes("%m")) {
+      parts.month = parseInt(match[index++]);
+    }
+
+    if (format.includes("%Y")) {
+      parts.year = parseInt(match[index++]);
+    }
+
+    return new Date(parts.year, parts.month - 1, parts.day);
+  } catch {
+    return null;
+  }
+};
 export const buildDateRegex = (format: string): RegExp => {
   let pattern = format;
 
-  pattern = pattern.replace("%Y", "(\\d{4})"); // Year
-  pattern = pattern.replace("%m", "(0[1-9]|1[0-2])"); // Month
-  pattern = pattern.replace("%d", "(0[1-9]|[12][0-9]|3[01])"); // Day
+  const replacements: Record<string, string> = {
+    "%Y": "(\\d{4})",
+    "%m": "(0[1-9]|1[0-2])",
+    "%d": "(0[1-9]|[12][0-9]|3[01])",
 
-  pattern = pattern.replace("%H", "([01][0-9]|2[0-3])"); // 24h
-  pattern = pattern.replace("%h", "(0[1-9]|1[0-2])"); // 12h
+    H: "([01][0-9]|2[0-3])", // 24 hour
+    h: "(0[1-9]|1[0-2])", // 12 hour
+    i: "([0-5][0-9])", // minutes
+    s: "([0-5][0-9])", // seconds
 
-  pattern = pattern.replace("%i", "([0-5][0-9])"); // Minutes
-  pattern = pattern.replace("%s", "([0-5][0-9])"); // Seconds
+    "am/pm": "(AM|PM|am|pm)",
+  };
 
-  // handle AM/PM if present
-  pattern = pattern.replace("with am/pm", "(AM|PM|am|pm)");
+  Object.keys(replacements).forEach((key) => {
+    pattern = pattern.replace(key, replacements[key]);
+  });
 
   return new RegExp(`^${pattern}$`);
 };
@@ -82,14 +130,12 @@ export const validateRow = (
 
         columnValid = false;
         rowValid = false;
-        if (columnStat.error_msg.length < 50) {
-          columnStat.error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Pattern Error",
-            error_description: `${strValue} does not match email format`,
-          });
-        }
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Pattern Error",
+          error_description: `${strValue} does not match email format`,
+        });
       }
     } else if (rule.cell_contains && rule.cell_contains_value) {
       const regex = new RegExp(rule.cell_contains_value);
@@ -99,15 +145,12 @@ export const validateRow = (
         if (columnValid == true) columnStat.invalid_records++;
         columnValid = false;
         rowValid = false;
-
-        if (columnStat.error_msg.length < 50) {
-          columnStat.error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Pattern Error",
-            error_description: `${strValue} does not match required format`,
-          });
-        }
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Pattern Error",
+          error_description: `${strValue} does not match required format`,
+        });
       }
     }
 
@@ -186,33 +229,62 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          if (columnStat.error_msg.length < 50) {
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Redundant Value Error",
-              error_description: `${strValue} exceeded allowed repetition (${rule.data_redundant_threshold})`,
-            });
-          }
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Redundant Value Error",
+            error_description: `${strValue} exceeded allowed repetition (${rule.data_redundant_threshold})`,
+          });
         }
       }
     }
 
+    //if (rule.data_type === "date" && rule.dateRegex && !strValue) {
     if (rule.data_type === "date" && rule.dateRegex) {
       if (!rule.dateRegex.test(strValue)) {
-        columnStat.datatype_error_count++;
+        //columnStat.datatype_error_count++;
         columnStat.invalid_records++;
 
         columnValid = false;
         rowValid = false;
         columnStat.date_format_error_count++;
-        if (columnStat.error_msg.length < 50) {
-          columnStat.error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Date Format Error",
-            error_description: `${strValue} does not match format ${rule.date_format}`,
-          });
+
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Date Format Error",
+          error_description: `${strValue} does not match format ${rule.date_format}`,
+        });
+      } else {
+        // RANGE VALIDATION
+        if (rule.min_length || rule.max_length) {
+          const currentDate = parseDateByFormat(strValue, rule.date_format);
+          const minDate = rule.min_length
+            ? parseDateByFormat(rule.min_length, rule.date_format)
+            : null;
+
+          const maxDate = rule.max_length
+            ? parseDateByFormat(rule.max_length, rule.date_format)
+            : null;
+
+          if (currentDate) {
+            if (
+              (minDate && currentDate < minDate) ||
+              (maxDate && currentDate > maxDate)
+            ) {
+              if (columnValid === true) columnStat.invalid_records++;
+              columnStat.length_validation_error_count++;
+              columnValid = false;
+              rowValid = false;
+
+              columnStat.error_msg.push({
+                row: rowNumber,
+                column: columnName,
+                error_type: "Range Error",
+                error_description: `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
+              });
+            }
+          }
         }
       }
     }
@@ -287,14 +359,13 @@ export const validateRow = (
       columnValid = false;
       rowValid = false;
       columnStat.blocked_word_error_count++;
-      if (columnStat.error_msg.length < 50) {
-        columnStat.error_msg.push({
-          row: rowNumber,
-          column: columnName,
-          error_type: "Blocked Word",
-          error_description: `${strValue} contains blocked word`,
-        });
-      }
+
+      columnStat.error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Blocked Word",
+        error_description: `${strValue} contains blocked word`,
+      });
     }
 
     //if (columnName == "Id") console.log(columnValid + "=++==" + strValue);
@@ -350,16 +421,14 @@ export const validateRow = (
 
           columnStat.invalid_records++;
 
-          if (columnStat.error_msg.length < 50) {
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: col,
-              error_type: "Dependency Error",
-              error_description: `${col} must be ${
-                nextCondition === true ? "not empty" : nextCondition
-              } because ${currentKey} is ${currentCondition}`,
-            });
-          }
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: col,
+            error_type: "Dependency Error",
+            error_description: `${col} must be ${
+              nextCondition === true ? "not empty" : nextCondition
+            } because ${currentKey} is ${currentCondition}`,
+          });
         }
       }
     }

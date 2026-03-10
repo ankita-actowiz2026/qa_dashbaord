@@ -25,9 +25,27 @@ export const parseExcelFileStream = async (
   columnConfig: Record<string, ColumnRule>,
 ) => {
   const fileName = generateFileName();
+  const excelDateToJSDate = (serial: number) => {
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;
+    const date = new Date(utc_value * 1000);
+    return date;
+  };
 
+  const formatDate = (date: Date) => {
+    const d = String(date.getDate()).padStart(2, "0");
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const y = date.getFullYear();
+    return `${d}-${m}-${y}`;
+  };
   const getCellValue = (cell: any): string => {
     if (cell === null || cell === undefined) return "";
+
+    // Excel date number
+    if (typeof cell === "number" && cell > 20000 && cell < 60000) {
+      const jsDate = excelDateToJSDate(cell);
+      return formatDate(jsDate);
+    }
 
     if (typeof cell === "object") {
       if (cell.richText) {
