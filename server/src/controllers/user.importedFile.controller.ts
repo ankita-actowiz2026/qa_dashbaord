@@ -4,11 +4,12 @@ import ImportedFile from "../models/importedFile.model";
 import CleanData from "../models/cleanData.model";
 const BATCH_SIZE = 5000;
 import path from "path";
-import { parseExcelFileStream } from "../services/excelParser";
+import { parseExcelFile } from "../services/excelParser";
 import fs from "fs/promises";
 import { ColumnRule } from "../interface/importedFile.interface";
-import { parseCsvFileStream } from "../services/csvParser";
-import { parseXlsFile } from "../services/parseXlsFile";
+import { parseCsvFile } from "../services/csvParser";
+import { parseXlsFile } from "../services/XlsParser";
+import { parseJsonFile } from "../services/jsonParser";
 /**
  * Add/Upload Imported File
  */
@@ -38,16 +39,16 @@ export const addImportedFile = async (
     let result: any;
     switch (ext) {
       case ".json":
-        //result = await readJson(filePath);
+        result = await parseJsonFile(filePath, columnConfig);
         break;
       case ".xls":
         result = await parseXlsFile(filePath, columnConfig);
         break;
       case ".csv":
-        result = await parseCsvFileStream(filePath, columnConfig);
+        result = await parseCsvFile(filePath, columnConfig);
         break;
       case ".xlsx":
-        result = await parseExcelFileStream(filePath, columnConfig);
+        result = await parseExcelFile(filePath, columnConfig);
         break;
       default:
         throw new Error("Unsupported file type");

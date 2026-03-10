@@ -10,7 +10,7 @@ import {
   prepareColumnRules,
 } from "../validations/user.importedFile.validations";
 
-export const parseCsvFileStream = async (
+export const parseCsvFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
 ) => {

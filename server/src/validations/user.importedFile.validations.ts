@@ -488,7 +488,9 @@ export const validateRow = (
       });
     }
     // START WITH
-    const normalizedValue = strValue.trim().toLowerCase();
+    const normalizedValue = String(strValue ?? "")
+      .trim()
+      .toLowerCase();
     if (
       rule.cell_start_with_normalized?.length &&
       !rule.cell_start_with_normalized.some((prefix) =>
@@ -561,7 +563,6 @@ export const validateRow = (
     if (!rule?.dependency) continue;
 
     const dependencyEntries = Object.entries(rule.dependency);
-    console.log(dependencyEntries);
     for (let i = 0; i < dependencyEntries.length - 1; i++) {
       const [currentKey, currentCondition] = dependencyEntries[i];
       const [nextKey, nextCondition] = dependencyEntries[i + 1];

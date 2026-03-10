@@ -10,7 +10,7 @@ import {
   prepareColumnRules,
 } from "../validations/user.importedFile.validations";
 
-export const parseExcelFileStream = async (
+export const parseExcelFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
 ) => {
