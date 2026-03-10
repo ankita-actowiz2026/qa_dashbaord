@@ -5,6 +5,8 @@ import CleanData from "../models/cleanData.model";
 const BATCH_SIZE = 5000;
 import path from "path";
 import { parseExcelFile } from "../services/excelParser";
+//import { parseExcelFile } from "../services/parseExcel.service";
+
 import fs from "fs/promises";
 import { ColumnRule } from "../interface/importedFile.interface";
 import { parseCsvFile } from "../services/csvParser";
@@ -13,6 +15,35 @@ import { parseJsonFile } from "../services/jsonParser";
 /**
  * Add/Upload Imported File
  */
+export const addImportedFile123 = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  let filePath: string | null = null;
+
+  try {
+    if (!req.file) {
+      res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+    res.json(req.file.path);
+    //const result = await parseExcelFile(req.file.path);
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
 export const addImportedFile = async (
   req: Request,
   res: Response,

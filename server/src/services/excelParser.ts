@@ -13,6 +13,7 @@ import {
 export const parseExcelFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
+  errorFile: string,
 ) => {
   //const fileName = generateFileName();
 
