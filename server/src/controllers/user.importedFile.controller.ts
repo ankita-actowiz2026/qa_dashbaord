@@ -7,6 +7,8 @@ import path from "path";
 import { parseExcelFileStream } from "../services/excelParser";
 import fs from "fs/promises";
 import { ColumnRule } from "../interface/importedFile.interface";
+import { parseCsvFileStream } from "../services/csvParser";
+import { parseXlsFile } from "../services/parseXlsFile";
 /**
  * Add/Upload Imported File
  */
@@ -27,11 +29,29 @@ export const addImportedFile = async (
     }
 
     filePath = path.resolve(req.file.path);
+    const ext = path.extname(filePath).toLowerCase();
 
     const columnConfig: Record<string, ColumnRule> = JSON.parse(
       req.body.columnConfig,
     );
-    const result = await parseExcelFileStream(filePath, columnConfig);
+
+    let result: any;
+    switch (ext) {
+      case ".json":
+        //result = await readJson(filePath);
+        break;
+      case ".xls":
+        result = await parseXlsFile(filePath, columnConfig);
+        break;
+      case ".csv":
+        result = await parseCsvFileStream(filePath, columnConfig);
+        break;
+      case ".xlsx":
+        result = await parseExcelFileStream(filePath, columnConfig);
+        break;
+      default:
+        throw new Error("Unsupported file type");
+    }
 
     // 1️⃣ Save summary
     // const importedFile = await ImportedFile.create({

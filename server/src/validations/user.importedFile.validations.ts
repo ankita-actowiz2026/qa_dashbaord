@@ -9,7 +9,95 @@ export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
 export const validateEdit = [];
 //if (columnName == "Id") console.log(columnValid);
+export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
+  for (const rule of Object.values(ruleMap)) {
+    if (rule.fixed_header?.length) {
+      rule.fixed_header_set = new Set(
+        rule.fixed_header.map((v: string) => v.trim().toLowerCase()),
+      );
+    }
 
+    if (rule.cell_start_with?.length) {
+      rule.cell_start_with_normalized = rule.cell_start_with.map((v) =>
+        String(v).trim().toLowerCase(),
+      );
+    }
+
+    if (rule.cell_end_with?.length) {
+      rule.cell_end_with_normalized = rule.cell_end_with.map((v) =>
+        String(v).trim().toLowerCase(),
+      );
+    }
+
+    if (rule.not_match_found?.length) {
+      rule.not_match_found_normalized = rule.not_match_found.map((w: string) =>
+        w.trim().toLowerCase(),
+      );
+    }
+
+    if (rule.data_redundant_threshold) {
+      rule.redundantCounter = new Map<string, number>();
+    }
+
+    if (rule.data_type === "date" && rule.date_format) {
+      rule.dateRegex = buildDateRegex(rule.date_format);
+    }
+  }
+};
+export const excelDateToJSDate = (serial: number) => {
+  const utc_days = Math.floor(serial - 25569);
+  const utc_value = utc_days * 86400;
+  const date = new Date(utc_value * 1000);
+  return date;
+};
+
+export const formatDate = (date: Date) => {
+  const d = String(date.getDate()).padStart(2, "0");
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}-${m}-${y}`;
+};
+export const getCellValue = (cell: any): string => {
+  if (cell === null || cell === undefined) return "";
+
+  // Excel date number
+  if (typeof cell === "number" && cell > 20000 && cell < 60000) {
+    const jsDate = excelDateToJSDate(cell);
+    return formatDate(jsDate);
+  }
+
+  if (typeof cell === "object") {
+    if (cell.richText) {
+      return cell.richText
+        .map((t: any) => t.text)
+        .join("")
+        .trim();
+    }
+
+    if (cell.text) {
+      return String(cell.text).trim();
+    }
+
+    if (cell.result) {
+      return String(cell.result).trim();
+    }
+  }
+
+  return String(cell).trim();
+};
+// export const generateFileName = () => {
+//   const now = new Date();
+
+//   const mm = String(now.getMonth() + 1).padStart(2, "0");
+//   const dd = String(now.getDate()).padStart(2, "0");
+//   const yyyy = now.getFullYear();
+
+//   const hh = String(now.getHours()).padStart(2, "0");
+//   const mi = String(now.getMinutes()).padStart(2, "0");
+//   const ss = String(now.getSeconds()).padStart(2, "0");
+
+//   return `data_${mm}${dd}${yyyy}${hh}${mi}${ss}.ndjson`;
+// };
 export const parseDateByFormat = (
   dateStr: string,
   format: string,
@@ -85,6 +173,7 @@ export const validateRow = (
   duplicateTracker: Record<string, Set<any>>,
 ) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const validBooleanValues = ["true", "false", "1", "0", "yes", "no", "y", "n"];
   let rowValid = true;
 
   for (const columnName of headers) {
@@ -102,7 +191,6 @@ export const validateRow = (
 
     if (!rule.has_empty && !strValue) {
       columnStat.missing_required_count++;
-      console.log("[[" + columnValid);
       if (columnValid == true) {
         //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
         columnStat.invalid_records++;
@@ -137,8 +225,30 @@ export const validateRow = (
           error_description: `${strValue} does not match email format`,
         });
       }
+    } else if (
+      rule.data_type === "integer" &&
+      strValue !== null &&
+      strValue !== ""
+    ) {
+      const integerRegex = /^-?\d+$/;
+
+      if (!integerRegex.test(String(strValue).trim())) {
+        if (columnValid === true) columnStat.invalid_records++;
+
+        columnValid = false;
+        rowValid = false;
+
+        columnStat.datatype_error_count++;
+
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Pattern Error",
+          error_description: `${strValue} is not a valid integer`,
+        });
+      }
     } else if (rule.cell_contains && rule.cell_contains_value) {
-      const regex = new RegExp(rule.cell_contains_value);
+      const regex = new RegExp(rule.cell_contains_value, "u");
 
       if (!regex.test(strValue)) {
         columnStat.datatype_error_count++;
@@ -203,8 +313,81 @@ export const validateRow = (
           });
         }
       }
+    } else if (rule.data_type === "string" || rule.data_type === "email") {
+      const strLen = strValue.length;
+
+      // VARIABLE LENGTH (min / max)
+      if (rule.length_validation_type === "variable") {
+        if (rule.min_length !== null && strLen < rule.min_length) {
+          if (columnValid === true) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+
+          columnStat.length_validation_error_count++;
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Length Error",
+            error_description: `${columnName} must be at least ${rule.min_length} characters`,
+          });
+        }
+
+        if (rule.max_length !== null && strLen > rule.max_length) {
+          if (columnValid === true) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+
+          columnStat.length_validation_error_count++;
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Length Error",
+            error_description: `${columnName} must be <= ${rule.max_length} characters`,
+          });
+        }
+      }
+
+      // FIXED LENGTH
+      else if (rule.length_validation_type === "fixed") {
+        if (rule.min_length !== null && strLen !== rule.min_length) {
+          if (columnValid === true) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+
+          columnStat.length_validation_error_count++;
+
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Length Error",
+            error_description: `${columnName} must be exactly ${rule.min_length} characters`,
+          });
+        }
+      }
     }
 
+    if (rule.data_type === "boolean") {
+      const value = String(strValue).trim().toLowerCase();
+
+      if (!validBooleanValues.includes(value)) {
+        if (columnValid === true) columnStat.invalid_records++;
+
+        columnValid = false;
+        rowValid = false;
+
+        columnStat.datatype_error_count++;
+
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Pattern Error",
+          error_description: `${strValue} is not a valid boolean value`,
+        });
+      }
+    }
     // DUPLICATE
     if (rule.data_redundant_threshold && rule.redundantCounter) {
       const valueKey =
@@ -343,12 +526,6 @@ export const validateRow = (
         error_description: `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
       });
     }
-    console.log(columnName);
-    if (columnName == "Id") {
-      console.log("+++++++++++++++");
-      console.log(rule.not_match_found_normalized);
-    }
-
     if (
       rule.not_match_found_normalized?.length &&
       rule.not_match_found_normalized.some((word) =>
@@ -368,7 +545,6 @@ export const validateRow = (
       });
     }
 
-    //if (columnName == "Id") console.log(columnValid + "=++==" + strValue);
     if (columnValid && strValue !== "") {
       columnStat.valid_records++;
     }

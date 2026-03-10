@@ -33,13 +33,13 @@ const setExtendedTimeout = (
   res: Response,
   next: NextFunction,
 ) => {
-  // Set to 30 minutes (1800000ms)
-  req.setTimeout(30 * 60 * 1000);
-  res.setTimeout(30 * 60 * 1000);
+  const timeout = 30 * 60 * 1000;
 
-  // Also disable socket timeouts
-  (req.socket as any)?.setTimeout(30 * 60 * 1000);
-  (res.socket as any)?.setTimeout(30 * 60 * 1000);
+  req.setTimeout(timeout);
+  res.setTimeout(timeout);
+
+  if (req.socket) req.socket.setTimeout(timeout);
+  if (res.socket) res.socket.setTimeout(timeout);
 
   next();
 };
@@ -52,8 +52,5 @@ importedFileRouter.post(
   upload.single("file"),
   addImportedFile,
 );
-
-// importedFileRouter.get('/', authentication, importedFileController.getImportedFiles)
-// importedFileRouter.get('/:id', authentication, validateId, importedFileController.getImportedFile)
 
 export default importedFileRouter;

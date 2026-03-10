@@ -5,111 +5,21 @@ import { ColumnRule } from "../interface/importedFile.interface";
 import {
   validateRow,
   buildDateRegex,
+  //  generateFileName,
+  getCellValue,
+  prepareColumnRules,
 } from "../validations/user.importedFile.validations";
-const generateFileName = () => {
-  const now = new Date();
-
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
-  const yyyy = now.getFullYear();
-
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mi = String(now.getMinutes()).padStart(2, "0");
-  const ss = String(now.getSeconds()).padStart(2, "0");
-
-  return `data_${mm}${dd}${yyyy}${hh}${mi}${ss}.ndjson`;
-};
 
 export const parseExcelFileStream = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
 ) => {
-  const fileName = generateFileName();
-  const excelDateToJSDate = (serial: number) => {
-    const utc_days = Math.floor(serial - 25569);
-    const utc_value = utc_days * 86400;
-    const date = new Date(utc_value * 1000);
-    return date;
-  };
-
-  const formatDate = (date: Date) => {
-    const d = String(date.getDate()).padStart(2, "0");
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const y = date.getFullYear();
-    return `${d}-${m}-${y}`;
-  };
-  const getCellValue = (cell: any): string => {
-    if (cell === null || cell === undefined) return "";
-
-    // Excel date number
-    if (typeof cell === "number" && cell > 20000 && cell < 60000) {
-      const jsDate = excelDateToJSDate(cell);
-      return formatDate(jsDate);
-    }
-
-    if (typeof cell === "object") {
-      if (cell.richText) {
-        return cell.richText
-          .map((t: any) => t.text)
-          .join("")
-          .trim();
-      }
-
-      if (cell.text) {
-        return String(cell.text).trim();
-      }
-
-      if (cell.result) {
-        return String(cell.result).trim();
-      }
-    }
-
-    return String(cell).trim();
-  };
+  //const fileName = generateFileName();
 
   const ruleMap: Record<string, ColumnRule> = columnConfig;
 
-  for (const rule of Object.values(ruleMap)) {
-    if (rule.fixed_header?.length) {
-      rule.fixed_header_set = new Set(
-        rule.fixed_header.map((v: string) => v.trim().toLowerCase()),
-      );
-    }
-  }
+  prepareColumnRules(ruleMap);
 
-  for (const rule of Object.values(ruleMap)) {
-    if (rule.cell_start_with?.length) {
-      rule.cell_start_with_normalized = rule.cell_start_with.map((v) =>
-        String(v).trim().toLowerCase(),
-      );
-    }
-  }
-  for (const rule of Object.values(ruleMap)) {
-    if (rule.cell_end_with?.length) {
-      rule.cell_end_with_normalized = rule.cell_end_with.map((v) =>
-        String(v).trim().toLowerCase(),
-      );
-    }
-  }
-
-  for (const rule of Object.values(ruleMap)) {
-    if (rule.not_match_found?.length) {
-      rule.not_match_found_normalized = rule.not_match_found.map((w: string) =>
-        w.trim().toLowerCase(),
-      );
-    }
-  }
-  for (const rule of Object.values(ruleMap)) {
-    if (rule.data_redundant_threshold) {
-      rule.redundantCounter = new Map<string, number>();
-    }
-  }
-
-  for (const rule of Object.values(ruleMap)) {
-    if (rule.data_type === "date" && rule.date_format) {
-      rule.dateRegex = buildDateRegex(rule.date_format);
-    }
-  }
   const duplicateTracker: Record<string, Set<any>> = {};
 
   Object.entries(columnConfig).forEach(([colName, col]) => {
@@ -195,6 +105,6 @@ export const parseExcelFileStream = async (
     valid_rows,
     invalid_rows,
     column_wise_stats: columnStats,
-    fileName,
+    //fileName,
   };
 };
