@@ -37,11 +37,9 @@ export const validateRow = (
   duplicateTracker: Record<string, Set<any>>,
 ) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
   let rowValid = true;
 
   for (const columnName of headers) {
-    let invalid_set = 0;
     const rule = ruleMap[columnName];
     if (!rule) continue;
 
@@ -99,7 +97,6 @@ export const validateRow = (
       if (!regex.test(strValue)) {
         columnStat.datatype_error_count++;
         if (columnValid == true) columnStat.invalid_records++;
-        columnStat.datatype_error_count++;
         columnValid = false;
         rowValid = false;
 
@@ -303,6 +300,68 @@ export const validateRow = (
     //if (columnName == "Id") console.log(columnValid + "=++==" + strValue);
     if (columnValid && strValue !== "") {
       columnStat.valid_records++;
+    }
+  }
+
+  /*
+  =========================
+  DEPENDENCY VALIDATION
+  =========================
+  */
+
+  for (const columnName of headers) {
+    const rule = ruleMap[columnName];
+    if (!rule?.dependency) continue;
+
+    const dependencyEntries = Object.entries(rule.dependency);
+    console.log(dependencyEntries);
+    for (let i = 0; i < dependencyEntries.length - 1; i++) {
+      const [currentKey, currentCondition] = dependencyEntries[i];
+      const [nextKey, nextCondition] = dependencyEntries[i + 1];
+
+      const currentValue = String(rowData[currentKey] ?? "").trim();
+      const nextColumns = nextKey.split(",");
+
+      let conditionMatched = false;
+
+      if (currentCondition === true) {
+        conditionMatched = currentValue !== "";
+      } else {
+        conditionMatched = String(currentValue) === String(currentCondition);
+      }
+
+      if (!conditionMatched) break;
+
+      for (const col of nextColumns) {
+        const value = String(rowData[col] ?? "").trim();
+        const columnStat = columnStats[col];
+        if (!columnStat) continue;
+
+        let valid = true;
+
+        if (nextCondition === true) {
+          valid = value !== "";
+        } else {
+          valid = String(value) === String(nextCondition);
+        }
+
+        if (!valid) {
+          rowValid = false;
+
+          columnStat.invalid_records++;
+
+          if (columnStat.error_msg.length < 50) {
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: col,
+              error_type: "Dependency Error",
+              error_description: `${col} must be ${
+                nextCondition === true ? "not empty" : nextCondition
+              } because ${currentKey} is ${currentCondition}`,
+            });
+          }
+        }
+      }
     }
   }
 

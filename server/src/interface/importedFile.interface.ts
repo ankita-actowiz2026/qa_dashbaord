@@ -15,6 +15,16 @@ export interface IRuleDetail {
   num_alphaNum_alpha: string;
 }
 
+//  "has_empty_error_count":
+//   "length_validation_error_count":"
+//   "cell_contains_error_count"	:
+//   "dependant_header_error_count":
+//   "data_redundant_error_count":"",
+//   "fixed_header_error_count":
+//   "data_format_eror_count"
+//   "cell_value_start_with_error_count":
+//   "cell_value_end_with_error_count":
+//   "not_match_found_error_count"
 export default interface IImportedFile {
   user_id: mongoose.Types.ObjectId;
   file_name: string;
@@ -26,11 +36,10 @@ export default interface IImportedFile {
   datatype_error_count: number;
   junk_character_count: number;
   error_msg: IErrorDetail[];
-  rules: IRuleDetail[];  
+  rules: IRuleDetail[];
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 export interface GetImportedFilesQuery {
   user_id?: mongoose.Types.ObjectId;
@@ -38,15 +47,41 @@ export interface GetImportedFilesQuery {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
-export interface  SummaryReportParams {
-  user_id?: string
+export interface SummaryReportParams {
+  user_id?: string;
 }
 export interface SummaryReportQuery {
-  user_id?: string
-  page?: string
-  limit?: string
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
+  user_id?: string;
+  page?: string;
+  limit?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+export interface ColumnRule {
+  name: string;
+  data_type: "string" | "integer" | "number" | "boolean" | "date" | "email";
+  has_empty?: boolean;
+  data_redundant_value?: string | null;
+  data_redundant_threshold?: number;
+  length_validation_type?: "fixed" | "variable";
+  min_length?: number | null;
+  max_length?: number | null;
+  max_date?: string | null;
+  min_date?: string | null;
+  date_format?: string;
+  dateRegex?: RegExp;
+  cell_contains: boolean;
+  cell_contains_value: string;
+  not_match_found?: string[];
+  fixed_header?: string[];
+  cell_start_with?: string[];
+  cell_end_with?: string[];
+  dependency?: Record<string, any>;
+  fixed_header_set?: Set<string>; //for faster speed validation of predefined values
+  cell_start_with_normalized?: string[]; //for faster speed validation of start_with values
+  cell_end_with_normalized?: string[]; //for faster speed validation of end_with values
+  not_match_found_normalized?: string[]; //for faster speed validation of blocked words
+  redundantCounter?: Map<string, number>;
 }

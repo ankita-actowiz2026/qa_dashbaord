@@ -120,9 +120,10 @@ export const parseExcelFileStream = async (
       const values = row.values as any[];
       // HEADER
       if (!headerInitialized) {
-        headers = values.slice(1).map((h) => getCellValue(h));
+        headers = values.slice(1).map((h) => String(getCellValue(h)).trim());
         headerInitialized = true;
         headers.forEach((header) => {
+          if (!header || typeof header !== "string") return;
           columnStats[header] = {
             total_records: 0,
             valid_records: 0,
