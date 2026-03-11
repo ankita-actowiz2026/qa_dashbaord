@@ -170,10 +170,9 @@ export const validateRow = (
   headers: string[],
   ruleMap: Record<string, ColumnRule>,
   columnStats: any,
-  duplicateTracker: Record<string, Set<any>>,
-  totalsSheet: any,
   errorSheet: any,
 ) => {
+  const debug = 0;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const validBooleanValues = ["true", "false", "1", "0", "yes", "no", "y", "n"];
   let rowValid = true;
@@ -200,13 +199,13 @@ export const validateRow = (
 
       columnValid = false;
       rowValid = false;
-
-      // columnStat.error_msg.push({
-      //   row: rowNumber,
-      //   column: columnName,
-      //   error_type: "Missing Required",
-      //   error_description: `${columnName} is mandatory`,
-      // });
+      if (debug == 1)
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Missing Required",
+          error_description: `${columnName} is mandatory`,
+        });
 
       errorSheet
         .addRow([
@@ -232,16 +231,17 @@ export const validateRow = (
           .addRow([
             rowNumber,
             columnName,
-            "Pattern Error",
+            "Datatype Error",
             `${strValue} does not match email format`,
           ])
           .commit();
-        // columnStat.error_msg.push({
-        //   row: rowNumber,
-        //   column: columnName,
-        //   error_type: "Pattern Error",
-        //   error_description: `${strValue} does not match email format`,
-        // });
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Datatype Error",
+            error_description: `${strValue} does not match email format`,
+          });
       }
     } else if (
       rule.data_type === "integer" &&
@@ -262,31 +262,33 @@ export const validateRow = (
           .addRow([
             rowNumber,
             columnName,
-            "Pattern Error",
+            "Datatype Error",
             `${strValue} is not a valid integer`,
           ])
           .commit();
-        // columnStat.error_msg.push({
-        //   row: rowNumber,
-        //   column: columnName,
-        //   error_type: "Pattern Error",
-        //   error_description: `${strValue} is not a valid integer`,
-        // });
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Datatype Error",
+            error_description: `${strValue} is not a valid integer`,
+          });
       }
     } else if (rule.cell_contains && rule.cell_contains_value) {
       const regex = new RegExp(rule.cell_contains_value, "u");
 
       if (!regex.test(strValue)) {
-        columnStat.datatype_error_count++;
+        columnStat.pattern_error_count++;
         if (columnValid == true) columnStat.invalid_records++;
         columnValid = false;
         rowValid = false;
-        // columnStat.error_msg.push({
-        //   row: rowNumber,
-        //   column: columnName,
-        //   error_type: "Pattern Error",
-        //   error_description: `${strValue} does not match required format`,
-        // });
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Pattern Error",
+            error_description: `${strValue} does not match required format`,
+          });
         errorSheet
           .addRow([
             rowNumber,
@@ -317,12 +319,13 @@ export const validateRow = (
               `${columnName} must be >= ${rule.min_length}`,
             ])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: columnName,
-          //   error_type: "Range Error",
-          //   error_description: `${columnName} must be >= ${rule.min_length}`,
-          // });
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Range Error",
+              error_description: `${columnName} must be >= ${rule.min_length}`,
+            });
         }
 
         if (rule.max_length !== null && numValue > rule.max_length) {
@@ -339,12 +342,13 @@ export const validateRow = (
               `${columnName} must be <= ${rule.max_length}`,
             ])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: columnName,
-          //   error_type: "Range Error",
-          //   error_description: `${columnName} must be <= ${rule.max_length}`,
-          // });
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Range Error",
+              error_description: `${columnName} must be <= ${rule.max_length}`,
+            });
         }
       } else if (rule.length_validation_type === "fixed") {
         const digitLength = strValue.toString().length;
@@ -363,12 +367,13 @@ export const validateRow = (
               `${columnName} must be exactly ${rule.min_length} digits`,
             ])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: columnName,
-          //   error_type: "Length Error",
-          //   error_description: `${columnName} must be exactly ${rule.min_length} digits`,
-          // });
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Length Error",
+              error_description: `${columnName} must be exactly ${rule.min_length} digits`,
+            });
         }
       }
     } else if (rule.data_type === "string" || rule.data_type === "email") {
@@ -391,12 +396,13 @@ export const validateRow = (
               `${columnName} must be at least ${rule.min_length} characters`,
             ])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: columnName,
-          //   error_type: "Length Error",
-          //   error_description: `${columnName} must be at least ${rule.min_length} characters`,
-          // });
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Length Error",
+              error_description: `${columnName} must be at least ${rule.min_length} characters`,
+            });
         }
 
         if (rule.max_length !== null && strLen > rule.max_length) {
@@ -414,12 +420,13 @@ export const validateRow = (
               `${columnName} must be <= ${rule.max_length} characters`,
             ])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: columnName,
-          //   error_type: "Length Error",
-          //   error_description: `${columnName} must be <= ${rule.max_length} characters`,
-          // });
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Length Error",
+              error_description: `${columnName} must be <= ${rule.max_length} characters`,
+            });
         }
       }
 
@@ -440,12 +447,13 @@ export const validateRow = (
               `${columnName} must be exactly ${rule.min_length} characters`,
             ])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: columnName,
-          //   error_type: "Length Error",
-          //   error_description: `${columnName} must be exactly ${rule.min_length} characters`,
-          // });
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Length Error",
+              error_description: `${columnName} must be exactly ${rule.min_length} characters`,
+            });
         }
       }
     }
@@ -464,55 +472,58 @@ export const validateRow = (
           .addRow([
             rowNumber,
             columnName,
-            "Pattern Error",
+            "Datatype Error",
             `${strValue} is not a valid boolean value`,
           ])
           .commit();
-        // columnStat.error_msg.push({
-        //   row: rowNumber,
-        //   column: columnName,
-        //   error_type: "Pattern Error",
-        //   error_description: `${strValue} is not a valid boolean value`,
-        // });
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Datatype Error",
+            error_description: `${strValue} is not a valid boolean value`,
+          });
       }
     }
     // DUPLICATE
     if (rule.data_redundant_threshold && rule.redundantCounter) {
-      const valueKey =
-        rule.data_redundant_value !== null
-          ? rule.data_redundant_value
-          : strValue;
+      const threshold = Number(rule.data_redundant_threshold);
 
-      // Only check specific value if defined
-      if (
-        rule.data_redundant_value === null ||
-        strValue === rule.data_redundant_value
-      ) {
-        const currentCount = rule.redundantCounter.get(valueKey) || 0;
-        const newCount = currentCount + 1;
+      // Determine if we should track this value
+      const shouldTrack =
+        rule.data_redundant_value === "" ||
+        strValue === rule.data_redundant_value;
 
+      if (shouldTrack) {
+        const valueKey =
+          rule.data_redundant_value !== ""
+            ? rule.data_redundant_value
+            : strValue;
+
+        const newCount = (rule.redundantCounter.get(valueKey) || 0) + 1;
         rule.redundantCounter.set(valueKey, newCount);
 
-        if (newCount > rule.data_redundant_threshold) {
+        if (newCount > threshold) {
           columnStat.redundant_value++;
           columnStat.invalid_records++;
 
           columnValid = false;
           rowValid = false;
+
+          const errorMsg = `${strValue} exceeded allowed repetition (${threshold})`;
+
           errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Redundant Value Error",
-              `${strValue} exceeded allowed repetition (${rule.data_redundant_threshold})`,
-            ])
+            .addRow([rowNumber, columnName, "Redundant Value Error", errorMsg])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: columnName,
-          //   error_type: "Redundant Value Error",
-          //   error_description: `${strValue} exceeded allowed repetition (${rule.data_redundant_threshold})`,
-          // });
+
+          if (debug == 1) {
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Redundant Value Error",
+              error_description: errorMsg,
+            });
+          }
         }
       }
     }
@@ -520,7 +531,6 @@ export const validateRow = (
     //if (rule.data_type === "date" && rule.dateRegex && !strValue) {
     if (rule.data_type === "date" && rule.dateRegex) {
       if (!rule.dateRegex.test(strValue)) {
-        //columnStat.datatype_error_count++;
         columnStat.invalid_records++;
 
         columnValid = false;
@@ -534,12 +544,13 @@ export const validateRow = (
             `${strValue} does not match format ${rule.date_format}`,
           ])
           .commit();
-        // columnStat.error_msg.push({
-        //   row: rowNumber,
-        //   column: columnName,
-        //   error_type: "Date Format Error",
-        //   error_description: `${strValue} does not match format ${rule.date_format}`,
-        // });
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Date Format Error",
+            error_description: `${strValue} does not match format ${rule.date_format}`,
+          });
       } else {
         // RANGE VALIDATION
         if (rule.min_length || rule.max_length) {
@@ -569,12 +580,13 @@ export const validateRow = (
                   `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
                 ])
                 .commit();
-              // columnStat.error_msg.push({
-              //   row: rowNumber,
-              //   column: columnName,
-              //   error_type: "Range Error",
-              //   error_description: `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
-              // });
+              if (debug == 1)
+                columnStat.error_msg.push({
+                  row: rowNumber,
+                  column: columnName,
+                  error_type: "Range Error",
+                  error_description: `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
+                });
             }
           }
         }
@@ -598,12 +610,13 @@ export const validateRow = (
           `${strValue} not allowed`,
         ])
         .commit();
-      // columnStat.error_msg.push({
-      //   row: rowNumber,
-      //   column: columnName,
-      //   error_type: "Fixed Header Value Error",
-      //   error_description: `${strValue} not allowed`,
-      // });
+      if (debug == 1)
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Fixed Header Value Error",
+          error_description: `${strValue} not allowed`,
+        });
     }
     // START WITH
     const normalizedValue = String(strValue ?? "")
@@ -627,12 +640,13 @@ export const validateRow = (
           `${strValue} must start with ${rule.cell_start_with.join(", ")}`,
         ])
         .commit();
-      // columnStat.error_msg.push({
-      //   row: rowNumber,
-      //   column: columnName,
-      //   error_type: "Start With Error",
-      //   error_description: `${strValue} must start with ${rule.cell_start_with.join(", ")}`,
-      // });
+      if (debug == 1)
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Start With Error",
+          error_description: `${strValue} must start with ${rule.cell_start_with.join(", ")}`,
+        });
     }
 
     //end with
@@ -655,12 +669,13 @@ export const validateRow = (
           `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
         ])
         .commit();
-      // columnStat.error_msg.push({
-      //   row: rowNumber,
-      //   column: columnName,
-      //   error_type: "End With Error",
-      //   error_description: `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
-      // });
+      if (debug == 1)
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "End With Error",
+          error_description: `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
+        });
     }
     if (
       rule.not_match_found_normalized?.length &&
@@ -681,12 +696,13 @@ export const validateRow = (
           `${strValue} contains blocked word`,
         ])
         .commit();
-      // columnStat.error_msg.push({
-      //   row: rowNumber,
-      //   column: columnName,
-      //   error_type: "Blocked Word",
-      //   error_description: `${strValue} contains blocked word`,
-      // });
+      if (debug == 1)
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Blocked Word",
+          error_description: `${strValue} contains blocked word`,
+        });
     }
 
     if (columnValid && strValue !== "") {
@@ -749,14 +765,15 @@ export const validateRow = (
               } because ${currentKey} is ${currentCondition}`,
             ])
             .commit();
-          // columnStat.error_msg.push({
-          //   row: rowNumber,
-          //   column: col,
-          //   error_type: "Dependency Error",
-          //   error_description: `${col} must be ${
-          //     nextCondition === true ? "not empty" : nextCondition
-          //   } because ${currentKey} is ${currentCondition}`,
-          // });
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: col,
+              error_type: "Dependency Error",
+              error_description: `${col} must be ${
+                nextCondition === true ? "not empty" : nextCondition
+              } because ${currentKey} is ${currentCondition}`,
+            });
         }
       }
     }

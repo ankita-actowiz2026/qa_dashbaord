@@ -10,20 +10,11 @@ import {
 export const parseExcelFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
-  totalsSheet: ExcelJS.Worksheet,
   errorSheet: ExcelJS.Worksheet,
 ) => {
   const ruleMap: Record<string, ColumnRule> = columnConfig;
 
   prepareColumnRules(ruleMap);
-
-  const duplicateTracker: Record<string, Set<any>> = {};
-
-  Object.entries(columnConfig).forEach(([colName, col]) => {
-    if (!col.is_allow_duplicate) {
-      duplicateTracker[colName] = new Set();
-    }
-  });
 
   let headers: string[] = [];
   let headerInitialized = false;
@@ -85,8 +76,6 @@ export const parseExcelFile = async (
         headers,
         ruleMap,
         columnStats,
-        duplicateTracker,
-        totalsSheet,
         errorSheet,
       );
 

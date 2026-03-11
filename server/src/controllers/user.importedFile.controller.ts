@@ -33,7 +33,7 @@ export const addImportedFile = async (
 
   //create csv file
   const errorFilePath = generateFileName("validation_result", "xlsx");
-  const outputPath = path.join("src/validation_result", errorFilePath);
+  const outputPath = path.join("validation_result", errorFilePath);
   const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
     filename: outputPath,
     useStyles: true,
@@ -71,36 +71,16 @@ export const addImportedFile = async (
     };
     switch (ext) {
       case ".json":
-        result = await parseJsonFile(
-          filePath,
-          columnConfig,
-          totalsSheet,
-          errorSheet,
-        );
+        result = await parseJsonFile(filePath, columnConfig, errorSheet);
         break;
       case ".xls":
-        result = await parseXlsFile(
-          filePath,
-          columnConfig,
-          totalsSheet,
-          errorSheet,
-        );
+        result = await parseXlsFile(filePath, columnConfig, errorSheet);
         break;
       case ".csv":
-        result = await parseCsvFile(
-          filePath,
-          columnConfig,
-          totalsSheet,
-          errorSheet,
-        );
+        result = await parseCsvFile(filePath, columnConfig, errorSheet);
         break;
       case ".xlsx":
-        result = await parseExcelFile(
-          filePath,
-          columnConfig,
-          totalsSheet,
-          errorSheet,
-        );
+        result = await parseExcelFile(filePath, columnConfig, errorSheet);
         break;
       default:
         throw new Error("Unsupported file type");
@@ -131,10 +111,11 @@ export const addImportedFile = async (
 
     await workbook.commit();
     //storing in excel end
-
+    const publicUrl =
+      `${process.env.API_URL}/` + outputPath.replace(/\\/g, "/");
     res.status(200).json({
       success: true,
-      result_file: outputPath,
+      result_file: publicUrl,
       data: result,
     });
   } catch (error) {

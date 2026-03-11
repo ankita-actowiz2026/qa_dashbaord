@@ -42,6 +42,15 @@ app.use("/api/report", reportRouter);
 app.use("/api", uploadRoutes);
 
 app.use(
+  "/validation_result",
+  (req, res, next) => {
+    res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "*");
+    res.header("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(path.join(__dirname, "..", "validation_result")),
+);
+app.use(
   "/uploads",
   (req, res, next) => {
     res.header("Access-Control-Allow-Origin", process.env.FRONTEND_URL || "*");
