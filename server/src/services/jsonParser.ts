@@ -14,6 +14,8 @@ import fs from "fs";
 export const parseJsonFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
+  totalsSheet: ExcelJS.Worksheet,
+  errorSheet: ExcelJS.Worksheet,
 ) => {
   const ruleMap = columnConfig;
 
@@ -77,6 +79,8 @@ export const parseJsonFile = async (
       ruleMap,
       columnStats,
       duplicateTracker,
+      totalsSheet,
+      errorSheet,
     );
 
     if (rowValid) valid_rows++;

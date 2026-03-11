@@ -1,4 +1,5 @@
 import XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 import { ColumnRule } from "../interface/importedFile.interface";
 import {
@@ -12,6 +13,8 @@ import {
 export const parseXlsFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
+  totalsSheet: ExcelJS.Worksheet,
+  errorSheet: ExcelJS.Worksheet,
 ) => {
   const ruleMap: Record<string, ColumnRule> = columnConfig;
 
@@ -92,6 +95,8 @@ export const parseXlsFile = async (
       ruleMap,
       columnStats,
       duplicateTracker,
+      totalsSheet,
+      errorSheet,
     );
 
     if (rowValid) valid_rows++;

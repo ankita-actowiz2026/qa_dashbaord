@@ -13,7 +13,8 @@ import {
 export const parseExcelFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
-  errorFile: string,
+  totalsSheet: ExcelJS.Worksheet,
+  errorSheet: ExcelJS.Worksheet,
 ) => {
   //const fileName = generateFileName();
 
@@ -87,6 +88,8 @@ export const parseExcelFile = async (
         ruleMap,
         columnStats,
         duplicateTracker,
+        totalsSheet,
+        errorSheet,
       );
 
       if (rowValid) {

@@ -1,5 +1,6 @@
 import fs from "fs";
 import readline from "readline";
+import ExcelJS from "exceljs";
 
 import { ColumnRule } from "../interface/importedFile.interface";
 import {
@@ -13,6 +14,8 @@ import {
 export const parseCsvFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
+  totalsSheet: ExcelJS.Worksheet,
+  errorSheet: ExcelJS.Worksheet,
 ) => {
   //const fileName = generateFileName();
 
@@ -96,6 +99,8 @@ export const parseCsvFile = async (
       ruleMap,
       columnStats,
       duplicateTracker,
+      totalsSheet,
+      errorSheet,
     );
 
     if (rowValid) {
