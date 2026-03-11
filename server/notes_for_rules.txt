@@ -1,0 +1,19 @@
+1)
+date supported format
+%d-%m-%Y
+%m-%d-%Y
+%Y-%m-%d
+
+%d-%m-%Y h:i:s am/pm
+%m-%d-%Y h:i:s am/pm
+%Y-%m-%d h:i:s am/pm
+
+%d-%m-%Y H:i:s
+%m-%d-%Y H:i:s
+%Y-%m-%d H:i:s
+
+if(type=="integer, number, boolean, email) then 
+{
+    "cell_contains": fase,
+    "cell_contains_value": "",
+}

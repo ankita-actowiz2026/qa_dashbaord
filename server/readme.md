@@ -32,19 +32,6 @@ maxAge: 24 * 60 \_ 60 \* 1000,
 
 {"Id":{"data*type":"integer","has_empty":false,"length_validation_type":"variable","min_length":1,"max_length":15,"cell_contains":true,"cell_contains_value":"^[0-9]*$","data_redundant_value":"13","data_redundant_threshold":2,"fixed_header":[],"date_format":"","cell_start_with":[1,2,3,4,5,6,7,8,9],"cell_end_with":[1,2,3,4,5,6,7,8,9],"not_match_found":["101","102"]},"URL":{"data_type":"string","has_empty":false,"length_validation_type":"fixed","min_length":62,"data_redundant_value":"https://www.didi-food.com/es-MX/food/store/5764607918499169740","data_redundant_threshold":10,"fixed_header":[],"cell_start_with":["https://"],"cell_end_with":[],"not_match_found":["gmail","yahoo"]},"create_at":{"data_type":"date","has_empty":false,"length_validation_type":"variable","min_length":"01-01-2026","max_length":"01-03-2026","data_redundant_value":"14-03-2026","data_redundant_threshold":1,"date_format":"%d-%m-%Y"},"Store_Type":{"data_type":"string","has_empty":false,"length_validation_type":"variable","min_length":1,"max_length":1000,"cell_contains":false,"cell_contains_value":"","fixed_header":["Restaurants","Hotel"],"not_match_found":[]},"RecId":{"data_type":"string","has_empty":true,"length_validation_type":"variable","min_length":1,"max_length":1000,"cell_contains":true,"cell_contains_value":"^[0-9a-zA-z]_$","fixed_header":["0a9d38186990cd56a81d52cb1f5cdc01","0a9d38186990cd56a81d52cb1f5cdc02","0a9d38186990cd56a81d52cb1f5cdc03"],"date_format":"","cell_start_with":[],"cell_end_with":[],"not_match_found":[]},"BrandId":{"data_type":"integer","has_empty":false,"length_validation_type":"variable","min_length":0,"max_length":1000,"cell_contains":true,"cell_contains_value":"^[0-9]\*$","data_redundant_value":"","data_redundant_threshold":"","fixed_header":["0"],"cell_start_with":[],"cell_end_with":[],"not_match_found":[]}}
 
-date supported format
-%d-%m-%Y
-%m-%d-%Y
-%Y-%m-%d
-
-%d-%m-%Y h:i:s am/pm
-%m-%d-%Y h:i:s am/pm
-%Y-%m-%d h:i:s am/pm
-
-%d-%m-%Y H:i:s
-%m-%d-%Y H:i:s
-%Y-%m-%d H:i:s
-
 1. array
 2. speacial char
    3)time
