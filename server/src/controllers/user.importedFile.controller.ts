@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import path from "path";
-import { parseExcelFile } from "../services/excelParser";
+import { parseExcelFile } from "../services/parsing/xlsxParser";
 import fs from "fs";
 import ExcelJS from "exceljs";
 
 import { ColumnRule } from "../interface/importedFile.interface";
-import { parseCsvFile } from "../services/csvParser";
-import { parseXlsFile } from "../services/xlsParser";
-import { parseJsonFile } from "../services/jsonParser";
+import { parseCsvFile } from "../services/parsing/csvParser";
+import { parseXlsFile } from "../services/parsing/xlsParser";
+import { parseJsonFile } from "../services/parsing/jsonParser";
 /**
  * Add/Upload Imported File
  */
@@ -62,7 +62,6 @@ export const addImportedFile = async (
 
     filePath = path.resolve(req.file.path);
     const ext = path.extname(filePath).toLowerCase();
-    console.log(filePath);
     const columnConfig: Record<string, ColumnRule> = JSON.parse(
       req.body.columnConfig,
     );
@@ -133,9 +132,9 @@ export const addImportedFile = async (
     await workbook.commit();
     //storing in excel end
 
-    console.log(result);
     res.status(200).json({
       success: true,
+      result_file: outputPath,
       data: result,
     });
   } catch (error) {

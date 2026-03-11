@@ -1,33 +1,30 @@
+import XLSX from "xlsx";
 import ExcelJS from "exceljs";
 
-import { ColumnRule } from "../interface/importedFile.interface";
+import { ColumnRule } from "../../interface/importedFile.interface";
 import {
   validateRow,
-  buildDateRegex,
-  //  generateFileName,
   getCellValue,
   prepareColumnRules,
-} from "../validations/user.importedFile.validations";
+} from "../../validations/user.importedFile.validations";
 
-import fs from "fs";
-
-export const parseJsonFile = async (
+export const parseXlsFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
   totalsSheet: ExcelJS.Worksheet,
   errorSheet: ExcelJS.Worksheet,
 ) => {
-  const ruleMap = columnConfig;
+  const ruleMap: Record<string, ColumnRule> = columnConfig;
 
   prepareColumnRules(ruleMap);
 
   const duplicateTracker: Record<string, Set<any>> = {};
 
-  for (const [colName, col] of Object.entries(ruleMap)) {
+  Object.entries(columnConfig).forEach(([colName, col]) => {
     if (!col.is_allow_duplicate) {
       duplicateTracker[colName] = new Set();
     }
-  }
+  });
 
   let total_rows = 0;
   let valid_rows = 0;
@@ -35,19 +32,30 @@ export const parseJsonFile = async (
 
   const columnStats: Record<string, any> = {};
 
-  // 📌 Read JSON file
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  const jsonData = JSON.parse(fileContent);
+  // Read workbook
+  const workbook = XLSX.readFile(filePath, { cellDates: true });
 
-  if (!Array.isArray(jsonData)) {
-    throw new Error("JSON file must contain an array of objects");
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+
+  // Convert sheet to rows
+  const rows: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+  if (!rows.length) {
+    return {
+      total_rows: 0,
+      valid_rows: 0,
+      invalid_rows: 0,
+      column_wise_stats: {},
+    };
   }
 
-  // 📌 Get headers from first row
-  const headers = Object.keys(jsonData[0]);
+  const headers: string[] = rows[0].map((h) => String(getCellValue(h)).trim());
 
   // Initialize column stats
-  for (const header of headers) {
+  headers.forEach((header) => {
+    if (!header) return;
+
     columnStats[header] = {
       total_records: 0,
       valid_records: 0,
@@ -62,15 +70,21 @@ export const parseJsonFile = async (
       blocked_word_error_count: 0,
       error_msg: [],
     };
-  }
+  });
 
-  // 📌 Process rows
-  for (let i = 0; i < jsonData.length; i++) {
-    const rowData = jsonData[i];
-
+  // Process rows
+  for (let i = 1; i < rows.length; i++) {
     total_rows++;
 
-    const rowNumber = i + 2; // similar to Excel row numbering
+    const rowValues = rows[i];
+    const rowNumber = i + 1;
+
+    const rowData: any = {};
+
+    for (let j = 0; j < headers.length; j++) {
+      const columnName = headers[j];
+      rowData[columnName] = getCellValue(rowValues?.[j]);
+    }
 
     const rowValid = validateRow(
       rowData,

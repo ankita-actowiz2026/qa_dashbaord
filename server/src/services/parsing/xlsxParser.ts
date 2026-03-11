@@ -1,14 +1,11 @@
-import fs from "fs";
 import ExcelJS from "exceljs";
 
-import { ColumnRule } from "../interface/importedFile.interface";
+import { ColumnRule } from "../../interface/importedFile.interface";
 import {
   validateRow,
-  buildDateRegex,
-  //  generateFileName,
   getCellValue,
   prepareColumnRules,
-} from "../validations/user.importedFile.validations";
+} from "../../validations/user.importedFile.validations";
 
 export const parseExcelFile = async (
   filePath: string,
@@ -16,8 +13,6 @@ export const parseExcelFile = async (
   totalsSheet: ExcelJS.Worksheet,
   errorSheet: ExcelJS.Worksheet,
 ) => {
-  //const fileName = generateFileName();
-
   const ruleMap: Record<string, ColumnRule> = columnConfig;
 
   prepareColumnRules(ruleMap);
@@ -51,6 +46,7 @@ export const parseExcelFile = async (
       // HEADER
       if (!headerInitialized) {
         headers = values.slice(1).map((h) => String(getCellValue(h)).trim());
+
         headerInitialized = true;
         headers.forEach((header) => {
           if (!header || typeof header !== "string") return;
@@ -61,6 +57,7 @@ export const parseExcelFile = async (
             redundant_value: 0,
             missing_required_count: 0,
             datatype_error_count: 0,
+            pattern_error_count: 0,
             fixed_header_error_count: 0,
             date_format_error_count: 0,
             cell_start_with_end_with_error_count: 0,
@@ -75,7 +72,8 @@ export const parseExcelFile = async (
       total_rows++;
       const rowNumber = row.number;
       const rowData: any = {};
-      for (let i = 1; i <= headers.length; i++) {
+      const headerLength = headers.length;
+      for (let i = 1; i <= headerLength; i++) {
         const columnName = headers[i - 1];
         const value = values[i];
         rowData[columnName] = getCellValue(value);
@@ -109,6 +107,5 @@ export const parseExcelFile = async (
     valid_rows,
     invalid_rows,
     column_wise_stats: columnStats,
-    //fileName,
   };
 };

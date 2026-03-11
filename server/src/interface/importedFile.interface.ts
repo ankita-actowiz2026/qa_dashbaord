@@ -70,7 +70,7 @@ export interface ColumnRule {
   max_length?: number | null;
   max_date?: string | null;
   min_date?: string | null;
-  date_format?: string;
+  date_format?: Date;
   dateRegex?: RegExp;
   cell_contains: boolean;
   cell_contains_value: string;
