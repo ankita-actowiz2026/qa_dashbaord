@@ -4,6 +4,7 @@ import Post from "../models/importedFile.model";
 import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule } from "../interface/importedFile.interface";
+import { ErrorBuffer } from "../utils/errorBuffer";
 
 export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
@@ -170,9 +171,9 @@ export const validateRow = (
   headers: string[],
   ruleMap: Record<string, ColumnRule>,
   columnStats: any,
-  errorSheet: any,
+  errorBuffer: ErrorBuffer,
 ) => {
-  const debug = 1;
+  const debug = 0;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const validBooleanValues = ["true", "false", "1", "0", "yes", "no", "y", "n"];
   let rowValid = true;
@@ -207,14 +208,13 @@ export const validateRow = (
           error_description: `${columnName} is mandatory`,
         });
 
-      errorSheet
-        .addRow([
-          rowNumber,
-          columnName,
-          "Empty Data",
-          `${columnName} is mandatory`,
-        ])
-        .commit();
+      errorBuffer.add([
+        rowNumber,
+        columnName,
+        "Empty Data",
+        `${columnName} is mandatory`,
+      ]);
+
       continue;
     }
 
@@ -227,14 +227,13 @@ export const validateRow = (
 
         columnValid = false;
         rowValid = false;
-        errorSheet
-          .addRow([
-            rowNumber,
-            columnName,
-            "Datatype Error",
-            `${strValue} does not match email format`,
-          ])
-          .commit();
+        errorBuffer.add([
+          rowNumber,
+          columnName,
+          "Datatype Error",
+          `${strValue} does not match email format`,
+        ]);
+
         if (debug == 1)
           columnStat.error_msg.push({
             row: rowNumber,
@@ -258,14 +257,13 @@ export const validateRow = (
 
         columnStat.datatype_error_count++;
 
-        errorSheet
-          .addRow([
-            rowNumber,
-            columnName,
-            "Datatype Error",
-            `${strValue} is not a valid integer`,
-          ])
-          .commit();
+        errorBuffer.add([
+          rowNumber,
+          columnName,
+          "Datatype Error",
+          `${strValue} is not a valid integer`,
+        ]);
+
         if (debug == 1)
           columnStat.error_msg.push({
             row: rowNumber,
@@ -289,14 +287,12 @@ export const validateRow = (
             error_type: "Pattern Error",
             error_description: `${strValue} does not match required format`,
           });
-        errorSheet
-          .addRow([
-            rowNumber,
-            columnName,
-            "Pattern Error",
-            `${strValue} does not match required format`,
-          ])
-          .commit();
+        errorBuffer.add([
+          rowNumber,
+          columnName,
+          "Pattern Error",
+          `${strValue} does not match required format`,
+        ]);
       }
     }
 
@@ -311,14 +307,12 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
           columnStat.data_length_error_count++;
-          errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Data Length Error",
-              `${columnName} must be >= ${rule.min_length}`,
-            ])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Data Length Error",
+            `${columnName} must be >= ${rule.min_length}`,
+          ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
@@ -334,14 +328,12 @@ export const validateRow = (
           rowValid = false;
           columnStat.data_length_error_count++;
 
-          errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Data Length Error",
-              `${columnName} must be <= ${rule.max_length}`,
-            ])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Data Length Error",
+            `${columnName} must be <= ${rule.max_length}`,
+          ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
@@ -359,14 +351,12 @@ export const validateRow = (
           rowValid = false;
 
           columnStat.data_length_error_count++;
-          errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Data Length Error",
-              `${columnName} must be exactly ${rule.min_length} digits`,
-            ])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Data Length Error",
+            `${columnName} must be exactly ${rule.min_length} digits`,
+          ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
@@ -388,14 +378,12 @@ export const validateRow = (
           rowValid = false;
 
           columnStat.data_length_error_count++;
-          errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Length Error",
-              `${columnName} must be at least ${rule.min_length} characters`,
-            ])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Length Error",
+            `${columnName} must be at least ${rule.min_length} characters`,
+          ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
@@ -412,14 +400,12 @@ export const validateRow = (
           rowValid = false;
 
           columnStat.data_length_error_count++;
-          errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Data Length Error",
-              `${columnName} must be <= ${rule.max_length} characters`,
-            ])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Data Length Error",
+            `${columnName} must be <= ${rule.max_length} characters`,
+          ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
@@ -439,14 +425,12 @@ export const validateRow = (
           rowValid = false;
 
           columnStat.data_length_error_count++;
-          errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Data Length Error",
-              `${columnName} must be exactly ${rule.min_length} characters`,
-            ])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Data Length Error",
+            `${columnName} must be exactly ${rule.min_length} characters`,
+          ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
@@ -468,14 +452,12 @@ export const validateRow = (
         rowValid = false;
 
         columnStat.datatype_error_count++;
-        errorSheet
-          .addRow([
-            rowNumber,
-            columnName,
-            "Datatype Error",
-            `${strValue} is not a valid boolean value`,
-          ])
-          .commit();
+        errorBuffer.add([
+          rowNumber,
+          columnName,
+          "Datatype Error",
+          `${strValue} is not a valid boolean value`,
+        ]);
         if (debug == 1)
           columnStat.error_msg.push({
             row: rowNumber,
@@ -512,9 +494,12 @@ export const validateRow = (
 
           const errorMsg = `${strValue} exceeded allowed repetition (${threshold})`;
 
-          errorSheet
-            .addRow([rowNumber, columnName, "Redundant Value Error", errorMsg])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Redundant Value Error",
+            errorMsg,
+          ]);
 
           if (debug == 1) {
             columnStat.error_msg.push({
@@ -536,14 +521,12 @@ export const validateRow = (
         columnValid = false;
         rowValid = false;
         columnStat.date_format_error_count++;
-        errorSheet
-          .addRow([
-            rowNumber,
-            columnName,
-            "Date Format Error",
-            `${strValue} does not match format ${rule.date_format}`,
-          ])
-          .commit();
+        errorBuffer.add([
+          rowNumber,
+          columnName,
+          "Date Format Error",
+          `${strValue} does not match format ${rule.date_format}`,
+        ]);
         if (debug == 1)
           columnStat.error_msg.push({
             row: rowNumber,
@@ -572,14 +555,12 @@ export const validateRow = (
               columnStat.data_length_error_count++;
               columnValid = false;
               rowValid = false;
-              errorSheet
-                .addRow([
-                  rowNumber,
-                  columnName,
-                  "Data Length Error",
-                  `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
-                ])
-                .commit();
+              errorBuffer.add([
+                rowNumber,
+                columnName,
+                "Data Length Error",
+                `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
+              ]);
               if (debug == 1)
                 columnStat.error_msg.push({
                   row: rowNumber,
@@ -602,14 +583,12 @@ export const validateRow = (
       rowValid = false;
       columnStat.fixed_header_error_count++;
 
-      errorSheet
-        .addRow([
-          rowNumber,
-          columnName,
-          "Fixed Header Value Error",
-          `${strValue} not allowed`,
-        ])
-        .commit();
+      errorBuffer.add([
+        rowNumber,
+        columnName,
+        "Fixed Header Value Error",
+        `${strValue} not allowed`,
+      ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
@@ -632,14 +611,12 @@ export const validateRow = (
       columnValid = false;
       rowValid = false;
       columnStat.cell_start_with_end_with_error_count++;
-      errorSheet
-        .addRow([
-          rowNumber,
-          columnName,
-          "Start With Error",
-          `${strValue} must start with ${rule.cell_start_with.join(", ")}`,
-        ])
-        .commit();
+      errorBuffer.add([
+        rowNumber,
+        columnName,
+        "Start With Error",
+        `${strValue} must start with ${rule.cell_start_with.join(", ")}`,
+      ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
@@ -661,14 +638,12 @@ export const validateRow = (
       rowValid = false;
       columnStat.cell_start_with_end_with_error_count++;
 
-      errorSheet
-        .addRow([
-          rowNumber,
-          columnName,
-          "End With Error",
-          `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
-        ])
-        .commit();
+      errorBuffer.add([
+        rowNumber,
+        columnName,
+        "End With Error",
+        `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
+      ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
@@ -688,14 +663,12 @@ export const validateRow = (
       rowValid = false;
       columnStat.blocked_word_error_count++;
 
-      errorSheet
-        .addRow([
-          rowNumber,
-          columnName,
-          "Blocked Word",
-          `${strValue} contains blocked word`,
-        ])
-        .commit();
+      errorBuffer.add([
+        rowNumber,
+        columnName,
+        "Blocked Word",
+        `${strValue} contains blocked word`,
+      ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
@@ -755,16 +728,14 @@ export const validateRow = (
           rowValid = false;
 
           columnStat.invalid_records++;
-          errorSheet
-            .addRow([
-              rowNumber,
-              columnName,
-              "Dependency Error",
-              `${col} must be ${
-                nextCondition === true ? "not empty" : nextCondition
-              } because ${currentKey} is ${currentCondition}`,
-            ])
-            .commit();
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Dependency Error",
+            `${col} must be ${
+              nextCondition === true ? "not empty" : nextCondition
+            } because ${currentKey} is ${currentCondition}`,
+          ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
