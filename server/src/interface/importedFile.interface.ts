@@ -94,5 +94,6 @@ export interface ColumnStats {
   cell_start_with_end_with_error_count: number;
   length_validation_error_count: number;
   blocked_word_error_count: number;
+  dependancy_error_count: number;
   error_msg: string[];
 }

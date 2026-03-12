@@ -173,7 +173,7 @@ export const validateRow = (
   columnStats: any,
   errorBuffer: ErrorBuffer,
 ) => {
-  const debug = 0;
+  const debug = 1;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const validBooleanValues = ["true", "false", "1", "0", "yes", "no", "y", "n"];
   let rowValid = true;
@@ -191,12 +191,9 @@ export const validateRow = (
     }
     //has_empty
 
-    if (!rule.has_empty && !strValue) {
+    if (!rule.has_empty && strValue === "") {
       columnStat.empty_count++;
-      if (columnValid == true) {
-        //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
-        columnStat.invalid_records++;
-      }
+      if (columnValid) columnStat.invalid_records++; //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
 
       columnValid = false;
       rowValid = false;
@@ -218,12 +215,12 @@ export const validateRow = (
       continue;
     }
 
-    if (!strValue) continue;
+    if (strValue === "") continue;
     // EMAIL
     if (rule.data_type === "email") {
       if (!emailRegex.test(strValue)) {
         columnStat.datatype_error_count++;
-        if (columnValid == true) columnStat.invalid_records++;
+        if (columnValid) columnStat.invalid_records++;
 
         columnValid = false;
         rowValid = false;
@@ -277,7 +274,7 @@ export const validateRow = (
 
       if (!regex.test(strValue)) {
         columnStat.pattern_error_count++;
-        if (columnValid == true) columnStat.invalid_records++;
+        if (columnValid) columnStat.invalid_records++;
         columnValid = false;
         rowValid = false;
         if (debug == 1)
@@ -302,7 +299,7 @@ export const validateRow = (
       // Variable length validation (numeric range)
       if (rule.length_validation_type === "variable") {
         if (rule.min_length !== null && numValue < rule.min_length) {
-          if (columnValid == true) columnStat.invalid_records++;
+          if (columnValid) columnStat.invalid_records++;
 
           columnValid = false;
           rowValid = false;
@@ -323,7 +320,7 @@ export const validateRow = (
         }
 
         if (rule.max_length !== null && numValue > rule.max_length) {
-          if (columnValid == true) columnStat.invalid_records++;
+          if (columnValid) columnStat.invalid_records++;
           columnValid = false;
           rowValid = false;
           columnStat.data_length_error_count++;
@@ -346,7 +343,7 @@ export const validateRow = (
         const digitLength = strValue.toString().length;
 
         if (rule.min_length !== null && digitLength !== rule.min_length) {
-          if (columnValid == true) columnStat.invalid_records++;
+          if (columnValid) columnStat.invalid_records++;
           columnValid = false;
           rowValid = false;
 
@@ -477,10 +474,11 @@ export const validateRow = (
         strValue === rule.data_redundant_value;
 
       if (shouldTrack) {
-        const valueKey =
-          rule.data_redundant_value !== ""
-            ? rule.data_redundant_value
-            : strValue;
+        // const valueKey =
+        //   rule.data_redundant_value !== ""
+        //     ? rule.data_redundant_value
+        //     : strValue;
+        const valueKey = rule.data_redundant_value || strValue;
 
         const newCount = (rule.redundantCounter.get(valueKey) || 0) + 1;
         rule.redundantCounter.set(valueKey, newCount);
@@ -578,7 +576,7 @@ export const validateRow = (
       rule.fixed_header_set &&
       !rule.fixed_header_set.has(strValue.toLowerCase())
     ) {
-      if (columnValid == true) columnStat.invalid_records++;
+      if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
       columnStat.fixed_header_error_count++;
@@ -607,7 +605,7 @@ export const validateRow = (
         normalizedValue.startsWith(prefix),
       )
     ) {
-      if (columnValid == true) columnStat.invalid_records++;
+      if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
       columnStat.cell_start_with_end_with_error_count++;
@@ -633,7 +631,7 @@ export const validateRow = (
         normalizedValue.endsWith(suffix),
       )
     ) {
-      if (columnValid == true) columnStat.invalid_records++;
+      if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
       columnStat.cell_start_with_end_with_error_count++;
@@ -658,7 +656,7 @@ export const validateRow = (
         normalizedValue.includes(word),
       )
     ) {
-      if (columnValid == true) columnStat.invalid_records++;
+      if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
       columnStat.blocked_word_error_count++;
@@ -677,7 +675,6 @@ export const validateRow = (
           error_description: `${strValue} contains blocked word`,
         });
     }
-
     if (columnValid && strValue !== "") {
       columnStat.valid_records++;
     }
@@ -728,6 +725,7 @@ export const validateRow = (
           rowValid = false;
 
           columnStat.invalid_records++;
+          columnStat.dependancy_error_count++;
           errorBuffer.add([
             rowNumber,
             columnName,
