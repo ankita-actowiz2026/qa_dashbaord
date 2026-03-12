@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import path from "path";
-import { parseExcelFile } from "../services/parsing/xlsxParser";
+import { xlsxParser } from "../services/parsing/xlsxParser";
 import fs from "fs";
 import ExcelJS from "exceljs";
 
 import { ColumnRule } from "../interface/importedFile.interface";
-import { parseCsvFile } from "../services/parsing/csvParser";
-import { parseXlsFile } from "../services/parsing/xlsParser";
-import { parseJsonFile } from "../services/parsing/jsonParser";
+import { csvParser } from "../services/parsing/csvParser";
+import { xlsParser } from "../services/parsing/xlsParser";
+import { jsonParser } from "../services/parsing/jsonParser";
 /**
  * Add/Upload Imported File
  */
@@ -71,16 +71,16 @@ export const addImportedFile = async (
     };
     switch (ext) {
       case ".json":
-        result = await parseJsonFile(filePath, columnConfig, errorSheet);
+        result = await jsonParser(filePath, columnConfig, errorSheet);
         break;
       case ".xls":
-        result = await parseXlsFile(filePath, columnConfig, errorSheet);
+        result = await xlsParser(filePath, columnConfig, errorSheet);
         break;
       case ".csv":
-        result = await parseCsvFile(filePath, columnConfig, errorSheet);
+        result = await csvParser(filePath, columnConfig, errorSheet);
         break;
       case ".xlsx":
-        result = await parseExcelFile(filePath, columnConfig, errorSheet);
+        result = await xlsxParser(filePath, columnConfig, errorSheet);
         break;
       default:
         throw new Error("Unsupported file type");
@@ -100,7 +100,6 @@ export const addImportedFile = async (
 
     // Loop metrics
     for (const metric of metrics) {
-      console.log("==>" + metric);
       const row = totalsSheet.addRow([
         metric.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
         ...columns.map((c) => column_wise_stats[c][metric]),

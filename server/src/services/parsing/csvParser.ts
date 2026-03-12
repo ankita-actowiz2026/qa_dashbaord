@@ -1,25 +1,28 @@
 import fs from "fs";
-import readline from "readline";
 import ExcelJS from "exceljs";
-
-import { ColumnRule } from "../../interface/importedFile.interface";
+import csv from "csv-parser";
+import { ErrorBuffer } from "../../utils/errorBuffer";
+import { createColumnStats } from "../../utils/importFileDefaultColumnStats";
+import {
+  ColumnRule,
+  ParserResult,
+} from "../../interface/importedFile.interface";
 import {
   validateRow,
   getCellValue,
   prepareColumnRules,
 } from "../../validations/user.importedFile.validations";
 
-export const parseCsvFile = async (
+export const csvParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
   errorSheet: ExcelJS.Worksheet,
-) => {
+): Promise<ParserResult> => {
   const ruleMap: Record<string, ColumnRule> = columnConfig;
 
   prepareColumnRules(ruleMap);
 
   let headers: string[] = [];
-  let headerInitialized = false;
 
   let total_rows = 0;
   let valid_rows = 0;
@@ -27,78 +30,57 @@ export const parseCsvFile = async (
 
   const columnStats: Record<string, any> = {};
 
-  const fileStream = fs.createReadStream(filePath);
+  let headerInitialized = false;
+  const errorBuffer = new ErrorBuffer(errorSheet, 500);
 
-  const rl = readline.createInterface({
-    input: fileStream,
-    crlfDelay: Infinity,
-  });
+  return new Promise((resolve, reject) => {
+    const stream = fs.createReadStream(filePath).pipe(csv());
 
-  let rowNumber = 0;
+    stream.on("data", (row) => {
+      if (!headerInitialized) {
+        headers = Object.keys(row);
 
-  for await (const line of rl) {
-    rowNumber++;
+        headers.forEach((header) => {
+          columnStats[header] = createColumnStats();
+        });
 
-    const values = line.split(",").map((v) => String(v).trim());
+        headerInitialized = true;
+      }
 
-    // HEADER
-    if (!headerInitialized) {
-      headers = values.map((h) => String(getCellValue(h)).trim());
+      total_rows++;
 
-      headerInitialized = true;
+      const rowNumber = total_rows + 1;
+
+      const rowData: any = {};
+
       headers.forEach((header) => {
-        if (!header || typeof header !== "string") return;
-        columnStats[header] = {
-          total_records: 0,
-          valid_records: 0,
-          invalid_records: 0,
-          empty_count: 0,
-          datatype_error_count: 0,
-          pattern_error_count: 0,
-          redundant_error_count: 0,
-          fixed_header_error_count: 0,
-          date_format_error_count: 0,
-          cell_start_with_end_with_error_count: 0,
-          length_validation_error_count: 0,
-          blocked_word_error_count: 0,
-          error_msg: [],
-        };
+        rowData[header] = getCellValue(row[header]);
       });
 
-      continue;
-    }
+      const rowValid = validateRow(
+        rowData,
+        rowNumber,
+        headers,
+        ruleMap,
+        columnStats,
+        errorBuffer,
+      );
 
-    total_rows++;
+      if (rowValid) valid_rows++;
+      else invalid_rows++;
+    });
 
-    const rowData: any = {};
+    stream.on("end", () => {
+      errorBuffer.flush();
 
-    for (let i = 0; i < headers.length; i++) {
-      const columnName = headers[i];
-      const value = values[i] ?? "";
-      rowData[columnName] = getCellValue(value);
-    }
+      resolve({
+        total_rows,
+        valid_rows,
+        invalid_rows,
+        column_wise_stats: columnStats,
+      });
+    });
 
-    const rowValid = validateRow(
-      rowData,
-      rowNumber,
-      headers,
-      ruleMap,
-      columnStats,
-      errorSheet,
-    );
-
-    if (rowValid) {
-      valid_rows++;
-    } else {
-      invalid_rows++;
-    }
-  }
-
-  return {
-    total_rows,
-    valid_rows,
-    invalid_rows,
-    column_wise_stats: columnStats,
-    //fileName,
-  };
+    stream.on("error", reject);
+  });
 };

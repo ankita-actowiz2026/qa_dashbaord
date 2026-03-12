@@ -1,14 +1,14 @@
 import ExcelJS from "exceljs";
-import { ErrorBuffer } from "../../utils/errorBuffer";
+import { processRows } from "./processRows";
+
 import { ColumnRule } from "../../interface/importedFile.interface";
 import {
   validateRow,
   getCellValue,
   prepareColumnRules,
 } from "../../validations/user.importedFile.validations";
-import { createColumnStats } from "../../utils/importFileDefaultColumnStats";
 
-export const xlsxParser = async (
+export const parseExcelFile = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
   errorSheet: ExcelJS.Worksheet,
@@ -32,7 +32,6 @@ export const xlsxParser = async (
     hyperlinks: "ignore",
   });
 
-  const errorBuffer = new ErrorBuffer(errorSheet, 500);
   for await (const worksheet of workbook) {
     for await (const row of worksheet) {
       const values = row.values as any[];
@@ -43,7 +42,21 @@ export const xlsxParser = async (
         headerInitialized = true;
         headers.forEach((header) => {
           if (!header || typeof header !== "string") return;
-          columnStats[header] = createColumnStats();
+          columnStats[header] = {
+            total_records: 0,
+            valid_records: 0,
+            invalid_records: 0,
+            empty_count: 0,
+            datatype_error_count: 0,
+            pattern_error_count: 0,
+            redundant_error_count: 0,
+            fixed_header_error_count: 0,
+            date_format_error_count: 0,
+            cell_start_with_end_with_error_count: 0,
+            length_validation_error_count: 0,
+            blocked_word_error_count: 0,
+            error_msg: [],
+          };
         });
         continue;
       }
@@ -64,7 +77,7 @@ export const xlsxParser = async (
         headers,
         ruleMap,
         columnStats,
-        errorBuffer,
+        errorSheet,
       );
 
       if (rowValid) {
@@ -78,7 +91,7 @@ export const xlsxParser = async (
 
     break;
   }
-  errorBuffer.flush();
+
   return {
     total_rows,
     valid_rows,

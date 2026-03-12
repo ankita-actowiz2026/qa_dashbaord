@@ -1,19 +1,24 @@
 import ExcelJS from "exceljs";
-
-import { ColumnRule } from "../../interface/importedFile.interface";
+import fs from "fs";
+import { ErrorBuffer } from "../../utils/errorBuffer";
+import { parser } from "stream-json";
+import { streamArray } from "stream-json/streamers/StreamArray";
+import { createColumnStats } from "../../utils/importFileDefaultColumnStats";
+import {
+  ColumnRule,
+  ParserResult,
+} from "../../interface/importedFile.interface";
 import {
   validateRow,
   prepareColumnRules,
 } from "../../validations/user.importedFile.validations";
 
-import fs from "fs";
-
-export const parseJsonFile = async (
+export const jsonParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
   errorSheet: ExcelJS.Worksheet,
-) => {
-  const ruleMap = columnConfig;
+): Promise<ParserResult> => {
+  const ruleMap: Record<string, ColumnRule> = columnConfig;
 
   prepareColumnRules(ruleMap);
 
@@ -21,63 +26,52 @@ export const parseJsonFile = async (
   let valid_rows = 0;
   let invalid_rows = 0;
 
+  let headers: string[] = [];
+  let headerInitialized = false;
+
   const columnStats: Record<string, any> = {};
+  const errorBuffer = new ErrorBuffer(errorSheet, 500);
+  return new Promise((resolve, reject) => {
+    const pipeline = fs
+      .createReadStream(filePath)
+      .pipe(parser())
+      .pipe(streamArray());
 
-  // 📌 Read JSON file
-  const fileContent = fs.readFileSync(filePath, "utf8");
-  const jsonData = JSON.parse(fileContent);
+    pipeline.on("data", ({ key, value }) => {
+      const rowData = value;
 
-  if (!Array.isArray(jsonData)) {
-    throw new Error("JSON file must contain an array of objects");
-  }
+      if (!headerInitialized) {
+        headers = Object.keys(rowData);
+        headers.forEach((header) => {
+          columnStats[header] = createColumnStats();
+        });
+        headerInitialized = true;
+      }
+      total_rows++;
+      const rowNumber = total_rows + 1;
+      const rowValid = validateRow(
+        rowData,
+        rowNumber,
+        headers,
+        ruleMap,
+        columnStats,
+        errorBuffer,
+      );
 
-  // 📌 Get headers from first row
-  const headers = Object.keys(jsonData[0]);
+      if (rowValid) valid_rows++;
+      else invalid_rows++;
+    });
 
-  // Initialize column stats
-  for (const header of headers) {
-    columnStats[header] = {
-      total_records: 0,
-      valid_records: 0,
-      invalid_records: 0,
-      empty_count: 0,
-      datatype_error_count: 0,
-      pattern_error_count: 0,
-      redundant_error_count: 0,
-      fixed_header_error_count: 0,
-      date_format_error_count: 0,
-      cell_start_with_end_with_error_count: 0,
-      length_validation_error_count: 0,
-      blocked_word_error_count: 0,
-      error_msg: [],
-    };
-  }
+    pipeline.on("end", () => {
+      errorBuffer.flush();
+      resolve({
+        total_rows,
+        valid_rows,
+        invalid_rows,
+        column_wise_stats: columnStats,
+      });
+    });
 
-  // 📌 Process rows
-  for (let i = 0; i < jsonData.length; i++) {
-    const rowData = jsonData[i];
-
-    total_rows++;
-
-    const rowNumber = i + 2; // similar to Excel row numbering
-
-    const rowValid = validateRow(
-      rowData,
-      rowNumber,
-      headers,
-      ruleMap,
-      columnStats,
-      errorSheet,
-    );
-
-    if (rowValid) valid_rows++;
-    else invalid_rows++;
-  }
-
-  return {
-    total_rows,
-    valid_rows,
-    invalid_rows,
-    column_wise_stats: columnStats,
-  };
+    pipeline.on("error", reject);
+  });
 };

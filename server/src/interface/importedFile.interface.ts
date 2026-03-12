@@ -73,3 +73,26 @@ export interface ColumnRule {
   not_match_found_normalized?: string[]; //for faster speed validation of blocked words
   redundantCounter?: Map<string, number>;
 }
+
+export interface ParserResult {
+  total_rows: number;
+  valid_rows: number;
+  invalid_rows: number;
+  column_wise_stats: Record<string, any>;
+}
+
+export interface ColumnStats {
+  total_records: number;
+  valid_records: number;
+  invalid_records: number;
+  empty_count: number;
+  datatype_error_count: number;
+  pattern_error_count: number;
+  redundant_error_count: number;
+  fixed_header_error_count: number;
+  date_format_error_count: number;
+  cell_start_with_end_with_error_count: number;
+  length_validation_error_count: number;
+  blocked_word_error_count: number;
+  error_msg: string[];
+}
