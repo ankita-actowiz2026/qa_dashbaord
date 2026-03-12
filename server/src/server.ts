@@ -19,7 +19,7 @@ import authRouter from "./routes/user.auth.route";
 import reportRouter from "./routes/user.report.route";
 import errorHandler from "./middleware/error.handler";
 import ApiError from "./utils/api.error";
-import uploadRoutes from "./routes/upload.route";
+//import uploadRoutes from "./routes/upload.route";
 
 const app = express();
 
@@ -39,7 +39,7 @@ app.use("/admin/user", adminUserRouter);
 app.use("/api/qa_file", importedFileRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/report", reportRouter);
-app.use("/api", uploadRoutes);
+//app.use("/api", uploadRoutes);
 
 app.use(
   "/validation_result",

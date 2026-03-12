@@ -14,17 +14,6 @@ export interface IRuleDetail {
   allow_special_char: boolean;
   num_alphaNum_alpha: string;
 }
-
-//  "has_empty_error_count":
-//   "length_validation_error_count":"
-//   "cell_contains_error_count"	:
-//   "dependant_header_error_count":
-//   "data_redundant_error_count":"",
-//   "fixed_header_error_count":
-//   "data_format_eror_count"
-//   "cell_value_start_with_error_count":
-//   "cell_value_end_with_error_count":
-//   "not_match_found_error_count"
 export default interface IImportedFile {
   user_id: mongoose.Types.ObjectId;
   file_name: string;
@@ -32,9 +21,8 @@ export default interface IImportedFile {
   valid_records: number;
   invalid_records: number;
   duplicate_count: number;
-  missing_required_count: number;
+  data_empty_count: number;
   datatype_error_count: number;
-  junk_character_count: number;
   error_msg: IErrorDetail[];
   rules: IRuleDetail[];
   createdAt: Date;

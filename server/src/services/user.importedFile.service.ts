@@ -1,6 +1,6 @@
 import ImportedFile from "../models/importedFile.model";
-import  IImportedFile  from "../interface/importedFile.interface";
-import  ApiError  from "../utils/api.error";
+import IImportedFile from "../interface/importedFile.interface";
+import ApiError from "../utils/api.error";
 import { Types } from "mongoose";
 import ExcelJS from "exceljs";
 
@@ -13,7 +13,7 @@ export class ImportedFileService {
     userId: string,
     fileName: string,
     fileBuffer: Buffer,
-    columnConfig: any[] = []
+    columnConfig: any[] = [],
   ): Promise<IImportedFile> {
     try {
       // Read Excel file using ExcelJS
@@ -28,7 +28,9 @@ export class ImportedFileService {
       // Extract headers from first row
       const headers: string[] = [];
       worksheet.getRow(1)?.eachCell((cell, colNumber) => {
-        headers[colNumber - 1] = cell.value ? String(cell.value).trim() : `Column${colNumber}`;
+        headers[colNumber - 1] = cell.value
+          ? String(cell.value).trim()
+          : `Column${colNumber}`;
       });
 
       // Extract all records starting from row 2
@@ -54,7 +56,7 @@ export class ImportedFileService {
         is_required: col.is_mandatory ?? false,
         allow_duplicate: col.is_allow_duplicate ?? false,
         allow_special_char: col.block_special_chars ? false : true,
-        num_alphaNum_alpha: col.allow_alpha_numeric ? 'alphanumeric' : '',
+        num_alphaNum_alpha: col.allow_alpha_numeric ? "alphanumeric" : "",
       }));
 
       // Create and save ImportedFile document
@@ -65,9 +67,8 @@ export class ImportedFileService {
         valid_records: totalRecords,
         invalid_records: 0,
         duplicate_count: 0,
-        missing_required_count: 0,
+        data_empty_count: 0,
         datatype_error_count: 0,
-        junk_character_count: 0,
         error_msg: [],
         rules: rules,
       };
@@ -79,7 +80,7 @@ export class ImportedFileService {
       }
       throw new ApiError(
         error instanceof Error ? error.message : "Error processing file",
-        500
+        500,
       );
     }
   }

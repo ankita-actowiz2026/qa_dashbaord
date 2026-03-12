@@ -10,9 +10,8 @@ interface SummaryData {
   valid_records: number;
   invalid_records: number;
   duplicate_count: number;
-  missing_required_count: number;
+  data_empty_count: number;
   datatype_error_count: number;
-  junk_character_count: number;
 }
 
 export async function generateSummaryPDF(data: SummaryData[]): Promise<string> {
@@ -29,7 +28,7 @@ export async function generateSummaryPDF(data: SummaryData[]): Promise<string> {
 
       const doc = new PDFDocument({
         size: "A4",
-        margin: 50
+        margin: 50,
       });
 
       const stream = fs.createWriteStream(filePath);
@@ -39,10 +38,7 @@ export async function generateSummaryPDF(data: SummaryData[]): Promise<string> {
 
       /* Title */
 
-      doc
-        .font("Helvetica-Bold")
-        .fontSize(20)
-        .text("Summary Report");
+      doc.font("Helvetica-Bold").fontSize(20).text("Summary Report");
 
       doc.moveDown(1.5);
 
@@ -63,32 +59,26 @@ export async function generateSummaryPDF(data: SummaryData[]): Promise<string> {
         ["Valid Records", row.valid_records],
         ["Invalid Records", row.invalid_records],
         ["Duplicate Count", row.duplicate_count],
-        ["Missing Required Count", row.missing_required_count],
+        ["Missing Required Count", row.data_empty_count],
         ["Datatype Error Count", row.datatype_error_count],
-        ["Junk Character Count", row.junk_character_count]
       ];
 
       rows.forEach(([label, value]) => {
-
         // left column
-        doc
-          .rect(tableX, y, labelWidth, rowHeight)
-          .stroke();
+        doc.rect(tableX, y, labelWidth, rowHeight).stroke();
 
         doc
           .font("Helvetica")
           .fontSize(11)
           .text(label, tableX + 8, y + 7, {
-            width: labelWidth - 10
+            width: labelWidth - 10,
           });
 
         // right column
-        doc
-          .rect(tableX + labelWidth, y, valueWidth, rowHeight)
-          .stroke();
+        doc.rect(tableX + labelWidth, y, valueWidth, rowHeight).stroke();
 
         doc.text(String(value), tableX + labelWidth + 8, y + 7, {
-          width: valueWidth - 10
+          width: valueWidth - 10,
         });
 
         y += rowHeight;
@@ -98,7 +88,6 @@ export async function generateSummaryPDF(data: SummaryData[]): Promise<string> {
 
       stream.on("finish", () => resolve(fileName));
       stream.on("error", reject);
-
     } catch (error) {
       reject(error);
     }

@@ -172,7 +172,7 @@ export const validateRow = (
   columnStats: any,
   errorSheet: any,
 ) => {
-  const debug = 0;
+  const debug = 1;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const validBooleanValues = ["true", "false", "1", "0", "yes", "no", "y", "n"];
   let rowValid = true;
@@ -191,7 +191,7 @@ export const validateRow = (
     //has_empty
 
     if (!rule.has_empty && !strValue) {
-      columnStat.missing_required_count++;
+      columnStat.empty_count++;
       if (columnValid == true) {
         //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
         columnStat.invalid_records++;
@@ -203,7 +203,7 @@ export const validateRow = (
         columnStat.error_msg.push({
           row: rowNumber,
           column: columnName,
-          error_type: "Missing Required",
+          error_type: "Empty Data",
           error_description: `${columnName} is mandatory`,
         });
 
@@ -211,7 +211,7 @@ export const validateRow = (
         .addRow([
           rowNumber,
           columnName,
-          "Missing Required",
+          "Empty Data",
           `${columnName} is mandatory`,
         ])
         .commit();
@@ -310,12 +310,12 @@ export const validateRow = (
 
           columnValid = false;
           rowValid = false;
-          columnStat.length_validation_error_count++;
+          columnStat.data_length_error_count++;
           errorSheet
             .addRow([
               rowNumber,
               columnName,
-              "Range Error",
+              "Data Length Error",
               `${columnName} must be >= ${rule.min_length}`,
             ])
             .commit();
@@ -323,7 +323,7 @@ export const validateRow = (
             columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
-              error_type: "Range Error",
+              error_type: "Data Length Error",
               error_description: `${columnName} must be >= ${rule.min_length}`,
             });
         }
@@ -332,13 +332,13 @@ export const validateRow = (
           if (columnValid == true) columnStat.invalid_records++;
           columnValid = false;
           rowValid = false;
-          columnStat.length_validation_error_count++;
+          columnStat.data_length_error_count++;
 
           errorSheet
             .addRow([
               rowNumber,
               columnName,
-              "Range Error",
+              "Data Length Error",
               `${columnName} must be <= ${rule.max_length}`,
             ])
             .commit();
@@ -346,7 +346,7 @@ export const validateRow = (
             columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
-              error_type: "Range Error",
+              error_type: "Data Length Error",
               error_description: `${columnName} must be <= ${rule.max_length}`,
             });
         }
@@ -358,12 +358,12 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.length_validation_error_count++;
+          columnStat.data_length_error_count++;
           errorSheet
             .addRow([
               rowNumber,
               columnName,
-              "Length Error",
+              "Data Length Error",
               `${columnName} must be exactly ${rule.min_length} digits`,
             ])
             .commit();
@@ -371,7 +371,7 @@ export const validateRow = (
             columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
-              error_type: "Length Error",
+              error_type: "Data Length Error",
               error_description: `${columnName} must be exactly ${rule.min_length} digits`,
             });
         }
@@ -387,7 +387,7 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.length_validation_error_count++;
+          columnStat.data_length_error_count++;
           errorSheet
             .addRow([
               rowNumber,
@@ -411,12 +411,12 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.length_validation_error_count++;
+          columnStat.data_length_error_count++;
           errorSheet
             .addRow([
               rowNumber,
               columnName,
-              "Length Error",
+              "Data Length Error",
               `${columnName} must be <= ${rule.max_length} characters`,
             ])
             .commit();
@@ -424,7 +424,7 @@ export const validateRow = (
             columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
-              error_type: "Length Error",
+              error_type: "Data Length Error",
               error_description: `${columnName} must be <= ${rule.max_length} characters`,
             });
         }
@@ -438,12 +438,12 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.length_validation_error_count++;
+          columnStat.data_length_error_count++;
           errorSheet
             .addRow([
               rowNumber,
               columnName,
-              "Length Error",
+              "Data Length Error",
               `${columnName} must be exactly ${rule.min_length} characters`,
             ])
             .commit();
@@ -451,7 +451,7 @@ export const validateRow = (
             columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
-              error_type: "Length Error",
+              error_type: "Data Length Error",
               error_description: `${columnName} must be exactly ${rule.min_length} characters`,
             });
         }
@@ -504,7 +504,7 @@ export const validateRow = (
         rule.redundantCounter.set(valueKey, newCount);
 
         if (newCount > threshold) {
-          columnStat.redundant_value++;
+          columnStat.redundant_error_count++;
           columnStat.invalid_records++;
 
           columnValid = false;
@@ -569,14 +569,14 @@ export const validateRow = (
               (maxDate && currentDate > maxDate)
             ) {
               if (columnValid === true) columnStat.invalid_records++;
-              columnStat.length_validation_error_count++;
+              columnStat.data_length_error_count++;
               columnValid = false;
               rowValid = false;
               errorSheet
                 .addRow([
                   rowNumber,
                   columnName,
-                  "Range Error",
+                  "Data Length Error",
                   `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
                 ])
                 .commit();
@@ -584,7 +584,7 @@ export const validateRow = (
                 columnStat.error_msg.push({
                   row: rowNumber,
                   column: columnName,
-                  error_type: "Range Error",
+                  error_type: "Data Length Error",
                   error_description: `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
                 });
             }

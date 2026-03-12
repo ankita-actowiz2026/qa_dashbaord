@@ -86,11 +86,13 @@ export const addImportedFile = async (
         throw new Error("Unsupported file type");
     }
 
-    //start storing in excel
+    // //start storing in excel
     const column_wise_stats = result.column_wise_stats;
     const columns = Object.keys(column_wise_stats);
 
-    const metrics = Object.keys(column_wise_stats[columns[0]]);
+    const metrics = Object.keys(column_wise_stats[columns[0]]).filter(
+      (m) => m !== "error_msg",
+    );
     // Header Row
     const totalHeaderRow = totalsSheet.addRow(["", ...columns]);
     totalHeaderRow.font = { bold: true };
@@ -98,8 +100,9 @@ export const addImportedFile = async (
 
     // Loop metrics
     for (const metric of metrics) {
+      console.log("==>" + metric);
       const row = totalsSheet.addRow([
-        metric,
+        metric.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
         ...columns.map((c) => column_wise_stats[c][metric]),
       ]);
 

@@ -1,5 +1,8 @@
-import  {Schema, model,} from 'mongoose'
-import  IImportedFile, {IErrorDetail, IRuleDetail}  from "../interface/importedFile.interface";
+import { Schema, model } from "mongoose";
+import IImportedFile, {
+  IErrorDetail,
+  IRuleDetail,
+} from "../interface/importedFile.interface";
 const ErrorSchema = new Schema<IErrorDetail>(
   {
     row: { type: Number, required: true },
@@ -7,7 +10,7 @@ const ErrorSchema = new Schema<IErrorDetail>(
     error_type: { type: String, required: true },
     error_description: { type: String, required: true },
   },
-  { _id: false } // prevent auto _id for each error item
+  { _id: false }, // prevent auto _id for each error item
 );
 
 const RuleSchema = new Schema<IRuleDetail>(
@@ -19,34 +22,35 @@ const RuleSchema = new Schema<IRuleDetail>(
     allow_special_char: { type: Boolean, default: false },
     num_alphaNum_alpha: { type: String },
   },
-  { _id: false }
+  { _id: false },
 );
-const importedFileSchema = new Schema<IImportedFile>({
-     user_id: {
+const importedFileSchema = new Schema<IImportedFile>(
+  {
+    user_id: {
       type: Schema.Types.ObjectId,
-      ref: "User",         
+      ref: "User",
     },
     file_name: {
-      type: String,      
+      type: String,
       trim: true,
     },
     total_records: {
-      type: Number,      
+      type: Number,
       default: 0,
     },
     valid_records: {
-      type: Number,      
+      type: Number,
       default: 0,
     },
     invalid_records: {
-      type: Number,    
+      type: Number,
       default: 0,
     },
     duplicate_count: {
       type: Number,
       default: 0,
     },
-    missing_required_count: {
+    data_empty_count: {
       type: Number,
       default: 0,
     },
@@ -54,12 +58,11 @@ const importedFileSchema = new Schema<IImportedFile>({
       type: Number,
       default: 0,
     },
-    junk_character_count: {
-      type: Number,
-      default: 0,
-    },
+
     error_msg: [ErrorSchema],
-    rules: [RuleSchema],    
-},{ timestamps: true })
- const ImportedFile = model<IImportedFile>('ImportedFile', importedFileSchema )
- export default ImportedFile
+    rules: [RuleSchema],
+  },
+  { timestamps: true },
+);
+const ImportedFile = model<IImportedFile>("ImportedFile", importedFileSchema);
+export default ImportedFile;
