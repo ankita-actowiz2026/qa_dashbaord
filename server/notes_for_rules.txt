@@ -1,3 +1,32 @@
+ "dependency": {
+      "Restaurant_Id":100,
+      "RecId":"0a8f41036995986489ff1871475e4b02",
+      "Restaurant_Rating":"4.3",
+      "Restaurant_Review":"932"
+    }
+    "cell_start_with": [
+      "https://"
+    ],
+    "cell_end_with": ["5764607751645561158","5764607751628783687"],
+    "not_match_found": [
+      "gmail",
+      "yahoo"
+    ]
+     "cell_start_with": [5],
+    "cell_end_with": [0,1,2,3,4,5,6,7,8,9],
+    "not_match_found": [101]
+ "data_redundant_value": "555",
+    "data_redundant_threshold": "2",
+    "dependency":{
+      "delivery_time":true,
+      "delivery_fee,Open_At":true
+    }
+
+     "dependency":{
+      "delivery_time":"abc",
+      "delivery_fee":"qqq",
+      "Open_At":"zzz"
+    }
 1)
 date supported format
 %d-%m-%Y
@@ -8,16 +37,60 @@ date supported format
 %m-%d-%Y h:i:s a
 %Y-%m-%d h:i:s a
 
-%d-%m-%Y h.i.s a
-%m-%d-%Y h.i.s a
-%Y-%m-%d h.i.s a
-
 %d-%m-%Y H:i:s
 %m-%d-%Y H:i:s
 %Y-%m-%d H:i:s
+
+%DD_%MM_%YYYY
+%MM_%DD_%YYYY
+%YYYY_%MM_%DD
+
+%DD_%MM_%YYYY h:i:s a
+%MM_%DD_%YYYY h:i:s a
+%YYYY_%MM_%DD h:i:s a
+
+%DD_%MM_%YYYY H:i:s
+%MM_%DD_%YYYY H:i:s
+%YYYY_%MM_%DD H:i:s
+
+Y/M/D
 
 if(type=="integer, number, boolean, email) then 
 {
     "cell_contains": fase,
     "cell_contains_value": "",
 }
+
+
+
+YYYY-MM-DD
+DD-MM-YYYY
+MM-DD-YYYY
+YYYY/MM/DD
+DD/MM/YYYY
+MM/DD/YYYY
+YYYY-MM-DD HH:mm:ss
+DD-MM-YYYY HH:mm:ss
+MM/DD/YYYY HH:mm:ss
+YYYY-MM-DDTHH:mm:ss
+DD-MM-YYYY h:i:s a
+MM/DD/YYYY h:i a
+YYYY-MM-DD h:i:s A
+DD MMM YYYY
+MMM DD, YYYY
+MMMM DD, YYYY
+DD Month YYYY
+DD-MM-YY
+MM/DD/YY
+
+DD_MM_YYYY
+MM_DD_YYYY
+YYYY_MM_DD
+
+DD_MM_YYYY h:i:s a
+MM_DD_YYYY h:i:s a
+YYYY_MM_DD h:i:s a
+
+DD_MM_YYYY HH:mm:ss
+MM_DD_YYYY HH:mm:ss
+YYYY_MM_DD HH:mm:ss

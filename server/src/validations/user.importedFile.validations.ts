@@ -123,72 +123,123 @@ export const parseDateByFormat = (
   format: string,
 ): Date | null => {
   try {
-    const numbers = value.match(/\d+/g);
-    if (!numbers) return null;
+    const monthMap: Record<string, number> = {
+      jan: 0,
+      january: 0,
+      feb: 1,
+      february: 1,
+      mar: 2,
+      march: 2,
+      apr: 3,
+      april: 3,
+      may: 4,
+      jun: 5,
+      june: 5,
+      jul: 6,
+      july: 6,
+      aug: 7,
+      august: 7,
+      sep: 8,
+      september: 8,
+      oct: 9,
+      october: 9,
+      nov: 10,
+      november: 10,
+      dec: 11,
+      december: 11,
+    };
 
-    // normalize separator
-    const normalizedFormat = format.replace(/_/g, "-");
+    const tokens = value.match(/[A-Za-z]+|\d+/g);
+    const formatTokens = format.match(/[A-Za-z]+/g);
+
+    if (!tokens || !formatTokens) return null;
 
     let day = 1;
-    let month = 1;
+    let month = 0;
     let year = 1970;
     let hour = 0;
     let minute = 0;
     let second = 0;
 
-    if (normalizedFormat.startsWith("%d-%m-%Y")) {
-      day = Number(numbers[0]);
-      month = Number(numbers[1]);
-      year = Number(numbers[2]);
-    } else if (normalizedFormat.startsWith("%m-%d-%Y")) {
-      month = Number(numbers[0]);
-      day = Number(numbers[1]);
-      year = Number(numbers[2]);
-    } else if (normalizedFormat.startsWith("%Y-%m-%d")) {
-      year = Number(numbers[0]);
-      month = Number(numbers[1]);
-      day = Number(numbers[2]);
+    for (let i = 0; i < formatTokens.length; i++) {
+      const f = formatTokens[i];
+      const v = tokens[i];
+
+      if (!v) continue;
+
+      switch (f) {
+        case "DD":
+          day = Number(v);
+          break;
+
+        case "MM":
+          month = Number(v) - 1;
+          break;
+
+        case "YYYY":
+          year = Number(v);
+          break;
+
+        case "YY":
+          year = 2000 + Number(v);
+          break;
+
+        case "HH":
+        case "h":
+          hour = Number(v);
+          break;
+
+        case "mm":
+        case "i":
+          minute = Number(v);
+          break;
+
+        case "ss":
+        case "s":
+          second = Number(v);
+          break;
+
+        case "MMM":
+        case "MMMM":
+        case "Month":
+          month = monthMap[v.toLowerCase()];
+          break;
+      }
     }
 
-    if (numbers.length >= 6) {
-      hour = Number(numbers[3]);
-      minute = Number(numbers[4]);
-      second = Number(numbers[5]);
-    }
-
-    return new Date(year, month - 1, day, hour, minute, second);
+    return new Date(year, month, day, hour, minute, second);
   } catch {
     return null;
   }
 };
 export const buildDateRegex = (format: string): RegExp => {
-  let pattern = format;
+  const map: Record<string, string> = {
+    YYYY: "\\d{4}",
+    YY: "\\d{2}",
+    MM: "(0[1-9]|1[0-2])",
+    DD: "(0[1-9]|[12][0-9]|3[01])",
 
-  const replacements: Record<string, string> = {
-    "%Y": "(\\d{4})",
-    "%m": "(0[1-9]|1[0-2])",
-    "%d": "(0[1-9]|[12][0-9]|3[01])",
+    HH: "([01][0-9]|2[0-3])",
+    mm: "[0-5][0-9]",
+    ss: "[0-5][0-9]",
 
-    H: "([01][0-9]|2[0-3])", // 24 hour
-    h: "(0?[1-9]|1[0-2])", // 12 hour (allow leading zero optional)
-    i: "([0-5][0-9])", // minutes
-    s: "([0-5][0-9])", // seconds
-    a: "(AM|PM|am|pm)", // AM/PM
+    h: "(0?[1-9]|1[0-2])",
+    i: "[0-5][0-9]",
+    s: "[0-5][0-9]",
+
+    a: "(am|pm)",
+    A: "(AM|PM)",
+
+    MMMM: "(January|February|March|April|May|June|July|August|September|October|November|December)",
+
+    MMM: "(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)",
   };
 
-  // Escape regex special characters first (except space, colon, dot, dash)
-  pattern = pattern.replace(/[-\/\\^$*+?()[\]{}|]/g, "\\$&");
+  const tokenRegex = /YYYY|YY|MMMM|MMM|MM|DD|HH|mm|ss|h|i|s|a|A/g;
 
-  // Replace all keys in pattern
-  Object.keys(replacements).forEach((key) => {
-    const regexKey = new RegExp(key, "g");
-    pattern = pattern.replace(regexKey, replacements[key]);
-  });
+  const regex = "^" + format.replace(tokenRegex, (match) => map[match]) + "$";
 
-  // Convert multiple spaces to \s+ to allow flexible spacing
-  pattern = pattern.replace(/\s+/g, "\\s+");
-
-  return new RegExp(`^${pattern}$`);
+  return new RegExp(regex, "i");
 };
 
 export const validateRow = (
@@ -563,8 +614,7 @@ export const validateRow = (
       } else {
         // Range validation
         const currentDate = parseDateByFormat(strValue, rule.date_format);
-        if (columnName == "Scrape_DateTime")
-          console.log(strValue + "=====" + currentDate);
+
         if (
           currentDate &&
           rule.min_length &&
@@ -630,9 +680,7 @@ export const validateRow = (
               currentDate.getMonth(),
               currentDate.getDate(),
             );
-            // console.log(
-            //   minDate + "===--=--=" + maxDate + "~~~~~~~~~" + currentDate,
-            // );
+
             if (
               (minDate && inputDate.getTime() < minDate.getTime()) ||
               (maxDate && inputDate.getTime() > maxDate.getTime())
