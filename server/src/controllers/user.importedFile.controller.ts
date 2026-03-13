@@ -127,7 +127,7 @@ class ImportFileController {
         }
         errors_for_coloms[column] = errors;
       }
-      const colomwise_sheet = workbook.addWorksheet("column wise errors");
+      const colomwise_sheet = workbook.addWorksheet("Column errors");
       const colomwiseHeaderRow = colomwise_sheet.addRow(columns);
       colomwiseHeaderRow.font = { bold: true };
       colomwiseHeaderRow.commit();
@@ -156,8 +156,8 @@ class ImportFileController {
       res.status(200).json({
         success: true,
         result_file: publicUrl,
-        errors_for_coloms: errors_for_coloms,
         data: result,
+        errors_for_coloms: errors_for_coloms,
       });
     } catch (error) {
       next(error);

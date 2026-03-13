@@ -4,9 +4,13 @@ date supported format
 %m-%d-%Y
 %Y-%m-%d
 
-%d-%m-%Y h:i:s am/pm
-%m-%d-%Y h:i:s am/pm
-%Y-%m-%d h:i:s am/pm
+%d-%m-%Y h:i:s a
+%m-%d-%Y h:i:s a
+%Y-%m-%d h:i:s a
+
+%d-%m-%Y h.i.s a
+%m-%d-%Y h.i.s a
+%Y-%m-%d h.i.s a
 
 %d-%m-%Y H:i:s
 %m-%d-%Y H:i:s

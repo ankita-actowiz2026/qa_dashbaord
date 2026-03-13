@@ -54,10 +54,10 @@ export interface ColumnRule {
   data_redundant_value?: string | null;
   data_redundant_threshold?: number;
   length_validation_type?: "fixed" | "variable";
-  min_length?: number | null;
-  max_length?: number | null;
-  max_date?: string | null;
-  min_date?: string | null;
+  min_length?: number | null | Date;
+  max_length?: number | null | Date;
+  max_date?: string | null | Date;
+  min_date?: string | null | Date;
   date_format?: Date;
   dateRegex?: RegExp;
   cell_contains: boolean;

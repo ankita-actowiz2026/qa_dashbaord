@@ -48,7 +48,7 @@ export const jsonParser = async (
         headerInitialized = true;
       }
       total_rows++;
-      const rowNumber = total_rows + 1;
+      const rowNumber = total_rows;
       const rowValid = validateRow(
         rowData,
         rowNumber,

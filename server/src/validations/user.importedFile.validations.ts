@@ -100,44 +100,45 @@ export const getCellValue = (cell: any): string => {
 //   return `data_${mm}${dd}${yyyy}${hh}${mi}${ss}.ndjson`;
 // };
 export const parseDateByFormat = (
-  dateStr: string,
+  value: string,
   format: string,
 ): Date | null => {
   try {
-    const parts: any = {};
+    const numbers = value.match(/\d+/g);
+    if (!numbers) return null;
 
-    const tokens = {
-      "%d": "(\\d{2})",
-      "%m": "(\\d{2})",
-      "%Y": "(\\d{4})",
-    };
+    let day = 1;
+    let month = 1;
+    let year = 1970;
+    let hour = 0;
+    let minute = 0;
+    let second = 0;
 
-    let regexPattern = format;
-
-    Object.entries(tokens).forEach(([k, v]) => {
-      regexPattern = regexPattern.replace(k, v);
-    });
-
-    const regex = new RegExp(`^${regexPattern}`);
-    const match = dateStr.match(regex);
-
-    if (!match) return null;
-
-    let index = 1;
-
-    if (format.includes("%d")) {
-      parts.day = parseInt(match[index++]);
+    if (format.startsWith("%d-%m-%Y")) {
+      day = parseInt(numbers[0]);
+      month = parseInt(numbers[1]);
+      year = parseInt(numbers[2]);
     }
 
-    if (format.includes("%m")) {
-      parts.month = parseInt(match[index++]);
+    if (format.startsWith("%m-%d-%Y")) {
+      month = parseInt(numbers[0]);
+      day = parseInt(numbers[1]);
+      year = parseInt(numbers[2]);
     }
 
-    if (format.includes("%Y")) {
-      parts.year = parseInt(match[index++]);
+    if (format.startsWith("%Y-%m-%d")) {
+      year = parseInt(numbers[0]);
+      month = parseInt(numbers[1]);
+      day = parseInt(numbers[2]);
     }
 
-    return new Date(parts.year, parts.month - 1, parts.day);
+    if (numbers.length >= 6) {
+      hour = parseInt(numbers[3]);
+      minute = parseInt(numbers[4]);
+      second = parseInt(numbers[5]);
+    }
+
+    return new Date(year, month - 1, day, hour, minute, second);
   } catch {
     return null;
   }
@@ -151,16 +152,23 @@ export const buildDateRegex = (format: string): RegExp => {
     "%d": "(0[1-9]|[12][0-9]|3[01])",
 
     H: "([01][0-9]|2[0-3])", // 24 hour
-    h: "(0[1-9]|1[0-2])", // 12 hour
+    h: "(0?[1-9]|1[0-2])", // 12 hour (allow leading zero optional)
     i: "([0-5][0-9])", // minutes
     s: "([0-5][0-9])", // seconds
-
-    "am/pm": "(AM|PM|am|pm)",
+    a: "(AM|PM|am|pm)", // AM/PM
   };
 
+  // Escape regex special characters first (except space, colon, dot, dash)
+  pattern = pattern.replace(/[-\/\\^$*+?()[\]{}|]/g, "\\$&");
+
+  // Replace all keys in pattern
   Object.keys(replacements).forEach((key) => {
-    pattern = pattern.replace(key, replacements[key]);
+    const regexKey = new RegExp(key, "g");
+    pattern = pattern.replace(regexKey, replacements[key]);
   });
+
+  // Convert multiple spaces to \s+ to allow flexible spacing
+  pattern = pattern.replace(/\s+/g, "\\s+");
 
   return new RegExp(`^${pattern}$`);
 };
@@ -303,7 +311,7 @@ export const validateRow = (
 
           columnValid = false;
           rowValid = false;
-          columnStat.data_length_error_count++;
+          columnStat.length_validation_error_count++;
           errorBuffer.add([
             rowNumber,
             columnName,
@@ -323,7 +331,7 @@ export const validateRow = (
           if (columnValid) columnStat.invalid_records++;
           columnValid = false;
           rowValid = false;
-          columnStat.data_length_error_count++;
+          columnStat.length_validation_error_count++;
 
           errorBuffer.add([
             rowNumber,
@@ -347,7 +355,7 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.data_length_error_count++;
+          columnStat.length_validation_error_count++;
           errorBuffer.add([
             rowNumber,
             columnName,
@@ -374,7 +382,7 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.data_length_error_count++;
+          columnStat.length_validation_error_count++;
           errorBuffer.add([
             rowNumber,
             columnName,
@@ -396,7 +404,7 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.data_length_error_count++;
+          columnStat.length_validation_error_count++;
           errorBuffer.add([
             rowNumber,
             columnName,
@@ -421,7 +429,7 @@ export const validateRow = (
           columnValid = false;
           rowValid = false;
 
-          columnStat.data_length_error_count++;
+          columnStat.length_validation_error_count++;
           errorBuffer.add([
             rowNumber,
             columnName,
@@ -514,7 +522,7 @@ export const validateRow = (
     //if (rule.data_type === "date" && rule.dateRegex && !strValue) {
     if (rule.data_type === "date" && rule.dateRegex) {
       if (!rule.dateRegex.test(strValue)) {
-        columnStat.invalid_records++;
+        if (columnValid) columnStat.invalid_records++;
 
         columnValid = false;
         rowValid = false;
@@ -533,26 +541,84 @@ export const validateRow = (
             error_description: `${strValue} does not match format ${rule.date_format}`,
           });
       } else {
-        // RANGE VALIDATION
-        if (rule.min_length || rule.max_length) {
-          const currentDate = parseDateByFormat(strValue, rule.date_format);
-          const minDate = rule.min_length
-            ? parseDateByFormat(rule.min_length, rule.date_format)
-            : null;
+        // Range validation
+        const currentDate = parseDateByFormat(strValue, rule.date_format);
 
-          const maxDate = rule.max_length
-            ? parseDateByFormat(rule.max_length, rule.date_format)
-            : null;
+        if (
+          currentDate &&
+          rule.min_length &&
+          (rule.length_validation_type === "fixed" ||
+            (rule.length_validation_type === "variable" && rule.max_length))
+        ) {
+          // parse min/max using fixed format %d-%m-%Y
+          const parseFixedDate = (dateStr: string) => {
+            const parts = dateStr.split("-");
+            if (parts.length !== 3) return null;
 
-          if (currentDate) {
+            const day = Number(parts[0]);
+            const month = Number(parts[1]) - 1;
+            const year = Number(parts[2]);
+
+            return new Date(year, month, day);
+          };
+
+          if (rule.length_validation_type === "fixed") {
+            const fixedDate = rule.min_length
+              ? parseFixedDate(rule.min_length)
+              : null;
+
+            if (fixedDate) {
+              // normalize both dates (remove time)
+              const inputDate = new Date(
+                currentDate.getFullYear(),
+                currentDate.getMonth(),
+                currentDate.getDate(),
+              );
+
+              const compareDate = new Date(
+                fixedDate.getFullYear(),
+                fixedDate.getMonth(),
+                fixedDate.getDate(),
+              );
+
+              if (inputDate.getTime() !== compareDate.getTime()) {
+                if (columnValid) columnStat.invalid_records++;
+                columnStat.length_validation_error_count++;
+                columnValid = false;
+                rowValid = false;
+
+                errorBuffer.add([
+                  rowNumber,
+                  columnName,
+                  "Data Length Error",
+                  `${strValue} must be exactly ${rule.min_length}`,
+                ]);
+              }
+            }
+          } else if (rule.length_validation_type === "variable") {
+            const minDate = rule.min_length
+              ? parseFixedDate(rule.min_length)
+              : null;
+            const maxDate = rule.max_length
+              ? parseFixedDate(rule.max_length)
+              : null;
+            //console.log(minDate + "===--=--=" + maxDate);
+            // remove time from currentDate
+            const inputDate = new Date(
+              currentDate.getFullYear(),
+              currentDate.getMonth(),
+              currentDate.getDate(),
+            );
+
             if (
-              (minDate && currentDate < minDate) ||
-              (maxDate && currentDate > maxDate)
+              (minDate && inputDate.getTime() < minDate.getTime()) ||
+              (maxDate && inputDate.getTime() > maxDate.getTime())
             ) {
-              if (columnValid === true) columnStat.invalid_records++;
-              columnStat.data_length_error_count++;
+              if (columnValid) columnStat.invalid_records++;
+              columnStat.length_validation_error_count++;
               columnValid = false;
               rowValid = false;
+
               errorBuffer.add([
                 rowNumber,
                 columnName,
@@ -675,6 +741,7 @@ export const validateRow = (
           error_description: `${strValue} contains blocked word`,
         });
     }
+
     if (columnValid && strValue !== "") {
       columnStat.valid_records++;
     }
