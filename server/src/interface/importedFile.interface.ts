@@ -58,8 +58,9 @@ export interface ColumnRule {
   max_length?: number | null | Date;
   max_date?: string | null | Date;
   min_date?: string | null | Date;
-  date_format?: Date;
+  date_format?: string;
   dateRegex?: RegExp;
+  cellContainsRegex?: RegExp;
   cell_contains: boolean;
   cell_contains_value: string;
   not_match_found?: string[];
@@ -72,6 +73,8 @@ export interface ColumnRule {
   cell_end_with_normalized?: string[]; //for faster speed validation of end_with values
   not_match_found_normalized?: string[]; //for faster speed validation of blocked words
   redundantCounter?: Map<string, number>;
+  cellStartWithMessage: string;
+  cellEndWithMessage: string;
 }
 
 export interface ParserResult {

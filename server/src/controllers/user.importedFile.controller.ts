@@ -38,7 +38,7 @@ class ImportFileController {
     await fs.promises.mkdir("validation_result", { recursive: true });
     const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
       filename: outputPath,
-      useStyles: true,
+      useStyles: false,
     });
     //first sheet
     const totalsSheet = workbook.addWorksheet("Totals");
@@ -46,10 +46,10 @@ class ImportFileController {
     const errorSheet = workbook.addWorksheet("Error messages");
 
     const errorHeaderRow = errorSheet.addRow([
-      "Row",
-      "Column",
-      "ErrorType",
-      "ErrorDescription",
+      this.cleanExcelString("Row"),
+      this.cleanExcelString("Column"),
+      this.cleanExcelString("ErrorType"),
+      this.cleanExcelString("ErrorDescription"),
     ]);
     errorHeaderRow.font = { bold: true };
     errorHeaderRow.commit();
@@ -64,9 +64,12 @@ class ImportFileController {
 
       filePath = path.resolve(req.file.path);
       const ext = path.extname(filePath).toLowerCase();
-      const columnConfig: Record<string, ColumnRule> = JSON.parse(
-        req.body.columnConfig,
-      );
+      let columnConfig: Record<string, ColumnRule>;
+      try {
+        columnConfig = JSON.parse(req.body.columnConfig);
+      } catch {
+        throw new Error("Invalid columnConfig JSON");
+      }
 
       let result: ParserResult;
       switch (ext) {
@@ -84,7 +87,7 @@ class ImportFileController {
           break;
         default:
           throw new Error(
-            "Unsupported file type. only .xlsx, .json, .json, .xls files are allowed",
+            "Unsupported file type. Only .xlsx, .json, .csv, .xls files are allowed",
           );
       }
 
@@ -93,7 +96,7 @@ class ImportFileController {
       const columns = Object.keys(column_wise_stats);
 
       if (!columns.length) {
-        throw new Error("No column stats generated");
+        throw new Error("No column stats generated or File is empty");
       }
       const metrics = Object.keys(column_wise_stats[columns[0]]).filter(
         (m) => m !== "error_msg",
@@ -133,19 +136,24 @@ class ImportFileController {
       colomwiseHeaderRow.commit();
 
       // Find max error length
-      const maxRows = Math.max(
-        ...Object.values(errors_for_coloms).map((arr) => arr.length),
-      );
+      const lengths = Object.values(errors_for_coloms).map((arr) => arr.length);
+      const maxRows = lengths.length ? Math.max(...lengths) : 0;
 
       // Add rows
       for (let i = 0; i < maxRows; i++) {
-        const row = columns.map((col) => errors_for_coloms[col][i] || "");
-        colomwise_sheet.addRow(row);
+        const rowData = columns.map((col) =>
+          this.cleanExcelString(errors_for_coloms[col][i] || ""),
+        );
+        const row = colomwise_sheet.addRow(rowData);
+        row.commit();
       }
 
       //end added in sheet
 
       try {
+        totalsSheet.commit();
+        errorSheet.commit();
+        colomwise_sheet.commit();
         await workbook.commit();
       } catch (err) {
         console.error("Excel write error:", err);
@@ -172,6 +180,14 @@ class ImportFileController {
         }
       }
     }
+  };
+  cleanExcelString = (value: any): string => {
+    if (value === null || value === undefined) return "";
+
+    return String(value).replace(
+      /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g,
+      "",
+    );
   };
 }
 export const importFileController = new ImportFileController();

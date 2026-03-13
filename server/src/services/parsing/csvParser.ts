@@ -34,53 +34,81 @@ export const csvParser = async (
   const errorBuffer = new ErrorBuffer(errorSheet, 500);
 
   return new Promise((resolve, reject) => {
-    const stream = fs.createReadStream(filePath).pipe(csv());
+    try {
+      const fileStream = fs.createReadStream(filePath);
+      const csvStream = csv();
 
-    stream.on("data", (row) => {
-      if (!headerInitialized) {
-        headers = Object.keys(row);
+      fileStream.pipe(csvStream);
 
-        headers.forEach((header) => {
-          columnStats[header] = createColumnStats();
-        });
-
-        headerInitialized = true;
-      }
-
-      total_rows++;
-
-      const rowNumber = total_rows + 1;
-
-      const rowData: any = {};
-
-      headers.forEach((header) => {
-        rowData[header] = getCellValue(row[header]);
+      // STREAM ERROR HANDLING
+      fileStream.on("error", () => {
+        reject(new Error("CSV file could not be read"));
       });
 
-      const rowValid = validateRow(
-        rowData,
-        rowNumber,
-        headers,
-        ruleMap,
-        columnStats,
-        errorBuffer,
-      );
-
-      if (rowValid) valid_rows++;
-      else invalid_rows++;
-    });
-
-    stream.on("end", () => {
-      errorBuffer.flush();
-
-      resolve({
-        total_rows,
-        valid_rows,
-        invalid_rows,
-        column_wise_stats: columnStats,
+      csvStream.on("error", () => {
+        reject(new Error("CSV file is corrupted or invalid"));
       });
-    });
 
-    stream.on("error", reject);
+      csvStream.on("data", (row) => {
+        try {
+          if (!headerInitialized) {
+            headers = Object.keys(row);
+
+            headers.forEach((header) => {
+              columnStats[header] = createColumnStats();
+            });
+
+            headerInitialized = true;
+          }
+
+          total_rows++;
+          const rowNumber = total_rows + 1;
+
+          const rowData: any = {};
+
+          headers.forEach((header) => {
+            rowData[header] = getCellValue(row[header]);
+          });
+
+          const rowValid = validateRow(
+            rowData,
+            rowNumber,
+            headers,
+            ruleMap,
+            columnStats,
+            errorBuffer,
+          );
+
+          if (rowValid) valid_rows++;
+          else invalid_rows++;
+        } catch (rowError) {
+          invalid_rows++;
+
+          errorBuffer.add([
+            total_rows + 1,
+            "Row Error",
+            "Parsing Error",
+            (rowError as Error).message,
+          ]);
+        }
+      });
+
+      csvStream.on("end", () => {
+        try {
+          errorBuffer.flush();
+
+          resolve({
+            total_rows,
+            valid_rows,
+            invalid_rows,
+            column_wise_stats: columnStats,
+          });
+        } catch (err) {
+          reject(err);
+        }
+      });
+    } catch (err) {
+      reject(err);
+    }
   });
 };

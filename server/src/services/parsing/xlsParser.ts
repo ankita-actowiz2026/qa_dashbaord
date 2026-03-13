@@ -11,16 +11,34 @@ export const xlsParser = async (
   columnConfig: Record<string, ColumnRule>,
   errorSheet: ExcelJS.Worksheet,
 ) => {
-  // STEP 1: convert xls → xlsx
-  const xlsxPath = convertXlsToXlsx(filePath);
+  let xlsxPath: string | null = null;
 
-  // STEP 2: use existing streaming parser
-  const result = await xlsxParser(xlsxPath, columnConfig, errorSheet);
+  try {
+    // STEP 1: convert xls → xlsx
+    xlsxPath = convertXlsToXlsx(filePath);
 
-  // STEP 3: delete temporary xlsx
-  if (fs.existsSync(xlsxPath)) {
-    fs.unlinkSync(xlsxPath);
+    if (!xlsxPath || !fs.existsSync(xlsxPath)) {
+      throw new Error("Failed to convert XLS file");
+    }
+    const stats = fs.statSync(xlsxPath);
+    console.log("====================Converted XLSX size:", stats.size);
+
+    // STEP 2: parse XLSX
+    const result = await xlsxParser(xlsxPath, columnConfig, errorSheet);
+
+    return result;
+  } catch (err) {
+    console.error("XLS parsing error:", err);
+
+    throw new Error("XLS file is corrupted or cannot be processed");
+  } finally {
+    // STEP 3: cleanup temp file
+    if (xlsxPath && fs.existsSync(xlsxPath)) {
+      try {
+        fs.unlinkSync(xlsxPath);
+      } catch (cleanupError) {
+        console.error("Failed to delete temp XLSX:", cleanupError);
+      }
+    }
   }
-
-  return result;
 };

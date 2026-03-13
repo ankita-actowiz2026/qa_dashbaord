@@ -1,11 +1,28 @@
 import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
-import Post from "../models/importedFile.model";
 import ApiError from "../utils/api.error";
 import { param } from "express-validator";
-import { ColumnRule } from "../interface/importedFile.interface";
+import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-
+const debug = 1;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const integerRegex = /^-?\d+$/;
+const validBooleanValues = new Set([
+  "true",
+  "false",
+  "TRUE",
+  "FALSE",
+  "1",
+  "0",
+  "yes",
+  "no",
+  "y",
+  "n",
+  "YES",
+  "NO",
+  "Y",
+  "N",
+]);
 export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
 export const validateEdit = [];
@@ -14,25 +31,30 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
   for (const rule of Object.values(ruleMap)) {
     if (rule.fixed_header?.length) {
       rule.fixed_header_set = new Set(
-        rule.fixed_header.map((v: string) => v.trim().toLowerCase()),
+        //rule.fixed_header.map((v: string) => v.trim().toLowerCase()),
+        rule.fixed_header.map((v: string) => v),
       );
     }
 
     if (rule.cell_start_with?.length) {
       rule.cell_start_with_normalized = rule.cell_start_with.map((v) =>
-        String(v).trim().toLowerCase(),
+        //String(v).trim().toLowerCase(),
+        String(v),
       );
     }
 
     if (rule.cell_end_with?.length) {
       rule.cell_end_with_normalized = rule.cell_end_with.map((v) =>
-        String(v).trim().toLowerCase(),
+        //String(v).trim().toLowerCase(),
+        String(v),
       );
     }
 
     if (rule.not_match_found?.length) {
-      rule.not_match_found_normalized = rule.not_match_found.map((w: string) =>
-        w.trim().toLowerCase(),
+      rule.not_match_found_normalized = rule.not_match_found.map(
+        (w: string) =>
+          //w.trim().toLowerCase(),
+          w,
       );
     }
 
@@ -42,6 +64,15 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
 
     if (rule.data_type === "date" && rule.date_format) {
       rule.dateRegex = buildDateRegex(rule.date_format);
+    }
+    if (rule.cell_contains && rule.cell_contains_value) {
+      rule.cellContainsRegex = new RegExp(rule.cell_contains_value, "u");
+    }
+    if (rule.cell_start_with) {
+      rule.cellStartWithMessage = rule.cell_start_with.join(", ");
+    }
+    if (rule.cell_end_with) {
+      rule.cellEndWithMessage = rule.cell_end_with.join(", ");
     }
   }
 };
@@ -86,19 +117,7 @@ export const getCellValue = (cell: any): string => {
 
   return String(cell).trim();
 };
-// export const generateFileName = () => {
-//   const now = new Date();
 
-//   const mm = String(now.getMonth() + 1).padStart(2, "0");
-//   const dd = String(now.getDate()).padStart(2, "0");
-//   const yyyy = now.getFullYear();
-
-//   const hh = String(now.getHours()).padStart(2, "0");
-//   const mi = String(now.getMinutes()).padStart(2, "0");
-//   const ss = String(now.getSeconds()).padStart(2, "0");
-
-//   return `data_${mm}${dd}${yyyy}${hh}${mi}${ss}.ndjson`;
-// };
 export const parseDateByFormat = (
   value: string,
   format: string,
@@ -107,6 +126,9 @@ export const parseDateByFormat = (
     const numbers = value.match(/\d+/g);
     if (!numbers) return null;
 
+    // normalize separator
+    const normalizedFormat = format.replace(/_/g, "-");
+
     let day = 1;
     let month = 1;
     let year = 1970;
@@ -114,28 +136,24 @@ export const parseDateByFormat = (
     let minute = 0;
     let second = 0;
 
-    if (format.startsWith("%d-%m-%Y")) {
-      day = parseInt(numbers[0]);
-      month = parseInt(numbers[1]);
-      year = parseInt(numbers[2]);
-    }
-
-    if (format.startsWith("%m-%d-%Y")) {
-      month = parseInt(numbers[0]);
-      day = parseInt(numbers[1]);
-      year = parseInt(numbers[2]);
-    }
-
-    if (format.startsWith("%Y-%m-%d")) {
-      year = parseInt(numbers[0]);
-      month = parseInt(numbers[1]);
-      day = parseInt(numbers[2]);
+    if (normalizedFormat.startsWith("%d-%m-%Y")) {
+      day = Number(numbers[0]);
+      month = Number(numbers[1]);
+      year = Number(numbers[2]);
+    } else if (normalizedFormat.startsWith("%m-%d-%Y")) {
+      month = Number(numbers[0]);
+      day = Number(numbers[1]);
+      year = Number(numbers[2]);
+    } else if (normalizedFormat.startsWith("%Y-%m-%d")) {
+      year = Number(numbers[0]);
+      month = Number(numbers[1]);
+      day = Number(numbers[2]);
     }
 
     if (numbers.length >= 6) {
-      hour = parseInt(numbers[3]);
-      minute = parseInt(numbers[4]);
-      second = parseInt(numbers[5]);
+      hour = Number(numbers[3]);
+      minute = Number(numbers[4]);
+      second = Number(numbers[5]);
     }
 
     return new Date(year, month - 1, day, hour, minute, second);
@@ -174,26 +192,27 @@ export const buildDateRegex = (format: string): RegExp => {
 };
 
 export const validateRow = (
-  rowData: any,
+  rowData: Record<string, any>,
   rowNumber: number,
   headers: string[],
-  ruleMap: Record<string, ColumnRule>,
+  ruleMap: Record<string, any>,
   columnStats: any,
   errorBuffer: ErrorBuffer,
 ) => {
-  const debug = 1;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const validBooleanValues = ["true", "false", "1", "0", "yes", "no", "y", "n"];
   let rowValid = true;
 
-  for (const columnName of headers) {
+  for (let i = 0; i < headers.length; i++) {
+    const columnName = headers[i];
     const rule = ruleMap[columnName];
     if (!rule) continue;
+    const dataType = rule.data_type;
 
     const columnStat = columnStats[columnName];
+    if (!columnStat) continue;
     let columnValid = true;
 
     const strValue = rowData[columnName] ?? "";
+    const normalizedValue = strValue;
     if (strValue !== "") {
       columnStat.total_records++;
     }
@@ -225,7 +244,7 @@ export const validateRow = (
 
     if (strValue === "") continue;
     // EMAIL
-    if (rule.data_type === "email") {
+    if (dataType === "email") {
       if (!emailRegex.test(strValue)) {
         columnStat.datatype_error_count++;
         if (columnValid) columnStat.invalid_records++;
@@ -247,13 +266,7 @@ export const validateRow = (
             error_description: `${strValue} does not match email format`,
           });
       }
-    } else if (
-      rule.data_type === "integer" &&
-      strValue !== null &&
-      strValue !== ""
-    ) {
-      const integerRegex = /^-?\d+$/;
-
+    } else if (dataType === "integer" && strValue !== null && strValue !== "") {
       if (!integerRegex.test(String(strValue).trim())) {
         if (columnValid === true) columnStat.invalid_records++;
 
@@ -279,33 +292,33 @@ export const validateRow = (
       }
     }
     //pattern checking
-    if (rule.cell_contains && rule.cell_contains_value) {
-      const regex = new RegExp(rule.cell_contains_value, "u");
+    // if (rule.cell_contains && rule.cell_contains_value) {
+    //   const regex = new RegExp(rule.cell_contains_value, "u");
 
-      if (!regex.test(strValue)) {
-        columnStat.pattern_error_count++;
-        if (columnValid) columnStat.invalid_records++;
-        columnValid = false;
-        rowValid = false;
-        if (debug == 1)
-          columnStat.error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Pattern Error",
-            error_description: `${strValue} does not match required format`,
-          });
-        errorBuffer.add([
-          rowNumber,
-          columnName,
-          "Pattern Error",
-          `${strValue} does not match required format`,
-        ]);
-      }
+    if (rule.cellContainsRegex && !rule.cellContainsRegex.test(strValue)) {
+      columnStat.pattern_error_count++;
+      if (columnValid) columnStat.invalid_records++;
+      columnValid = false;
+      rowValid = false;
+      if (debug == 1)
+        columnStat.error_msg.push({
+          row: rowNumber,
+          column: columnName,
+          error_type: "Pattern Error",
+          error_description: `${strValue} does not match required format`,
+        });
+      errorBuffer.add([
+        rowNumber,
+        columnName,
+        "Pattern Error",
+        `${strValue} does not match required format`,
+      ]);
     }
+    // }
 
     //for number type, also check min/max length if specified
-    if (rule.data_type === "number" || rule.data_type === "integer") {
-      const numValue = Number(strValue);
+    if (dataType === "number" || dataType === "integer") {
+      const numValue = +strValue;
       // Variable length validation (numeric range)
       if (rule.length_validation_type === "variable") {
         if (rule.min_length !== null && numValue < rule.min_length) {
@@ -374,9 +387,9 @@ export const validateRow = (
         }
       }
     } else if (
-      rule.data_type === "string" ||
-      rule.data_type === "email" ||
-      rule.data_type === "boolean"
+      dataType === "string" ||
+      dataType === "email" ||
+      dataType === "boolean"
     ) {
       const strLen = strValue.length;
 
@@ -453,10 +466,11 @@ export const validateRow = (
       }
     }
 
-    if (rule.data_type === "boolean") {
-      const value = String(strValue).trim().toLowerCase();
+    if (dataType === "boolean") {
+      //const value = String(strValue).trim().toLowerCase();
+      const value = String(strValue);
 
-      if (!validBooleanValues.includes(value)) {
+      if (!validBooleanValues.has(value)) {
         if (columnValid === true) columnStat.invalid_records++;
 
         columnValid = false;
@@ -525,8 +539,8 @@ export const validateRow = (
       }
     }
 
-    //if (rule.data_type === "date" && rule.dateRegex && !strValue) {
-    if (rule.data_type === "date" && rule.dateRegex) {
+    //if (dataType  === "date" && rule.dateRegex && !strValue) {
+    if (dataType === "date" && rule.dateRegex) {
       if (!rule.dateRegex.test(strValue)) {
         if (columnValid) columnStat.invalid_records++;
 
@@ -549,7 +563,8 @@ export const validateRow = (
       } else {
         // Range validation
         const currentDate = parseDateByFormat(strValue, rule.date_format);
-
+        if (columnName == "Scrape_DateTime")
+          console.log(strValue + "=====" + currentDate);
         if (
           currentDate &&
           rule.min_length &&
@@ -608,14 +623,16 @@ export const validateRow = (
             const maxDate = rule.max_length
               ? parseFixedDate(rule.max_length)
               : null;
-            //console.log(minDate + "===--=--=" + maxDate);
+
             // remove time from currentDate
             const inputDate = new Date(
               currentDate.getFullYear(),
               currentDate.getMonth(),
               currentDate.getDate(),
             );
-
+            // console.log(
+            //   minDate + "===--=--=" + maxDate + "~~~~~~~~~" + currentDate,
+            // );
             if (
               (minDate && inputDate.getTime() < minDate.getTime()) ||
               (maxDate && inputDate.getTime() > maxDate.getTime())
@@ -643,11 +660,8 @@ export const validateRow = (
         }
       }
     }
-
-    if (
-      rule.fixed_header_set &&
-      !rule.fixed_header_set.has(strValue.toLowerCase())
-    ) {
+    // if (rule.fixed_header_set &&!rule.fixed_header_set.has(strValue.toLowerCase())) {
+    if (rule.fixed_header_set && !rule.fixed_header_set.has(strValue)) {
       if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
@@ -668,9 +682,10 @@ export const validateRow = (
         });
     }
     // START WITH
-    const normalizedValue = String(strValue ?? "")
-      .trim()
-      .toLowerCase();
+    // const normalizedValue = String(strValue ?? "")
+    //   .trim()
+    //   .toLowerCase();
+
     if (
       rule.cell_start_with_normalized?.length &&
       !rule.cell_start_with_normalized.some((prefix) =>
@@ -685,14 +700,14 @@ export const validateRow = (
         rowNumber,
         columnName,
         "Start With Error",
-        `${strValue} must start with ${rule.cell_start_with.join(", ")}`,
+        `${strValue} must start with ${rule.cellStartWithMessage}`,
       ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
           column: columnName,
           error_type: "Start With Error",
-          error_description: `${strValue} must start with ${rule.cell_start_with.join(", ")}`,
+          error_description: `${strValue} must start with ${rule.cellStartWithMessage}`,
         });
     }
 
@@ -712,14 +727,14 @@ export const validateRow = (
         rowNumber,
         columnName,
         "End With Error",
-        `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
+        `${strValue} must end with ${rule.cellEndWithMessage}`,
       ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
           column: columnName,
           error_type: "End With Error",
-          error_description: `${strValue} must end with ${rule.cell_end_with.join(", ")}`,
+          error_description: `${strValue} must end with ${rule.cellEndWithMessage}`,
         });
     }
     if (
