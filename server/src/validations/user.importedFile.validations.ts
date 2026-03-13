@@ -277,7 +277,9 @@ export const validateRow = (
             error_description: `${strValue} is not a valid integer`,
           });
       }
-    } else if (rule.cell_contains && rule.cell_contains_value) {
+    }
+    //pattern checking
+    if (rule.cell_contains && rule.cell_contains_value) {
       const regex = new RegExp(rule.cell_contains_value, "u");
 
       if (!regex.test(strValue)) {
@@ -371,7 +373,11 @@ export const validateRow = (
             });
         }
       }
-    } else if (rule.data_type === "string" || rule.data_type === "email") {
+    } else if (
+      rule.data_type === "string" ||
+      rule.data_type === "email" ||
+      rule.data_type === "boolean"
+    ) {
       const strLen = strValue.length;
 
       // VARIABLE LENGTH (min / max)
