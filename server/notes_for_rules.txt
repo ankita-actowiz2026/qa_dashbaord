@@ -4,6 +4,8 @@
       "Restaurant_Rating":"4.3",
       "Restaurant_Review":"932"
     }
+    "cell_contains_value": "^[\\p{L}0-9 .\\-+()]*$", // for text like ú
+
     "cell_start_with": [
       "https://"
     ],

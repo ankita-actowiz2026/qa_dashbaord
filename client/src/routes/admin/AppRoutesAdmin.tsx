@@ -9,7 +9,7 @@ import PublicRoute from "./PublicRoute";
 import Report from "../../pages/report/Report";
 import ImportFile from "../../pages/admin/import_file/ImportFile";
 
-const AppRoutes = () => {  
+const AppRoutes = () => {
   return (
     <Routes>
       <Route
@@ -35,7 +35,7 @@ const AppRoutes = () => {
         <Route path="user/add" element={<UserAdd />} />
         <Route path="user/add/:id?" element={<UserAdd />} />
         <Route path="/report" element={<Report type="Admin" />} />
-        <Route path="/import_file" element={<ImportFile />} />        
+        <Route path="/import_file" element={<ImportFile />} />
       </Route>
     </Routes>
   );

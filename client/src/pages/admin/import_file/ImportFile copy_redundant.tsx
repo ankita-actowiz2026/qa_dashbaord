@@ -1,11 +1,7 @@
 import React, { useState } from "react";
-import FixedHeaderManager from "./FixedHeaderManager";
-import CellStartWithManager from "./CellStartWithManager";
-
+import { useForm } from "react-hook-form";
 import * as XLSX from "xlsx";
 import axios from "axios";
-import { useForm } from "react-hook-form";
-
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 type HeaderType = {
   name: string;
@@ -15,36 +11,6 @@ const allowedExtensions = [".xlsx", ".xls", ".csv", ".json"];
 
 const dataTypes = ["string", "int", "float", "boolean", "date", "email"];
 
-const date_format_options = [
-  "YYYY-MM-DD",
-  "DD-MM-YYYY",
-  "MM-DD-YYYY",
-  "YYYY/MM/DD",
-  "DD/MM/YYYY",
-  "MM/DD/YYYY",
-  "YYYY-MM-DD HH:mm:ss",
-  "DD-MM-YYYY HH:mm:ss",
-  "MM/DD/YYYY HH:mm:ss",
-  "YYYY-MM-DDTHH:mm:ss",
-  "DD-MM-YYYY h:i:s a",
-  "MM/DD/YYYY h:i a",
-  "YYYY-MM-DD h:i:s A",
-  "DD MMM YYYY",
-  "MMM DD, YYYY",
-  "MMMM DD, YYYY",
-  "DD Month YYYY",
-  "DD-MM-YY",
-  "MM/DD/YY",
-  "DD_MM_YYYY",
-  "MM_DD_YYYY",
-  "YYYY_MM_DD",
-  "DD_MM_YYYY h:i:s a",
-  "MM_DD_YYYY h:i:s a",
-  "YYYY_MM_DD h:i:s a",
-  "DD_MM_YYYY HH:mm:ss",
-  "MM_DD_YYYY HH:mm:ss",
-  "YYYY_MM_DD HH:mm:ss",
-];
 const default_length_validation_value = "variable";
 
 const def_var_min_len_str = 1;
@@ -77,98 +43,14 @@ const def_date_regex = "^\\d{4}-\\d{2}-\\d{2}";
 const ImportFile: React.FC = () => {
   const {
     register,
-    control,
-    watch,
-    setError,
-    clearErrors,
     handleSubmit,
+    watch,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      def_date_format: "YYYY-MM-DD HH:mm:ss",
-    },
-  });
+  } = useForm();
   const [headers, setHeaders] = useState<HeaderType[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
-  const [fixedHeaderInputs, setFixedHeaderInputs] = useState<any>({});
-  const [cellStartWithInputs, setCellStartWithInputs] = useState<any>({});
 
-  const handleFixedHeaderInputChange = (headerName: string, value: string) => {
-    setFixedHeaderInputs((prev: any) => ({
-      ...prev,
-      [headerName]: value,
-    }));
-  };
-  const handleCellStartWithInputChange = (
-    headerName: string,
-    value: string,
-  ) => {
-    setCellStartWithInputs((prev: any) => ({
-      ...prev,
-      [headerName]: value,
-    }));
-  };
-  const addFixedHeader = (headerName: string, fields: any[], append: any) => {
-    const value = fixedHeaderInputs[headerName]?.trim();
-
-    if (!value) {
-      setError(`${headerName}.fixed_header_input`, {
-        message: "Value required",
-      });
-      return;
-    }
-
-    const exists = fields.some(
-      (f) => f.value?.toLowerCase() === value.toLowerCase(),
-    );
-
-    if (exists) {
-      setError(`${headerName}.fixed_header_input`, {
-        message: "Header already exists",
-      });
-      return;
-    }
-
-    clearErrors(`${headerName}.fixed_header_input`);
-
-    append({ value });
-
-    setFixedHeaderInputs((prev: any) => ({
-      ...prev,
-      [headerName]: "",
-    }));
-  };
-  const addCellStartWith = (headerName: string, fields: any[], append: any) => {
-    const value = cellStartWithInputs[headerName]?.trim();
-
-    if (!value) {
-      setError(`${headerName}.cell_start_with_input`, {
-        message: "Value required",
-      });
-      return;
-    }
-
-    const exists = fields.some(
-      (f) => f.value?.toLowerCase() === value.toLowerCase(),
-    );
-
-    if (exists) {
-      setError(`${headerName}.cell_start_with_input`, {
-        message: "Header already exists",
-      });
-      return;
-    }
-
-    clearErrors(`${headerName}.cell_start_with_input`);
-
-    append({ value });
-
-    setCellStartWithInputs((prev: any) => ({
-      ...prev,
-      [headerName]: "",
-    }));
-  };
   const validateFile = (file: File) => {
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
     return allowedExtensions.includes(ext);
@@ -237,19 +119,6 @@ const ImportFile: React.FC = () => {
         return def_str_regex;
     }
   };
-  const cancelFixedHeader = (headerName: string) => {
-    setFixedHeaderInputs((prev) => ({
-      ...prev,
-      [headerName]: "",
-    }));
-  };
-  const cancelCellStartWith = (headerName: string) => {
-    setCellStartWithInputs((prev) => ({
-      ...prev,
-      [headerName]: "",
-    }));
-  };
-
   const onSubmit = async (data: any) => {
     const payload: any = {};
 
@@ -280,17 +149,6 @@ const ImportFile: React.FC = () => {
         cell_contains_value: row?.cell_contains
           ? row?.cell_contains_value
           : null,
-        data_redundant_threshold: row?.data_redundant_threshold,
-        data_redundant_value: row?.data_redundant_threshold
-          ? row?.data_redundant_value
-          : null,
-
-        fixed_header: row?.fixed_header?.map((v: any) => v.value) || [],
-        cell_start_with: row?.cell_start_with?.map((v: any) => v.value) || [],
-        date_format:
-          row?.data_type === "date"
-            ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
-            : null,
       };
     });
 
@@ -375,10 +233,9 @@ const ImportFile: React.FC = () => {
                   const redundantValue = watch(
                     `${header.name}.data_redundant_value`,
                   );
-                  const selectedDataType = watch(`${header.name}.data_type`);
                   return (
                     <div
-                      key={header.name}
+                      key={index}
                       className="bg-gray-50 p-4 rounded-xl space-y-3 border"
                     >
                       {/* Header Name */}
@@ -405,24 +262,7 @@ const ImportFile: React.FC = () => {
                           <option value="email">email</option>
                         </select>
                       </div>
-                      {selectedDataType === "date" && (
-                        <div className="mt-3">
-                          <label className="text-sm font-semibold">
-                            Date Format
-                          </label>
 
-                          <select
-                            {...register(`${header.name}.def_date_format`)}
-                            className="border p-2 rounded w-full"
-                          >
-                            {date_format_options.map((format) => (
-                              <option key={format} value={format}>
-                                {format}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
                       {/* Allow Empty */}
 
                       <label className="flex items-center gap-2 text-sm">
@@ -752,33 +592,6 @@ const ImportFile: React.FC = () => {
                           )}
                         </div>
                       </div>
-
-                      <FixedHeaderManager
-                        headerName={header.name}
-                        control={control}
-                        register={register}
-                        watch={watch}
-                        errors={errors}
-                        fixedHeaderInputs={fixedHeaderInputs}
-                        handleFixedHeaderInputChange={
-                          handleFixedHeaderInputChange
-                        }
-                        addFixedHeader={addFixedHeader}
-                        cancelFixedHeader={cancelFixedHeader}
-                      />
-                      <CellStartWithManager
-                        headerName={header.name}
-                        control={control}
-                        register={register}
-                        watch={watch}
-                        errors={errors}
-                        cellStartWithInputs={cellStartWithInputs}
-                        handleCellStartWithInputChange={
-                          handleCellStartWithInputChange
-                        }
-                        addCellStartWith={addCellStartWith}
-                        cancelCellStartWith={cancelCellStartWith}
-                      />
                     </div>
                   );
                 })}

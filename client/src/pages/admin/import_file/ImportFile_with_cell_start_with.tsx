@@ -15,36 +15,6 @@ const allowedExtensions = [".xlsx", ".xls", ".csv", ".json"];
 
 const dataTypes = ["string", "int", "float", "boolean", "date", "email"];
 
-const date_format_options = [
-  "YYYY-MM-DD",
-  "DD-MM-YYYY",
-  "MM-DD-YYYY",
-  "YYYY/MM/DD",
-  "DD/MM/YYYY",
-  "MM/DD/YYYY",
-  "YYYY-MM-DD HH:mm:ss",
-  "DD-MM-YYYY HH:mm:ss",
-  "MM/DD/YYYY HH:mm:ss",
-  "YYYY-MM-DDTHH:mm:ss",
-  "DD-MM-YYYY h:i:s a",
-  "MM/DD/YYYY h:i a",
-  "YYYY-MM-DD h:i:s A",
-  "DD MMM YYYY",
-  "MMM DD, YYYY",
-  "MMMM DD, YYYY",
-  "DD Month YYYY",
-  "DD-MM-YY",
-  "MM/DD/YY",
-  "DD_MM_YYYY",
-  "MM_DD_YYYY",
-  "YYYY_MM_DD",
-  "DD_MM_YYYY h:i:s a",
-  "MM_DD_YYYY h:i:s a",
-  "YYYY_MM_DD h:i:s a",
-  "DD_MM_YYYY HH:mm:ss",
-  "MM_DD_YYYY HH:mm:ss",
-  "YYYY_MM_DD HH:mm:ss",
-];
 const default_length_validation_value = "variable";
 
 const def_var_min_len_str = 1;
@@ -83,11 +53,7 @@ const ImportFile: React.FC = () => {
     clearErrors,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    defaultValues: {
-      def_date_format: "YYYY-MM-DD HH:mm:ss",
-    },
-  });
+  } = useForm();
   const [headers, setHeaders] = useState<HeaderType[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
@@ -287,10 +253,6 @@ const ImportFile: React.FC = () => {
 
         fixed_header: row?.fixed_header?.map((v: any) => v.value) || [],
         cell_start_with: row?.cell_start_with?.map((v: any) => v.value) || [],
-        date_format:
-          row?.data_type === "date"
-            ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
-            : null,
       };
     });
 
@@ -375,7 +337,7 @@ const ImportFile: React.FC = () => {
                   const redundantValue = watch(
                     `${header.name}.data_redundant_value`,
                   );
-                  const selectedDataType = watch(`${header.name}.data_type`);
+
                   return (
                     <div
                       key={header.name}
@@ -405,24 +367,7 @@ const ImportFile: React.FC = () => {
                           <option value="email">email</option>
                         </select>
                       </div>
-                      {selectedDataType === "date" && (
-                        <div className="mt-3">
-                          <label className="text-sm font-semibold">
-                            Date Format
-                          </label>
 
-                          <select
-                            {...register(`${header.name}.def_date_format`)}
-                            className="border p-2 rounded w-full"
-                          >
-                            {date_format_options.map((format) => (
-                              <option key={format} value={format}>
-                                {format}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
                       {/* Allow Empty */}
 
                       <label className="flex items-center gap-2 text-sm">
