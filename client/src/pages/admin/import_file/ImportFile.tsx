@@ -1,78 +1,29 @@
 import React, { useState } from "react";
-import FixedHeaderManager from "./FixedHeaderManager";
-import CellStartWithManager from "./CellStartWithManager";
+import { DEFAULTS } from "./defaultValues"; // adjust path
 
+import MultiValueRules from "./MultiValueRules";
+
+import LengthValidation from "./LengthValidation";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import { useForm } from "react-hook-form";
+const {
+  allowedExtensions,
+  dataTypes,
+  date_format_options,
+  default_length_validation_value,
+  def_str_regex,
+  def_boolean_regex,
+  def_int_regex,
+  def_float_regex,
+  def_email_regex,
+  def_date_regex,
+} = DEFAULTS;
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 type HeaderType = {
   name: string;
 };
-
-const allowedExtensions = [".xlsx", ".xls", ".csv", ".json"];
-
-const dataTypes = ["string", "int", "float", "boolean", "date", "email"];
-
-const date_format_options = [
-  "YYYY-MM-DD",
-  "DD-MM-YYYY",
-  "MM-DD-YYYY",
-  "YYYY/MM/DD",
-  "DD/MM/YYYY",
-  "MM/DD/YYYY",
-  "YYYY-MM-DD HH:mm:ss",
-  "DD-MM-YYYY HH:mm:ss",
-  "MM/DD/YYYY HH:mm:ss",
-  "YYYY-MM-DDTHH:mm:ss",
-  "DD-MM-YYYY h:i:s a",
-  "MM/DD/YYYY h:i a",
-  "YYYY-MM-DD h:i:s A",
-  "DD MMM YYYY",
-  "MMM DD, YYYY",
-  "MMMM DD, YYYY",
-  "DD Month YYYY",
-  "DD-MM-YY",
-  "MM/DD/YY",
-  "DD_MM_YYYY",
-  "MM_DD_YYYY",
-  "YYYY_MM_DD",
-  "DD_MM_YYYY h:i:s a",
-  "MM_DD_YYYY h:i:s a",
-  "YYYY_MM_DD h:i:s a",
-  "DD_MM_YYYY HH:mm:ss",
-  "MM_DD_YYYY HH:mm:ss",
-  "YYYY_MM_DD HH:mm:ss",
-];
-const default_length_validation_value = "variable";
-
-const def_var_min_len_str = 1;
-const def_var_max_len_str = 500;
-
-const def_var_min_len_num = 1;
-const def_var_max_len_num = 15;
-
-const def_var_min_len_date = new Date(
-  new Date().setFullYear(new Date().getFullYear() - 1),
-)
-  .toISOString()
-  .slice(0, 16);
-
-const def_var_max_len_date = new Date().toISOString().slice(0, 16);
-
-const def_fixed_length_str = 100;
-const def_fixed_length_num = 15;
-
-const def_fixed_date = new Date().toISOString().slice(0, 16);
-const def_cell_contains_value = 1;
-
-const def_str_regex = ".*";
-const def_boolean_regex = "^(true|false)$";
-const def_int_regex = "^-?\\d+$";
-const def_float_regex = "^-?\\d+(\\.\\d+)?$";
-const def_email_regex = "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$";
-const def_date_regex = "^\\d{4}-\\d{2}-\\d{2}";
 
 const ImportFile: React.FC = () => {
   const {
@@ -93,82 +44,186 @@ const ImportFile: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [fixedHeaderInputs, setFixedHeaderInputs] = useState<any>({});
   const [cellStartWithInputs, setCellStartWithInputs] = useState<any>({});
+  const [cellEndWithInputs, setCellEndWithInputs] = useState<any>({});
+  const [notMatchFoundInputs, setNotMatchFoundInputs] = useState<any>({});
 
-  const handleFixedHeaderInputChange = (headerName: string, value: string) => {
-    setFixedHeaderInputs((prev: any) => ({
-      ...prev,
-      [headerName]: value,
-    }));
-  };
-  const handleCellStartWithInputChange = (
+  ///////////////////////start multi value select
+  const handleMultiValueRulesInputChange = (
     headerName: string,
     value: string,
+    inputType: string,
   ) => {
-    setCellStartWithInputs((prev: any) => ({
-      ...prev,
-      [headerName]: value,
-    }));
+    if (inputType == "fixed_header") {
+      setFixedHeaderInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    } else if (inputType == "cell_start_with") {
+      setCellStartWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    } else if (inputType == "cell_end_with") {
+      setCellEndWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    } else if (inputType == "not_match_found") {
+      setNotMatchFoundInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    }
   };
-  const addFixedHeader = (headerName: string, fields: any[], append: any) => {
-    const value = fixedHeaderInputs[headerName]?.trim();
 
-    if (!value) {
-      setError(`${headerName}.fixed_header_input`, {
-        message: "Value required",
-      });
-      return;
+  const addMultiValueRules = (
+    headerName: string,
+    fields: any[],
+    append: any,
+    inputType: string,
+  ) => {
+    if (inputType == "fixed_header") {
+      const value = fixedHeaderInputs[headerName]?.trim();
+
+      if (!value) {
+        setError(`${headerName}.fixed_header_input`, {
+          message: "Please add fixed header value",
+        });
+        return;
+      }
+
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.fixed_header_input`, {
+          message: "Fixed header value is already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.fixed_header_input`);
+
+      append({ value });
+
+      setFixedHeaderInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "cell_start_with") {
+      const value = cellStartWithInputs[headerName]?.trim();
+
+      if (!value) {
+        setError(`${headerName}.cell_start_with_input`, {
+          message: "Please add cell start with value",
+        });
+        return;
+      }
+
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.cell_start_with_input`, {
+          message: "Cell start with value already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.cell_start_with_input`);
+
+      append({ value });
+
+      setCellStartWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "cell_end_with") {
+      const value = cellEndWithInputs[headerName]?.trim();
+
+      if (!value) {
+        setError(`${headerName}.cell_end_with_input`, {
+          message: "Please add cell end with value",
+        });
+        return;
+      }
+
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.cell_end_with_input`, {
+          message: "Cell end with value already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.cell_end_with_input`);
+
+      append({ value });
+
+      setCellEndWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "not_match_found") {
+      const value = notMatchFoundInputs[headerName]?.trim();
+
+      if (!value) {
+        setError(`${headerName}.not_match_found_input`, {
+          message: "Please add blocked value",
+        });
+        return;
+      }
+
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.not_match_found_input`, {
+          message: "Blocked  value already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.not_match_found_input`);
+
+      append({ value });
+
+      setNotMatchFoundInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
     }
-
-    const exists = fields.some(
-      (f) => f.value?.toLowerCase() === value.toLowerCase(),
-    );
-
-    if (exists) {
-      setError(`${headerName}.fixed_header_input`, {
-        message: "Header already exists",
-      });
-      return;
-    }
-
-    clearErrors(`${headerName}.fixed_header_input`);
-
-    append({ value });
-
-    setFixedHeaderInputs((prev: any) => ({
-      ...prev,
-      [headerName]: "",
-    }));
   };
-  const addCellStartWith = (headerName: string, fields: any[], append: any) => {
-    const value = cellStartWithInputs[headerName]?.trim();
-
-    if (!value) {
-      setError(`${headerName}.cell_start_with_input`, {
-        message: "Value required",
-      });
-      return;
+  const cancelMultiValueRules = (headerName: string, inputType: string) => {
+    if (inputType == "fixed_header") {
+      setFixedHeaderInputs((prev) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "cell_start_with") {
+      setCellStartWithInputs((prev) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "cell_end_with") {
+      setCellEndWithInputs((prev) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "not_match_found") {
+      setNotMatchFoundInputs((prev) => ({
+        ...prev,
+        [headerName]: "",
+      }));
     }
-
-    const exists = fields.some(
-      (f) => f.value?.toLowerCase() === value.toLowerCase(),
-    );
-
-    if (exists) {
-      setError(`${headerName}.cell_start_with_input`, {
-        message: "Header already exists",
-      });
-      return;
-    }
-
-    clearErrors(`${headerName}.cell_start_with_input`);
-
-    append({ value });
-
-    setCellStartWithInputs((prev: any) => ({
-      ...prev,
-      [headerName]: "",
-    }));
   };
+  ///////////////////////end multi value select
   const validateFile = (file: File) => {
     const ext = "." + file.name.split(".").pop()?.toLowerCase();
     return allowedExtensions.includes(ext);
@@ -237,18 +292,6 @@ const ImportFile: React.FC = () => {
         return def_str_regex;
     }
   };
-  const cancelFixedHeader = (headerName: string) => {
-    setFixedHeaderInputs((prev) => ({
-      ...prev,
-      [headerName]: "",
-    }));
-  };
-  const cancelCellStartWith = (headerName: string) => {
-    setCellStartWithInputs((prev) => ({
-      ...prev,
-      [headerName]: "",
-    }));
-  };
 
   const onSubmit = async (data: any) => {
     const payload: any = {};
@@ -287,6 +330,8 @@ const ImportFile: React.FC = () => {
 
         fixed_header: row?.fixed_header?.map((v: any) => v.value) || [],
         cell_start_with: row?.cell_start_with?.map((v: any) => v.value) || [],
+        cell_end_with: row?.cell_end_with?.map((v: any) => v.value) || [],
+        not_match_found: row?.not_match_found?.map((v: any) => v.value) || [],
         date_format:
           row?.data_type === "date"
             ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
@@ -315,8 +360,8 @@ const ImportFile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="w-full max-w-3xl bg-white shadow-xl rounded-2xl p-6">
+    <div className="min-h-screen flex justify-center items-start bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6">
         {/* Title */}
 
         <div className="text-center mb-6">
@@ -355,300 +400,107 @@ const ImportFile: React.FC = () => {
           {/* Header Mapping */}
 
           {headers.length > 0 && (
-            <div className="mt-8">
+            <>
               <h2 className="text-lg font-semibold text-gray-700 mb-4">
                 Column Settings
               </h2>
 
               <div className="space-y-6">
                 {headers.map((header, index) => {
-                  const dataType =
-                    watch(`${header.name}.data_type`) || "string";
+                  const formValues = watch();
+                  const headerValues = formValues?.[header.name] || {};
 
+                  const dataType = headerValues.data_type || "string";
                   const validationType =
-                    watch(`${header.name}.length_validation_type`) ||
+                    headerValues.length_validation_type ||
                     default_length_validation_value;
-
-                  const cellContains = watch(`${header.name}.cell_contains`);
-
+                  const cellContains = headerValues.cell_contains;
+                  const redundantValue = headerValues.data_redundant_value;
+                  const selectedDataType = headerValues.data_type;
                   const regexValue = getRegexByType(dataType);
-                  const redundantValue = watch(
-                    `${header.name}.data_redundant_value`,
-                  );
-                  const selectedDataType = watch(`${header.name}.data_type`);
+                  const multiValueRulesConfig = [
+                    {
+                      inputType: "fixed_header",
+                      inputs: fixedHeaderInputs,
+                    },
+                    {
+                      inputType: "cell_start_with",
+                      inputs: cellStartWithInputs,
+                    },
+                    {
+                      inputType: "cell_end_with",
+                      inputs: cellEndWithInputs,
+                    },
+                    {
+                      inputType: "not_match_found",
+                      inputs: notMatchFoundInputs,
+                    },
+                  ];
                   return (
                     <div
                       key={header.name}
-                      className="bg-gray-50 p-4 rounded-xl space-y-3 border"
+                      className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden w-full"
                     >
                       {/* Header Name */}
 
-                      <h3 className="font-semibold text-gray-700">
-                        {header.name}
-                      </h3>
-
-                      {/* Data Type */}
-
-                      <div>
-                        <label className="text-sm">Data Type</label>
-
-                        <select
-                          className="border p-2 w-full rounded"
-                          defaultValue="string"
-                          {...register(`${header.name}.data_type`)}
-                        >
-                          <option value="string">string</option>
-                          <option value="int">int</option>
-                          <option value="float">float</option>
-                          <option value="boolean">boolean</option>
-                          <option value="date">date</option>
-                          <option value="email">email</option>
-                        </select>
+                      <div className="bg-gray-100 px-4 py-2 border-b">
+                        <h3 className="font-semibold text-gray-700">
+                          {index + 1}. {header.name}
+                        </h3>
                       </div>
-                      {selectedDataType === "date" && (
-                        <div className="mt-3">
-                          <label className="text-sm font-semibold">
-                            Date Format
-                          </label>
+                      <div className="p-4 space-y-4">
+                        {/* Data Type */}
+
+                        <div>
+                          <label className="text-sm">Data Type</label>
 
                           <select
-                            {...register(`${header.name}.def_date_format`)}
-                            className="border p-2 rounded w-full"
+                            className="border p-2 w-full rounded"
+                            defaultValue="string"
+                            {...register(`${header.name}.data_type`)}
                           >
-                            {date_format_options.map((format) => (
-                              <option key={format} value={format}>
-                                {format}
+                            {dataTypes.map((type) => (
+                              <option key={type} value={type}>
+                                {type.charAt(0).toUpperCase() + type.slice(1)}
                               </option>
                             ))}
                           </select>
                         </div>
-                      )}
-                      {/* Allow Empty */}
+                        {selectedDataType === "date" && (
+                          <div className="mt-3">
+                            <label className="text-sm font-semibold">
+                              Date Format
+                            </label>
 
-                      <label className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          {...register(`${header.name}.has_empty`)}
-                        />
-                        Allow Empty
-                      </label>
-
-                      {/* Validation Type */}
-
-                      <div>
-                        <label className="text-sm font-medium">
-                          Length Validation
-                        </label>
-
-                        <div className="flex gap-4 mt-1">
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              value="variable"
-                              defaultChecked
-                              {...register(
-                                `${header.name}.length_validation_type`,
-                              )}
-                            />
-                            Variable
-                          </label>
-
-                          <label className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              value="fixed"
-                              {...register(
-                                `${header.name}.length_validation_type`,
-                              )}
-                            />
-                            Fixed
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* VARIABLE VALIDATION */}
-
-                      {validationType === "variable" && (
-                        <div className="grid grid-cols-2 gap-3">
-                          {/* STRING / BOOLEAN / EMAIL */}
-
-                          {["string", "boolean", "email"].includes(
-                            dataType,
-                          ) && (
-                            <>
-                              <div>
-                                <label className="text-sm">Min Length</label>
-
-                                <input
-                                  type="number"
-                                  defaultValue={def_var_min_len_str}
-                                  className="border p-2 w-full rounded"
-                                  {...register(`${header.name}.min_length`, {
-                                    required: "Min length is required",
-                                  })}
-                                />
-
-                                {errors?.[header.name]?.min_length && (
-                                  <p className="text-red-500 text-xs">
-                                    {errors[header.name].min_length.message}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div>
-                                <label className="text-sm">Max Length</label>
-
-                                <input
-                                  type="number"
-                                  defaultValue={def_var_max_len_str}
-                                  className="border p-2 w-full rounded"
-                                  {...register(`${header.name}.max_length`, {
-                                    required: "Max length is required",
-                                  })}
-                                />
-
-                                {errors?.[header.name]?.max_length && (
-                                  <p className="text-red-500 text-xs">
-                                    {errors[header.name].max_length.message}
-                                  </p>
-                                )}
-                              </div>
-                            </>
-                          )}
-
-                          {/* NUMBER */}
-
-                          {["int", "float"].includes(dataType) && (
-                            <>
-                              <div>
-                                <label className="text-sm">Min Value</label>
-
-                                <input
-                                  type="number"
-                                  defaultValue={def_var_min_len_num}
-                                  className="border p-2 w-full rounded"
-                                  {...register(`${header.name}.min_length`, {
-                                    required: "Min value required",
-                                  })}
-                                />
-
-                                {errors?.[header.name]?.min_length && (
-                                  <p className="text-red-500 text-xs">
-                                    {errors[header.name].min_length.message}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div>
-                                <label className="text-sm">Max Value</label>
-
-                                <input
-                                  type="number"
-                                  defaultValue={def_var_max_len_num}
-                                  className="border p-2 w-full rounded"
-                                  {...register(`${header.name}.max_length`, {
-                                    required: "Max value required",
-                                  })}
-                                />
-
-                                {errors?.[header.name]?.max_length && (
-                                  <p className="text-red-500 text-xs">
-                                    {errors[header.name].max_length.message}
-                                  </p>
-                                )}
-                              </div>
-                            </>
-                          )}
-
-                          {/* DATE */}
-
-                          {dataType === "date" && (
-                            <>
-                              <div>
-                                <label className="text-sm">Min Date</label>
-
-                                <input
-                                  type="datetime-local"
-                                  defaultValue={def_var_min_len_date}
-                                  className="border p-2 w-full rounded"
-                                  {...register(`${header.name}.min_length`, {
-                                    required: "Min date required",
-                                  })}
-                                />
-
-                                {errors?.[header.name]?.min_length && (
-                                  <p className="text-red-500 text-xs">
-                                    {errors[header.name].min_length.message}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div>
-                                <label className="text-sm">Max Date</label>
-
-                                <input
-                                  type="datetime-local"
-                                  defaultValue={def_var_max_len_date}
-                                  className="border p-2 w-full rounded"
-                                  {...register(`${header.name}.max_length`, {
-                                    required: "Max date required",
-                                  })}
-                                />
-
-                                {errors?.[header.name]?.max_length && (
-                                  <p className="text-red-500 text-xs">
-                                    {errors[header.name].max_length.message}
-                                  </p>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-
-                      {/* FIXED VALIDATION */}
-
-                      {validationType === "fixed" && (
-                        <div>
-                          <label className="text-sm">Fixed Value</label>
-
-                          <input
-                            type={
-                              dataType === "date" ? "datetime-local" : "number"
-                            }
-                            defaultValue={
-                              dataType === "date"
-                                ? def_fixed_date
-                                : dataType === "string"
-                                  ? def_fixed_length_str
-                                  : def_fixed_length_num
-                            }
-                            className="border p-2 w-full rounded"
-                            {...register(`${header.name}.min_length`, {
-                              required: "Value is required",
-                            })}
-                          />
-
-                          {errors?.[header.name]?.min_length && (
-                            <p className="text-red-500 text-xs">
-                              {errors[header.name].min_length.message}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-4 items-start">
-                        {/* Checkbox */}
+                            <select
+                              {...register(`${header.name}.def_date_format`)}
+                              className="border p-2 rounded w-full"
+                            >
+                              {date_format_options.map((format) => (
+                                <option key={format} value={format}>
+                                  {format}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                        {/* Allow Empty */}
 
                         <label className="flex items-center gap-2 text-sm">
                           <input
                             type="checkbox"
-                            className="accent-blue-600"
-                            {...register(`${header.name}.cell_contains`)}
+                            {...register(`${header.name}.has_empty`)}
                           />
-                          Cell Contains
+                          Allow Empty
                         </label>
 
-                        {/* Value textbox */}
+                        <LengthValidation
+                          header={header}
+                          dataType={dataType}
+                          validationType={validationType}
+                          register={register}
+                          errors={errors}
+                        />
 
                         {cellContains && (
                           <div>
@@ -689,96 +541,88 @@ const ImportFile: React.FC = () => {
                             )}
                           </div>
                         )}
-                      </div>
+                        {/* DATA REDUNDANT SECTION */}
 
-                      {/* DATA REDUNDANT SECTION */}
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* redundant value */}
 
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* redundant value */}
+                          <div>
+                            <label className="text-sm">
+                              Data Redundant Value
+                            </label>
 
-                        <div>
-                          <label className="text-sm">
-                            Data Redundant Value
-                          </label>
+                            <input
+                              type="text"
+                              placeholder="Enter redundant value"
+                              className="border p-2 w-full rounded"
+                              {...register(
+                                `${header.name}.data_redundant_value`,
+                              )}
+                            />
+                          </div>
 
-                          <input
-                            type="text"
-                            placeholder="Enter redundant value"
-                            className="border p-2 w-full rounded"
-                            {...register(`${header.name}.data_redundant_value`)}
-                          />
-                        </div>
+                          {/* redundant threshold */}
 
-                        {/* redundant threshold */}
+                          <div>
+                            <label className="text-sm">
+                              Data Redundant Threshold
+                            </label>
 
-                        <div>
-                          <label className="text-sm">
-                            Data Redundant Threshold
-                          </label>
+                            <input
+                              type="number"
+                              placeholder="Enter threshold"
+                              className="border p-2 w-full rounded"
+                              {...register(
+                                `${header.name}.data_redundant_threshold`,
+                                {
+                                  validate: (value) => {
+                                    if (redundantValue && !value) {
+                                      return "Threshold required when redundant value exists";
+                                    }
 
-                          <input
-                            type="number"
-                            placeholder="Enter threshold"
-                            className="border p-2 w-full rounded"
-                            {...register(
-                              `${header.name}.data_redundant_threshold`,
-                              {
-                                validate: (value) => {
-                                  if (redundantValue && !value) {
-                                    return "Threshold required when redundant value exists";
-                                  }
+                                    if (
+                                      value &&
+                                      !Number.isInteger(Number(value))
+                                    ) {
+                                      return "Threshold must be integer";
+                                    }
 
-                                  if (
-                                    value &&
-                                    !Number.isInteger(Number(value))
-                                  ) {
-                                    return "Threshold must be integer";
-                                  }
-
-                                  return true;
+                                    return true;
+                                  },
                                 },
-                              },
+                              )}
+                            />
+
+                            {(errors as any)?.[header.name]
+                              ?.data_redundant_threshold && (
+                              <p className="text-red-500 text-xs mt-1">
+                                {
+                                  (errors as any)[header.name]
+                                    .data_redundant_threshold.message
+                                }
+                              </p>
                             )}
-                          />
-
-                          {(errors as any)?.[header.name]
-                            ?.data_redundant_threshold && (
-                            <p className="text-red-500 text-xs mt-1">
-                              {
-                                (errors as any)[header.name]
-                                  .data_redundant_threshold.message
-                              }
-                            </p>
-                          )}
+                          </div>
                         </div>
-                      </div>
 
-                      <FixedHeaderManager
-                        headerName={header.name}
-                        control={control}
-                        register={register}
-                        watch={watch}
-                        errors={errors}
-                        fixedHeaderInputs={fixedHeaderInputs}
-                        handleFixedHeaderInputChange={
-                          handleFixedHeaderInputChange
-                        }
-                        addFixedHeader={addFixedHeader}
-                        cancelFixedHeader={cancelFixedHeader}
-                      />
-                      <CellStartWithManager
-                        headerName={header.name}
-                        control={control}
-                        register={register}
-                        watch={watch}
-                        errors={errors}
-                        cellStartWithInputs={cellStartWithInputs}
-                        handleCellStartWithInputChange={
-                          handleCellStartWithInputChange
-                        }
-                        addCellStartWith={addCellStartWith}
-                        cancelCellStartWith={cancelCellStartWith}
-                      />
+                        {multiValueRulesConfig.map((rule) => (
+                          <MultiValueRules
+                            key={rule.inputType}
+                            headerName={header.name}
+                            control={control}
+                            register={register}
+                            watch={watch}
+                            errors={errors}
+                            multiValueRulesInputs={rule.inputs}
+                            handleMultiValueRulesInputChange={
+                              handleMultiValueRulesInputChange
+                            }
+                            addMultiValueRules={addMultiValueRules}
+                            cancelMultiValueRules={cancelMultiValueRules}
+                            inputType={rule.inputType}
+                          />
+                        ))}
+                      </div>
                     </div>
                   );
                 })}
@@ -790,7 +634,7 @@ const ImportFile: React.FC = () => {
               >
                 Submit Mapping
               </button>
-            </div>
+            </>
           )}
         </form>
       </div>
