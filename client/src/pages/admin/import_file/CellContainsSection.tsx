@@ -23,7 +23,11 @@ const CellContainsSection = ({
       <div>
         {/* Checkbox + Label */}
         <label className="text-sm font-semibold mr-2">
-          <input type="checkbox" {...register(`${headerName}.cell_contains`)} />
+          <input
+            type="checkbox"
+            {...register(`${headerName}.cell_contains`)}
+            className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
+          />
           Cell Contains (Regex)
         </label>
       </div>

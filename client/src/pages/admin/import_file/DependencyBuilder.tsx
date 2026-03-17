@@ -40,96 +40,102 @@ const DependencyBuilder = ({
   }, [isEnabled]); // ✅ DO NOT include fields.length
 
   return (
-    <div className="border p-3 rounded mt-4">
-      {/* Checkbox */}
-      <label className="text-sm font-semibold mr-2">
-        <input type="checkbox" {...register(`${headerName}.has_dependency`)} />
-        Add Dependency
-      </label>
+    <div className="grid grid-cols-1 gap-4">
+      <div>
+        {/* Checkbox */}
+        <label className="text-sm font-semibold mr-2">
+          <input
+            type="checkbox"
+            {...register(`${headerName}.has_dependency`)}
+            className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
+          />
+          Add Dependency
+        </label>
 
-      {/* MAIN UI */}
-      {isEnabled && (
-        <div className="mt-3 space-y-4">
-          {fields[0] &&
-            (() => {
-              const index = 0;
-              const field = fields[0];
-              const condition = watch(`${depPath}.${index}.condition`);
+        {/* MAIN UI */}
+        {isEnabled && (
+          <div className="mt-3 space-y-4">
+            {fields[0] &&
+              (() => {
+                const index = 0;
+                const field = fields[0];
+                const condition = watch(`${depPath}.${index}.condition`);
 
-              return (
-                <div key={field.id} className="border p-3 rounded">
-                  {/* MAIN CONDITION */}
-                  <div className="flex items-center gap-4 flex-wrap">
-                    {/* TRUE */}
-                    <label className="flex items-center gap-1 ">
+                return (
+                  <div key={field.id} className="border p-3 rounded">
+                    {/* MAIN CONDITION */}
+                    <div className="flex items-center gap-4 flex-wrap">
+                      {/* TRUE */}
+                      <label className="flex items-center gap-1 ">
+                        <input
+                          type="radio"
+                          value="true"
+                          {...register(`${depPath}.${index}.condition`)}
+                        />
+                        True
+                      </label>
+
+                      {/* OTHER */}
+                      <label className="flex items-center gap-1">
+                        <input
+                          type="radio"
+                          value="other"
+                          {...register(`${depPath}.${index}.condition`)}
+                        />
+                        Other Value
+                      </label>
+
+                      {/* TEXTBOX */}
                       <input
-                        type="radio"
-                        value="true"
-                        {...register(`${depPath}.${index}.condition`)}
+                        type="text"
+                        placeholder="Enter value"
+                        disabled={condition !== "other"}
+                        {...register(`${depPath}.${index}.value`, {
+                          validate: (val) => {
+                            if (condition === "other" && !val) {
+                              return "Value required";
+                            }
+                            return true;
+                          },
+                        })}
+                        className="border border-gray-400 p-1 rounded "
                       />
-                      True
-                    </label>
 
-                    {/* OTHER */}
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        value="other"
-                        {...register(`${depPath}.${index}.condition`)}
-                      />
-                      Other Value
-                    </label>
+                      {/* ✅ ERROR MESSAGE */}
+                      {errors?.[headerName]?.dependencies?.[index]?.value && (
+                        <p className="text-red-500 text-sm">
+                          {errors[headerName].dependencies[index].value.message}
+                        </p>
+                      )}
+                      {/* DELETE MAIN */}
+                      {fields.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          className="text-red-500"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
 
-                    {/* TEXTBOX */}
-                    <input
-                      type="text"
-                      placeholder="Enter value"
-                      disabled={condition !== "other"}
-                      {...register(`${depPath}.${index}.value`, {
-                        validate: (val) => {
-                          if (condition === "other" && !val) {
-                            return "Value required";
-                          }
-                          return true;
-                        },
-                      })}
-                      className="border border-gray-400 p-1 rounded "
+                    {/* SUB DEPENDENCY */}
+                    <SubDependency
+                      control={control}
+                      register={register}
+                      watch={watch}
+                      headerName={headerName}
+                      index={index}
+                      headersList={headersList}
+                      trigger={trigger}
+                      errors={errors}
                     />
-
-                    {/* ✅ ERROR MESSAGE */}
-                    {errors?.[headerName]?.dependencies?.[index]?.value && (
-                      <p className="text-red-500 text-sm">
-                        {errors[headerName].dependencies[index].value.message}
-                      </p>
-                    )}
-                    {/* DELETE MAIN */}
-                    {fields.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        className="text-red-500"
-                      >
-                        ✕
-                      </button>
-                    )}
                   </div>
-
-                  {/* SUB DEPENDENCY */}
-                  <SubDependency
-                    control={control}
-                    register={register}
-                    watch={watch}
-                    headerName={headerName}
-                    index={index}
-                    headersList={headersList}
-                    trigger={trigger}
-                    errors={errors}
-                  />
-                </div>
-              );
-            })()}
-        </div>
-      )}
+                );
+              })()}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

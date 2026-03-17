@@ -35,12 +35,13 @@ const LengthValidation = ({
       {/* Validation Type */}
       <div className="flex items-center gap-6">
         <label className="text-sm font-medium whitespace-nowrap">
-          Length Validation
+          Data Length
         </label>
 
         <div className="flex gap-4">
           <label className="text-sm font-semibold mr-2">
             <input
+              className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
               type="radio"
               value="variable"
               defaultChecked
@@ -51,6 +52,7 @@ const LengthValidation = ({
 
           <label className="text-sm font-semibold mr-2">
             <input
+              className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
               type="radio"
               value="fixed"
               {...register(`${header.name}.length_validation_type`)}

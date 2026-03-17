@@ -451,7 +451,7 @@ const ImportFile: React.FC = () => {
           {headers.length > 0 && (
             <>
               <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                Column Settings
+                Headers validation
               </h2>
 
               {/* <div className="space-y-6"> */}
@@ -506,15 +506,20 @@ const ImportFile: React.FC = () => {
                           dataTypes={dataTypes}
                           date_format_options={date_format_options}
                         />
-                        {/* Allow Empty */}
 
-                        <label className="text-sm font-semibold mr-2">
-                          <input
-                            type="checkbox"
-                            {...register(`${header.name}.has_empty`)}
-                          />
-                          Allow Empty
-                        </label>
+                        {/* Allow Empty */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-semibold mr-2">
+                              <input
+                                className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
+                                type="checkbox"
+                                {...register(`${header.name}.has_empty`)}
+                              />
+                              Allow Empty
+                            </label>
+                          </div>
+                        </div>
                         <CellContainsSection
                           headerName={header.name}
                           register={register}
@@ -573,12 +578,14 @@ const ImportFile: React.FC = () => {
                 })}
               </div>
 
-              <button
-                type="submit"
-                className="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700"
-              >
-                Submit Mapping
-              </button>
+              <div className="flex justify-center mt-6">
+                <button
+                  type="submit"
+                  className="mt-6 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 block mx-auto"
+                >
+                  Save
+                </button>
+              </div>
             </>
           )}
         </form>
