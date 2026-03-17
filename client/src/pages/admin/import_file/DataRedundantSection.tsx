@@ -12,7 +12,7 @@ const DataRedundantSection = ({
   watch,
 }: Props) => {
   const redundantValue = watch(`${headerName}.data_redundant_value`);
-
+  console.log("DataRedundantSection");
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* Redundant Value */}

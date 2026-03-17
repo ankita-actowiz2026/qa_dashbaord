@@ -7,6 +7,7 @@ const DataTypeSection = ({
   dataTypes,
   date_format_options,
 }) => {
+  console.log("DataTypeSection");
   // ✅ watch only required field (optimized)
   const selectedDataType = watch(`${headerName}.data_type`);
 

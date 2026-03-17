@@ -1,6 +1,13 @@
+const oneYearAgo = new Date();
+oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+const year = oneYearAgo.getFullYear();
+const month = String(oneYearAgo.getMonth() + 1).padStart(2, "0"); // 01-12
+const day = String(oneYearAgo.getDate()).padStart(2, "0"); // 01-31
+
 export const DEFAULTS = {
   allowedExtensions: [".xlsx", ".xls", ".csv", ".json"],
-  dataTypes: ["string", "int", "float", "boolean", "date", "email"],
+  dataTypes: ["string", "integer", "float", "boolean", "date", "email"],
   stringTypes: ["string", "boolean", "email"],
   numberTypes: ["int", "float"],
   date_format_options: [
@@ -38,21 +45,23 @@ export const DEFAULTS = {
   def_var_max_len_str: 500,
   def_var_min_len_num: 1,
   def_var_max_len_num: 15,
-  def_var_min_len_date: new Date(
-    new Date().setFullYear(new Date().getFullYear() - 1),
-  )
-    .toISOString()
-    .slice(0, 16),
 
-  def_var_max_len_date: new Date().toISOString().slice(0, 16),
+  def_var_min_len_date: `${year}-${month}-${day}`,
+  def_var_max_len_date: new Date().toISOString().slice(0, 10),
+  def_fixed_date: `${year}-${month}-${day}`,
   def_fixed_length_str: 100,
   def_fixed_length_num: 15,
-  def_fixed_date: new Date().toISOString().slice(0, 16),
   def_cell_contains_value: 1,
-  def_str_regex: ".*",
-  def_boolean_regex: "^(true|false)$",
-  def_int_regex: "^-?\\d+$",
-  def_float_regex: "^-?\\d+(\\.\\d+)?$",
+  // def_str_regex: ".*",
+  // def_boolean_regex: "^(true|false)$",
+  // def_int_regex: "^-?\\d+$",
+  // def_float_regex: "^-?\\d+(\\.\\d+)?$",
+  // def_email_regex: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+  // def_date_regex: "^\\d{4}-\\d{2}-\\d{2}",
+  def_str_regex: "^.*$",
+  def_boolean_regex: "^(true|false|0|1|T|F|TRUE|FALSE)$",
+  def_int_regex: "^[0-9]+$",
+  def_float_regex: "^[0-9]+(\\.[0-9]+)?$",
   def_email_regex: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-  def_date_regex: "^\\d{4}-\\d{2}-\\d{2}",
+  def_date_regex: "^\\d{4}-\\d{2}-\\d{2}$",
 };

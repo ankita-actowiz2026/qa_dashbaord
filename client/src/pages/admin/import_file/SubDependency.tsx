@@ -10,6 +10,7 @@ const SubDependency = ({
   trigger,
   errors,
 }) => {
+  console.log("SubDependency");
   const subPath = `${headerName}.dependencies.${index}.subDependencies`;
 
   const { fields, append, remove } = useFieldArray({

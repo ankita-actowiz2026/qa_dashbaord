@@ -12,7 +12,7 @@ const {
   def_fixed_date,
 } = DEFAULTS;
 type Props = {
-  header: [];
+  headerName: string;
   dataType: string;
   validationType: string;
   register: any;
@@ -20,7 +20,7 @@ type Props = {
 };
 
 const LengthValidation = ({
-  header,
+  headerName,
   dataType,
   validationType,
   register,
@@ -28,10 +28,9 @@ const LengthValidation = ({
 }: Props) => {
   const stringTypes = ["string", "boolean", "email"];
   const numberTypes = ["int", "float"];
-
+  console.log("LengthValidation");
   return (
     <>
-      {" "}
       {/* Validation Type */}
       <div className="flex items-center gap-6">
         <label className="text-sm font-medium whitespace-nowrap">
@@ -45,17 +44,16 @@ const LengthValidation = ({
               type="radio"
               value="variable"
               defaultChecked
-              {...register(`${header.name}.length_validation_type`)}
+              {...register(`${headerName}.length_validation_type`)}
             />
             Variable
           </label>
 
           <label className="text-sm font-semibold mr-2">
             <input
-              className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
               type="radio"
               value="fixed"
-              {...register(`${header.name}.length_validation_type`)}
+              {...register(`${headerName}.length_validation_type`)}
             />
             Fixed
           </label>
@@ -75,14 +73,14 @@ const LengthValidation = ({
                   type="number"
                   defaultValue={def_var_min_len_str}
                   className="border border-gray-400 p-2 w-full rounded"
-                  {...register(`${header.name}.min_length`, {
+                  {...register(`${headerName}.min_length`, {
                     required: "Min length is required",
                   })}
                 />
 
-                {errors?.[header.name]?.min_length && (
+                {errors?.[headerName]?.min_length && (
                   <p className="text-red-500 text-xs">
-                    {errors[header.name].min_length.message}
+                    {errors[headerName].min_length.message}
                   </p>
                 )}
               </div>
@@ -94,14 +92,14 @@ const LengthValidation = ({
                   type="number"
                   defaultValue={def_var_max_len_str}
                   className="border border-gray-400 p-2 w-full rounded"
-                  {...register(`${header.name}.max_length`, {
+                  {...register(`${headerName}.max_length`, {
                     required: "Max length is required",
                   })}
                 />
 
-                {errors?.[header.name]?.max_length && (
+                {errors?.[headerName]?.max_length && (
                   <p className="text-red-500 text-xs">
-                    {errors[header.name].max_length.message}
+                    {errors[headerName].max_length.message}
                   </p>
                 )}
               </div>
@@ -119,14 +117,14 @@ const LengthValidation = ({
                   type="number"
                   defaultValue={def_var_min_len_num}
                   className="border  border-gray-400 p-2 w-full rounded"
-                  {...register(`${header.name}.min_length`, {
+                  {...register(`${headerName}.min_length`, {
                     required: "Min value required",
                   })}
                 />
 
-                {errors?.[header.name]?.min_length && (
+                {errors?.[headerName]?.min_length && (
                   <p className="text-red-500 text-xs">
-                    {errors[header.name].min_length.message}
+                    {errors[headerName].min_length.message}
                   </p>
                 )}
               </div>
@@ -138,14 +136,14 @@ const LengthValidation = ({
                   type="number"
                   defaultValue={def_var_max_len_num}
                   className="border  border-gray-400 p-2 w-full rounded"
-                  {...register(`${header.name}.max_length`, {
+                  {...register(`${headerName}.max_length`, {
                     required: "Max value required",
                   })}
                 />
 
-                {errors?.[header.name]?.max_length && (
+                {errors?.[headerName]?.max_length && (
                   <p className="text-red-500 text-xs">
-                    {errors[header.name].max_length.message}
+                    {errors[headerName].max_length.message}
                   </p>
                 )}
               </div>
@@ -163,14 +161,14 @@ const LengthValidation = ({
                   type="date"
                   defaultValue={def_var_min_len_date}
                   className="border border-gray-400 p-2 w-full rounded"
-                  {...register(`${header.name}.min_length`, {
+                  {...register(`${headerName}.min_length`, {
                     required: "Min date required",
                   })}
                 />
 
-                {errors?.[header.name]?.min_length && (
+                {errors?.[headerName]?.min_length && (
                   <p className="text-red-500 text-xs">
-                    {errors[header.name].min_length.message}
+                    {errors[headerName].min_length.message}
                   </p>
                 )}
               </div>
@@ -182,14 +180,14 @@ const LengthValidation = ({
                   type="date"
                   defaultValue={def_var_max_len_date}
                   className="border border-gray-400 p-2 w-full rounded"
-                  {...register(`${header.name}.max_length`, {
+                  {...register(`${headerName}.max_length`, {
                     required: "Max date required",
                   })}
                 />
 
-                {errors?.[header.name]?.max_length && (
+                {errors?.[headerName]?.max_length && (
                   <p className="text-red-500 text-xs">
-                    {errors[header.name].max_length.message}
+                    {errors[headerName].max_length.message}
                   </p>
                 )}
               </div>
@@ -200,9 +198,7 @@ const LengthValidation = ({
       {/* FIXED VALIDATION */}
       {validationType === "fixed" && (
         <div>
-          <label className="text-sm font-semibold mr-2">
-            text-sm font-semibold mr-2
-          </label>
+          <label className="text-sm font-semibold mr-2">Fixed value</label>
 
           <input
             type={dataType === "date" ? "date" : "number"}
@@ -214,14 +210,14 @@ const LengthValidation = ({
                   : def_fixed_length_num
             }
             className="border border-gray-400 p-2 w-full rounded"
-            {...register(`${header.name}.min_length`, {
+            {...register(`${headerName}.min_length`, {
               required: "Value is required",
             })}
           />
 
-          {errors?.[header.name]?.min_length && (
+          {errors?.[headerName]?.min_length && (
             <p className="text-red-500 text-xs">
-              {errors[header.name].min_length.message}
+              {errors[headerName].min_length.message}
             </p>
           )}
         </div>

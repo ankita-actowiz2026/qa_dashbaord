@@ -14,6 +14,7 @@ export default function MultiValueRules({
   cancelMultiValueRules,
   inputType,
 }) {
+  console.log("MultiValueRules");
   const { fields, append, remove, update } = useFieldArray({
     control,
     name: `${headerName}.${inputType}`,
@@ -109,7 +110,7 @@ export default function MultiValueRules({
           onClick={() => cancelMultiValueRules(headerName, inputType)}
           className="bg-gray-400 text-white px-4 rounded"
         >
-          Cancel
+          Clean
         </button>
       </div>
 

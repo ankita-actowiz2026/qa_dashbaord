@@ -368,7 +368,7 @@ export const validateRow = (
     // }
 
     //for number type, also check min/max length if specified
-    if (dataType === "number" || dataType === "integer") {
+    if (dataType === "float" || dataType === "integer") {
       const numValue = +strValue;
       // Variable length validation (numeric range)
       if (rule.length_validation_type === "variable") {

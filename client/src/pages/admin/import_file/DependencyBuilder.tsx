@@ -12,7 +12,7 @@ const DependencyBuilder = ({
   errors,
 }) => {
   const depPath = `${headerName}.dependencies`;
-
+  console.log("DependencyBuilder");
   const { fields, append, remove } = useFieldArray({
     control,
     name: depPath,

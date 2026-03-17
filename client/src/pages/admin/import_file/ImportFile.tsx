@@ -1,11 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DEFAULTS } from "./defaultValues"; // adjust path
-import DataTypeSection from "./DataTypeSection";
-import MultiValueRules from "./MultiValueRules";
-import DependencyBuilder from "./DependencyBuilder";
-import LengthValidation from "./LengthValidation";
-import CellContainsSection from "./CellContainsSection";
-import DataRedundantSection from "./DataRedundantSection";
+import ValidationRow from "./ValidationRow";
+import ValidationResult from "./ValidationResult";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -36,6 +32,7 @@ const ImportFile: React.FC = () => {
     clearErrors,
     handleSubmit,
     trigger,
+    setValue,
     formState: { errors },
   } = useForm({
     mode: "onSubmit", // ✅ required
@@ -53,7 +50,19 @@ const ImportFile: React.FC = () => {
   const [cellStartWithInputs, setCellStartWithInputs] = useState<any>({});
   const [cellEndWithInputs, setCellEndWithInputs] = useState<any>({});
   const [notMatchFoundInputs, setNotMatchFoundInputs] = useState<any>({});
+  const [msg, setMsg] = useState("");
+  const [msgType, setMsgType] = useState<"success" | "danger" | "">("");
+  const [responseData, setResponseData] = useState(null); // <-- store response here
+  const [requestData, setRequestData] = useState(null); // <-- store response here
 
+  useEffect(() => {
+    if (msg) {
+      const timer = setTimeout(() => {
+        setMsg("");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [msg]);
   ///////////////////////start multi value select
   const handleMultiValueRulesInputChange = (
     headerName: string,
@@ -325,92 +334,120 @@ const ImportFile: React.FC = () => {
     return result;
   };
   const onSubmit = async (data: any) => {
-    // ✅ STEP 1: trigger validation FIRST
-    const isValid = await trigger();
+    try {
+      // ✅ STEP 1: trigger validation FIRST
+      const isValid = await trigger();
 
-    if (!isValid) {
-      console.log("Validation failed");
-      return; // ⛔ STOP submit
-    }
-
-    // ✅ STEP 2: now safe to process data
-    const payload: any = {};
-
-    // ✅ build dependency ONLY ONCE (not inside loop)
-    const dependency = buildDependencyPayload(data);
-
-    for (const header of headers) {
-      const row = data[header.name];
-
-      // 🔒 your existing validations
-      if (row.length_validation_type === "variable") {
-        if (!row.min_length || !row.max_length) {
-          alert(`Min and Max values required for ${header.name}`);
-          return;
-        }
+      if (!isValid) {
+        console.log("Validation failed");
+        return; // ⛔ STOP submit
       }
 
-      if (row.length_validation_type === "fixed") {
-        if (!row.min_length) {
-          alert(`Fixed value required for ${header.name}`);
-          return;
+      // ✅ STEP 2: now safe to process data
+      const payload: any = {};
+
+      // ✅ build dependency ONLY ONCE (not inside loop)
+      const dependency = buildDependencyPayload(data);
+
+      for (const header of headers) {
+        const row = data[header.name];
+
+        // 🔒 your existing validations
+        if (row.length_validation_type === "variable") {
+          if (!row.min_length || !row.max_length) {
+            alert(`Min and Max values required for ${header.name}`);
+            return;
+          }
         }
-      }
 
-      payload[header.name] = {
-        data_type: row?.data_type || "string",
-        has_empty: row?.has_empty || false,
-        length_validation_type: row?.length_validation_type || "variable",
-        min_length: row?.min_length || null,
-        max_length: row?.max_length || null,
-        cell_contains: row?.cell_contains,
-        cell_contains_value: row?.cell_contains
-          ? row?.cell_contains_value
-          : null,
-        data_redundant_threshold: row?.data_redundant_threshold,
-        data_redundant_value: row?.data_redundant_threshold
-          ? row?.data_redundant_value
-          : null,
+        if (row.length_validation_type === "fixed") {
+          if (!row.min_length) {
+            alert(`Fixed value required for ${header.name}`);
+            return;
+          }
+        }
 
-        fixed_header: row?.fixed_header?.map((v: any) => v.value) || [],
-        cell_start_with: row?.cell_start_with?.map((v: any) => v.value) || [],
-        cell_end_with: row?.cell_end_with?.map((v: any) => v.value) || [],
-        not_match_found: row?.not_match_found?.map((v: any) => v.value) || [],
-
-        date_format:
-          row?.data_type === "date"
-            ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
+        payload[header.name] = {
+          data_type: row?.data_type || "string",
+          has_empty: row?.has_empty || false,
+          length_validation_type: row?.length_validation_type || "variable",
+          min_length: row?.min_length || null,
+          max_length: row?.max_length || null,
+          cell_contains: row?.cell_contains,
+          cell_contains_value: row?.cell_contains
+            ? row?.cell_contains_value
+            : null,
+          data_redundant_threshold: row?.data_redundant_threshold,
+          data_redundant_value: row?.data_redundant_threshold
+            ? row?.data_redundant_value
             : null,
 
-        dependency, // ✅ correct place
-      };
+          fixed_header: row?.fixed_header?.map((v: any) => v.value) || [],
+          cell_start_with: row?.cell_start_with?.map((v: any) => v.value) || [],
+          cell_end_with: row?.cell_end_with?.map((v: any) => v.value) || [],
+          not_match_found: row?.not_match_found?.map((v: any) => v.value) || [],
+
+          date_format:
+            row?.data_type === "date"
+              ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
+              : null,
+
+          dependency, // ✅ correct place
+        };
+      }
+
+      console.log("Payload:", payload);
+
+      const formData = new FormData();
+
+      if (file) {
+        formData.append("file", file);
+      }
+
+      formData.append("columnConfig", JSON.stringify(payload));
+
+      /////
+      let result = "";
+      for (let [key, value] of formData.entries()) {
+        result += `${key}: ${value}\n`;
+      }
+      setRequestData(result);
+      ///
+      const response = await axios.post(
+        `${BACKEND_URL}/api/qa_file`,
+        formData,
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      setResponseData(response.data);
+
+      console.log(response.data);
+    } catch (error: any) {
+      console.log(error);
+      setMsg(error.response?.data?.message || "Login failed");
+      setMsgType("danger");
     }
-
-    console.log("Payload:", payload);
-
-    const formData = new FormData();
-
-    if (file) {
-      formData.append("file", file);
-    }
-
-    formData.append("columnConfig", JSON.stringify(payload));
-
-    alert("Submitting");
-
-    const response = await axios.post(`${BACKEND_URL}/api/qa_file`, formData, {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    console.log(response.data);
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start bg-gradient-to-br from-blue-50 to-indigo-100 border border-pink-500">
-      <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6 border border-yellow-500">
+    <div className="min-h-screen flex justify-center items-start bg-slate-200">
+      <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6">
+        {msg && (
+          <div
+            className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
+              msgType === "success"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {msg}
+          </div>
+        )}
         {/* Title */}
 
         <div className="text-center mb-6">
@@ -445,9 +482,6 @@ const ImportFile: React.FC = () => {
               Uploaded: {fileName}
             </p>
           )}
-
-          {/* Header Mapping */}
-
           {headers.length > 0 && (
             <>
               <h2 className="text-lg font-semibold text-gray-700 mb-4">
@@ -456,126 +490,34 @@ const ImportFile: React.FC = () => {
 
               {/* <div className="space-y-6"> */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {headers.map((header, index) => {
-                  const formValues = watch();
-                  const headerValues = formValues?.[header.name] || {};
-
-                  const dataType = headerValues.data_type || "string";
-                  const validationType =
-                    headerValues.length_validation_type ||
-                    default_length_validation_value;
-                  const cellContains = headerValues.cell_contains;
-                  const redundantValue = headerValues.data_redundant_value;
-                  const selectedDataType = headerValues.data_type;
-                  const regexValue = getRegexByType(dataType);
-                  const multiValueRulesConfig = [
-                    {
-                      inputType: "fixed_header",
-                      inputs: fixedHeaderInputs,
-                    },
-                    {
-                      inputType: "cell_start_with",
-                      inputs: cellStartWithInputs,
-                    },
-                    {
-                      inputType: "cell_end_with",
-                      inputs: cellEndWithInputs,
-                    },
-                    {
-                      inputType: "not_match_found",
-                      inputs: notMatchFoundInputs,
-                    },
-                  ];
-                  return (
-                    <div
-                      key={header.name}
-                      className="bg-white border border-gray-300 rounded-xl shadow-sm overflow-hidden"
-                    >
-                      {/* Header Name */}
-
-                      <div className="bg-gray-300 px-4 py-2 border-b">
-                        <h3 className="font-semibold text-gray-700">
-                          {index + 1}. {header.name}
-                        </h3>
-                      </div>
-                      <div className="p-4 space-y-4">
-                        <DataTypeSection
-                          headerName={header.name}
-                          register={register}
-                          watch={watch}
-                          dataTypes={dataTypes}
-                          date_format_options={date_format_options}
-                        />
-
-                        {/* Allow Empty */}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm font-semibold mr-2">
-                              <input
-                                className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
-                                type="checkbox"
-                                {...register(`${header.name}.has_empty`)}
-                              />
-                              Allow Empty
-                            </label>
-                          </div>
-                        </div>
-                        <CellContainsSection
-                          headerName={header.name}
-                          register={register}
-                          watch={watch}
-                          errors={errors}
-                          getRegexByType={getRegexByType}
-                          dataType={dataType}
-                        />
-                        <LengthValidation
-                          header={header}
-                          dataType={dataType}
-                          validationType={validationType}
-                          register={register}
-                          errors={errors}
-                        />
-
-                        {/* DATA REDUNDANT SECTION */}
-
-                        <DataRedundantSection
-                          headerName={header.name}
-                          register={register}
-                          errors={errors}
-                          watch={watch}
-                        />
-
-                        {multiValueRulesConfig.map((rule) => (
-                          <MultiValueRules
-                            key={rule.inputType}
-                            headerName={header.name}
-                            control={control}
-                            register={register}
-                            watch={watch}
-                            errors={errors}
-                            multiValueRulesInputs={rule.inputs}
-                            handleMultiValueRulesInputChange={
-                              handleMultiValueRulesInputChange
-                            }
-                            addMultiValueRules={addMultiValueRules}
-                            cancelMultiValueRules={cancelMultiValueRules}
-                            inputType={rule.inputType}
-                          />
-                        ))}
-
-                        <DependencyBuilder
-                          headerName={header.name}
-                          headersList={headers.map((h) => h.name)}
-                          control={control}
-                          register={register}
-                          watch={watch}
-                          trigger={trigger}
-                          errors={errors}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                {headers.map((header, index) => (
+                  <ValidationRow
+                    key={header.name}
+                    header={header}
+                    index={index}
+                    register={register}
+                    watch={watch}
+                    errors={errors}
+                    control={control}
+                    trigger={trigger}
+                    dataTypes={dataTypes}
+                    date_format_options={date_format_options}
+                    getRegexByType={getRegexByType}
+                    default_length_validation_value={
+                      default_length_validation_value
+                    }
+                    fixedHeaderInputs={fixedHeaderInputs}
+                    cellStartWithInputs={cellStartWithInputs}
+                    cellEndWithInputs={cellEndWithInputs}
+                    notMatchFoundInputs={notMatchFoundInputs}
+                    handleMultiValueRulesInputChange={
+                      handleMultiValueRulesInputChange
+                    }
+                    addMultiValueRules={addMultiValueRules}
+                    cancelMultiValueRules={cancelMultiValueRules}
+                    setValue={setValue}
+                  />
+                ))}
               </div>
 
               <div className="flex justify-center mt-6">
@@ -589,6 +531,8 @@ const ImportFile: React.FC = () => {
             </>
           )}
         </form>
+        {requestData}
+        {responseData && <ValidationResult response={responseData} />}
       </div>
     </div>
   );
