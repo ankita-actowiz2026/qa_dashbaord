@@ -156,7 +156,7 @@ const LengthValidation = ({
                 <label className="text-sm">Min Date</label>
 
                 <input
-                  type="datetime-local"
+                  type="date"
                   defaultValue={def_var_min_len_date}
                   className="border p-2 w-full rounded"
                   {...register(`${header.name}.min_length`, {
@@ -175,7 +175,7 @@ const LengthValidation = ({
                 <label className="text-sm">Max Date</label>
 
                 <input
-                  type="datetime-local"
+                  type="date"
                   defaultValue={def_var_max_len_date}
                   className="border p-2 w-full rounded"
                   {...register(`${header.name}.max_length`, {
@@ -199,7 +199,7 @@ const LengthValidation = ({
           <label className="text-sm">Fixed Value</label>
 
           <input
-            type={dataType === "date" ? "datetime-local" : "number"}
+            type={dataType === "date" ? "date" : "number"}
             defaultValue={
               dataType === "date"
                 ? def_fixed_date
@@ -220,20 +220,6 @@ const LengthValidation = ({
           )}
         </div>
       )}
-      <div className="grid grid-cols-2 gap-4 items-start">
-        {/* Checkbox */}
-
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            className="accent-blue-600"
-            {...register(`${header.name}.cell_contains`)}
-          />
-          Cell Contains
-        </label>
-
-        {/* Value textbox */}
-      </div>
     </>
   );
 };

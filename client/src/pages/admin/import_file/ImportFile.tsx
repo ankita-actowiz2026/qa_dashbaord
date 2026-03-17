@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { DEFAULTS } from "./defaultValues"; // adjust path
-
+import DataTypeSection from "./DataTypeSection";
 import MultiValueRules from "./MultiValueRules";
-
+import DependencyBuilder from "./DependencyBuilder";
 import LengthValidation from "./LengthValidation";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -33,12 +33,17 @@ const ImportFile: React.FC = () => {
     setError,
     clearErrors,
     handleSubmit,
+    trigger,
     formState: { errors },
   } = useForm({
+    mode: "onSubmit", // ✅ required
+    reValidateMode: "onChange", // ✅ important
     defaultValues: {
       def_date_format: "YYYY-MM-DD HH:mm:ss",
+      def_dep: "true",
     },
   });
+  console.log("rerender");
   const [headers, setHeaders] = useState<HeaderType[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
@@ -292,13 +297,50 @@ const ImportFile: React.FC = () => {
         return def_str_regex;
     }
   };
+  const buildDependencyPayload = (data) => {
+    const result = {};
 
+    Object.keys(data).forEach((header) => {
+      const field = data[header];
+
+      if (!field?.has_dependency) return;
+
+      field.dependencies?.forEach((dep) => {
+        // ✅ MAIN HEADER VALUE
+        result[header] = dep.condition === "true" ? true : dep.value;
+
+        // ✅ SUB DEPENDENCIES
+        dep.subDependencies?.forEach((sub) => {
+          if (!sub.headers || sub.headers.length === 0) return;
+
+          const key = sub.headers.join(",");
+
+          result[key] = sub.condition === "true" ? true : sub.value;
+        });
+      });
+    });
+
+    return result;
+  };
   const onSubmit = async (data: any) => {
+    // ✅ STEP 1: trigger validation FIRST
+    const isValid = await trigger();
+
+    if (!isValid) {
+      console.log("Validation failed");
+      return; // ⛔ STOP submit
+    }
+
+    // ✅ STEP 2: now safe to process data
     const payload: any = {};
 
-    headers.forEach((header) => {
+    // ✅ build dependency ONLY ONCE (not inside loop)
+    const dependency = buildDependencyPayload(data);
+
+    for (const header of headers) {
       const row = data[header.name];
 
+      // 🔒 your existing validations
       if (row.length_validation_type === "variable") {
         if (!row.min_length || !row.max_length) {
           alert(`Min and Max values required for ${header.name}`);
@@ -332,12 +374,15 @@ const ImportFile: React.FC = () => {
         cell_start_with: row?.cell_start_with?.map((v: any) => v.value) || [],
         cell_end_with: row?.cell_end_with?.map((v: any) => v.value) || [],
         not_match_found: row?.not_match_found?.map((v: any) => v.value) || [],
+
         date_format:
           row?.data_type === "date"
             ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
             : null,
+
+        dependency, // ✅ correct place
       };
-    });
+    }
 
     console.log("Payload:", payload);
 
@@ -348,6 +393,8 @@ const ImportFile: React.FC = () => {
     }
 
     formData.append("columnConfig", JSON.stringify(payload));
+
+    alert("Submitting");
 
     const response = await axios.post(`${BACKEND_URL}/api/qa_file`, formData, {
       withCredentials: true,
@@ -449,41 +496,13 @@ const ImportFile: React.FC = () => {
                         </h3>
                       </div>
                       <div className="p-4 space-y-4">
-                        {/* Data Type */}
-
-                        <div>
-                          <label className="text-sm">Data Type</label>
-
-                          <select
-                            className="border p-2 w-full rounded"
-                            defaultValue="string"
-                            {...register(`${header.name}.data_type`)}
-                          >
-                            {dataTypes.map((type) => (
-                              <option key={type} value={type}>
-                                {type.charAt(0).toUpperCase() + type.slice(1)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        {selectedDataType === "date" && (
-                          <div className="mt-3">
-                            <label className="text-sm font-semibold">
-                              Date Format
-                            </label>
-
-                            <select
-                              {...register(`${header.name}.def_date_format`)}
-                              className="border p-2 rounded w-full"
-                            >
-                              {date_format_options.map((format) => (
-                                <option key={format} value={format}>
-                                  {format}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+                        <DataTypeSection
+                          headerName={header.name}
+                          register={register}
+                          watch={watch}
+                          dataTypes={dataTypes}
+                          date_format_options={date_format_options}
+                        />
                         {/* Allow Empty */}
 
                         <label className="flex items-center gap-2 text-sm">
@@ -501,7 +520,13 @@ const ImportFile: React.FC = () => {
                           register={register}
                           errors={errors}
                         />
-
+                        <label className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            {...register(`${header.name}.cell_contains`)}
+                          />
+                          Cell Contains (Regex)
+                        </label>
                         {cellContains && (
                           <div>
                             <input
@@ -622,6 +647,16 @@ const ImportFile: React.FC = () => {
                             inputType={rule.inputType}
                           />
                         ))}
+
+                        <DependencyBuilder
+                          headerName={header.name}
+                          headersList={headers.map((h) => h.name)}
+                          control={control}
+                          register={register}
+                          watch={watch}
+                          trigger={trigger}
+                          errors={errors}
+                        />
                       </div>
                     </div>
                   );
