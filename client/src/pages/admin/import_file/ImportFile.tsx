@@ -4,6 +4,8 @@ import DataTypeSection from "./DataTypeSection";
 import MultiValueRules from "./MultiValueRules";
 import DependencyBuilder from "./DependencyBuilder";
 import LengthValidation from "./LengthValidation";
+import CellContainsSection from "./CellContainsSection";
+import DataRedundantSection from "./DataRedundantSection";
 import * as XLSX from "xlsx";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -407,8 +409,8 @@ const ImportFile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-start bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6">
+    <div className="min-h-screen flex justify-center items-start bg-gradient-to-br from-blue-50 to-indigo-100 border border-pink-500">
+      <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6 border border-yellow-500">
         {/* Title */}
 
         <div className="text-center mb-6">
@@ -452,7 +454,8 @@ const ImportFile: React.FC = () => {
                 Column Settings
               </h2>
 
-              <div className="space-y-6">
+              {/* <div className="space-y-6"> */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {headers.map((header, index) => {
                   const formValues = watch();
                   const headerValues = formValues?.[header.name] || {};
@@ -486,11 +489,11 @@ const ImportFile: React.FC = () => {
                   return (
                     <div
                       key={header.name}
-                      className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden w-full"
+                      className="bg-white border border-gray-300 rounded-xl shadow-sm overflow-hidden"
                     >
                       {/* Header Name */}
 
-                      <div className="bg-gray-100 px-4 py-2 border-b">
+                      <div className="bg-gray-300 px-4 py-2 border-b">
                         <h3 className="font-semibold text-gray-700">
                           {index + 1}. {header.name}
                         </h3>
@@ -505,14 +508,21 @@ const ImportFile: React.FC = () => {
                         />
                         {/* Allow Empty */}
 
-                        <label className="flex items-center gap-2 text-sm">
+                        <label className="text-sm font-semibold mr-2">
                           <input
                             type="checkbox"
                             {...register(`${header.name}.has_empty`)}
                           />
                           Allow Empty
                         </label>
-
+                        <CellContainsSection
+                          headerName={header.name}
+                          register={register}
+                          watch={watch}
+                          errors={errors}
+                          getRegexByType={getRegexByType}
+                          dataType={dataType}
+                        />
                         <LengthValidation
                           header={header}
                           dataType={dataType}
@@ -520,115 +530,15 @@ const ImportFile: React.FC = () => {
                           register={register}
                           errors={errors}
                         />
-                        <label className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            {...register(`${header.name}.cell_contains`)}
-                          />
-                          Cell Contains (Regex)
-                        </label>
-                        {cellContains && (
-                          <div>
-                            <input
-                              type="text"
-                              defaultValue={regexValue}
-                              placeholder="Enter regex value"
-                              className="border p-2 w-full rounded"
-                              {...register(
-                                `${header.name}.cell_contains_value`,
-                                {
-                                  required: "Value is required",
 
-                                  validate: (value) => {
-                                    if (!value) return "Value is required";
-
-                                    try {
-                                      new RegExp(value);
-                                    } catch {
-                                      return "Invalid regex pattern";
-                                    }
-
-                                    return true;
-                                  },
-                                },
-                              )}
-                            />
-
-                            {/* Error Message */}
-
-                            {errors?.[header.name]?.cell_contains_value && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {
-                                  errors[header.name].cell_contains_value
-                                    .message
-                                }
-                              </p>
-                            )}
-                          </div>
-                        )}
                         {/* DATA REDUNDANT SECTION */}
 
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* redundant value */}
-
-                          <div>
-                            <label className="text-sm">
-                              Data Redundant Value
-                            </label>
-
-                            <input
-                              type="text"
-                              placeholder="Enter redundant value"
-                              className="border p-2 w-full rounded"
-                              {...register(
-                                `${header.name}.data_redundant_value`,
-                              )}
-                            />
-                          </div>
-
-                          {/* redundant threshold */}
-
-                          <div>
-                            <label className="text-sm">
-                              Data Redundant Threshold
-                            </label>
-
-                            <input
-                              type="number"
-                              placeholder="Enter threshold"
-                              className="border p-2 w-full rounded"
-                              {...register(
-                                `${header.name}.data_redundant_threshold`,
-                                {
-                                  validate: (value) => {
-                                    if (redundantValue && !value) {
-                                      return "Threshold required when redundant value exists";
-                                    }
-
-                                    if (
-                                      value &&
-                                      !Number.isInteger(Number(value))
-                                    ) {
-                                      return "Threshold must be integer";
-                                    }
-
-                                    return true;
-                                  },
-                                },
-                              )}
-                            />
-
-                            {(errors as any)?.[header.name]
-                              ?.data_redundant_threshold && (
-                              <p className="text-red-500 text-xs mt-1">
-                                {
-                                  (errors as any)[header.name]
-                                    .data_redundant_threshold.message
-                                }
-                              </p>
-                            )}
-                          </div>
-                        </div>
+                        <DataRedundantSection
+                          headerName={header.name}
+                          register={register}
+                          errors={errors}
+                          watch={watch}
+                        />
 
                         {multiValueRulesConfig.map((rule) => (
                           <MultiValueRules

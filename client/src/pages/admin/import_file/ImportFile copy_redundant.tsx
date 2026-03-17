@@ -410,7 +410,7 @@ const ImportFile: React.FC = () => {
                                 <input
                                   type="datetime-local"
                                   defaultValue={def_var_min_len_date}
-                                  className="border p-2 w-full rounded"
+                                  className="border border-gray-400 p-2 w-full rounded"
                                   {...register(`${header.name}.min_length`, {
                                     required: "Min date required",
                                   })}

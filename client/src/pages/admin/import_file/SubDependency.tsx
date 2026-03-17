@@ -50,7 +50,7 @@ const SubDependency = ({
               render={({ field }) => (
                 <select
                   multiple
-                  className="border p-1"
+                  className="border border-gray-400 p-2 w-36 rounded"
                   value={field.value || []}
                   onChange={(e) => {
                     const selected = Array.from(e.target.selectedOptions).map(
@@ -125,7 +125,7 @@ const SubDependency = ({
                   return true;
                 },
               })}
-              className="border p-1 rounded"
+              className="border border-gray-400 p-1 rounded"
             />
 
             {/* ✅ ERROR MESSAGE */}

@@ -70,7 +70,7 @@ export default function MultiValueRules({
   };
   return (
     <div className="space-y-3">
-      <label className="text-sm font-semibold">{title}</label>
+      <label className="text-sm font-semibold mr-2">{title}</label>
 
       {/* ADD */}
 
@@ -87,7 +87,7 @@ export default function MultiValueRules({
               inputType,
             )
           }
-          className="border p-2 rounded w-full"
+          className="border border-gray-400 p-2 rounded w-full"
         />
 
         <button

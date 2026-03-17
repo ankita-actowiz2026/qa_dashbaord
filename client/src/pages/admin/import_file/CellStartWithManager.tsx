@@ -59,7 +59,9 @@ export default function CellStartWithManager({
   };
   return (
     <div className="space-y-3">
-      <label className="text-sm font-semibold">Cell start with values</label>
+      <label className="text-sm font-semibold mr-2">
+        Cell start with values
+      </label>
 
       {/* ADD */}
 
@@ -72,7 +74,7 @@ export default function CellStartWithManager({
           onChange={(e) =>
             handleCellStartWithInputChange(headerName, e.target.value)
           }
-          className="border p-2 rounded w-full"
+          className="border border-gray-400 p-2 rounded w-full"
         />
 
         <button

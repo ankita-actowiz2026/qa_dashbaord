@@ -42,7 +42,7 @@ const DependencyBuilder = ({
   return (
     <div className="border p-3 rounded mt-4">
       {/* Checkbox */}
-      <label className="flex items-center gap-2">
+      <label className="text-sm font-semibold mr-2">
         <input type="checkbox" {...register(`${headerName}.has_dependency`)} />
         Add Dependency
       </label>
@@ -61,7 +61,7 @@ const DependencyBuilder = ({
                   {/* MAIN CONDITION */}
                   <div className="flex items-center gap-4 flex-wrap">
                     {/* TRUE */}
-                    <label className="flex items-center gap-1">
+                    <label className="flex items-center gap-1 ">
                       <input
                         type="radio"
                         value="true"
@@ -93,7 +93,7 @@ const DependencyBuilder = ({
                           return true;
                         },
                       })}
-                      className="border p-1 rounded"
+                      className="border border-gray-400 p-1 rounded "
                     />
 
                     {/* ✅ ERROR MESSAGE */}

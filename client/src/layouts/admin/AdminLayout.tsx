@@ -124,7 +124,7 @@ const AdminLayout = () => {
           onLogout={() => console.log("logout")}
         />
 
-        <main className="flex-1 p-6 overflow-auto bg-gray-50">
+        <main className="flex-1 p-6 overflow-auto bg-gray-50 border border-black-500">
           <Outlet />
         </main>
       </div>

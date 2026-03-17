@@ -33,11 +33,13 @@ const LengthValidation = ({
     <>
       {" "}
       {/* Validation Type */}
-      <div>
-        <label className="text-sm font-medium">Length Validation</label>
+      <div className="flex items-center gap-6">
+        <label className="text-sm font-medium whitespace-nowrap">
+          Length Validation
+        </label>
 
-        <div className="flex gap-4 mt-1">
-          <label className="flex items-center gap-2">
+        <div className="flex gap-4">
+          <label className="text-sm font-semibold mr-2">
             <input
               type="radio"
               value="variable"
@@ -47,7 +49,7 @@ const LengthValidation = ({
             Variable
           </label>
 
-          <label className="flex items-center gap-2">
+          <label className="text-sm font-semibold mr-2">
             <input
               type="radio"
               value="fixed"
@@ -65,12 +67,12 @@ const LengthValidation = ({
           {stringTypes.includes(dataType) && (
             <>
               <div>
-                <label className="text-sm">Min Length</label>
+                <label className="text-sm font-semibold mr-2">Min Length</label>
 
                 <input
                   type="number"
                   defaultValue={def_var_min_len_str}
-                  className="border p-2 w-full rounded"
+                  className="border border-gray-400 p-2 w-full rounded"
                   {...register(`${header.name}.min_length`, {
                     required: "Min length is required",
                   })}
@@ -84,12 +86,12 @@ const LengthValidation = ({
               </div>
 
               <div>
-                <label className="text-sm">Max Length</label>
+                <label className="text-sm font-semibold mr-2">Max Length</label>
 
                 <input
                   type="number"
                   defaultValue={def_var_max_len_str}
-                  className="border p-2 w-full rounded"
+                  className="border border-gray-400 p-2 w-full rounded"
                   {...register(`${header.name}.max_length`, {
                     required: "Max length is required",
                   })}
@@ -109,12 +111,12 @@ const LengthValidation = ({
           {numberTypes.includes(dataType) && (
             <>
               <div>
-                <label className="text-sm">Min Value</label>
+                <label className="text-sm font-semibold mr-2">Min Value</label>
 
                 <input
                   type="number"
                   defaultValue={def_var_min_len_num}
-                  className="border p-2 w-full rounded"
+                  className="border  border-gray-400 p-2 w-full rounded"
                   {...register(`${header.name}.min_length`, {
                     required: "Min value required",
                   })}
@@ -128,12 +130,12 @@ const LengthValidation = ({
               </div>
 
               <div>
-                <label className="text-sm">Max Value</label>
+                <label className="text-sm font-semibold mr-2">Max Value</label>
 
                 <input
                   type="number"
                   defaultValue={def_var_max_len_num}
-                  className="border p-2 w-full rounded"
+                  className="border  border-gray-400 p-2 w-full rounded"
                   {...register(`${header.name}.max_length`, {
                     required: "Max value required",
                   })}
@@ -153,12 +155,12 @@ const LengthValidation = ({
           {dataType === "date" && (
             <>
               <div>
-                <label className="text-sm">Min Date</label>
+                <label className="text-sm font-semibold mr-2">Min Date</label>
 
                 <input
                   type="date"
                   defaultValue={def_var_min_len_date}
-                  className="border p-2 w-full rounded"
+                  className="border border-gray-400 p-2 w-full rounded"
                   {...register(`${header.name}.min_length`, {
                     required: "Min date required",
                   })}
@@ -172,12 +174,12 @@ const LengthValidation = ({
               </div>
 
               <div>
-                <label className="text-sm">Max Date</label>
+                <label className="text-sm font-semibold mr-2">Max Date</label>
 
                 <input
                   type="date"
                   defaultValue={def_var_max_len_date}
-                  className="border p-2 w-full rounded"
+                  className="border border-gray-400 p-2 w-full rounded"
                   {...register(`${header.name}.max_length`, {
                     required: "Max date required",
                   })}
@@ -196,7 +198,9 @@ const LengthValidation = ({
       {/* FIXED VALIDATION */}
       {validationType === "fixed" && (
         <div>
-          <label className="text-sm">Fixed Value</label>
+          <label className="text-sm font-semibold mr-2">
+            text-sm font-semibold mr-2
+          </label>
 
           <input
             type={dataType === "date" ? "date" : "number"}
@@ -207,7 +211,7 @@ const LengthValidation = ({
                   ? def_fixed_length_str
                   : def_fixed_length_num
             }
-            className="border p-2 w-full rounded"
+            className="border border-gray-400 p-2 w-full rounded"
             {...register(`${header.name}.min_length`, {
               required: "Value is required",
             })}

@@ -17,12 +17,14 @@ const RedundantValidation = ({
         {/* redundant value */}
 
         <div>
-          <label className="text-sm">Data Redundant Value</label>
+          <label className="text-sm font-semibold mr-2">
+            Data Redundant Value
+          </label>
 
           <input
             type="text"
             placeholder="Enter redundant value"
-            className="border p-2 w-full rounded"
+            className="border border-gray-400 p-2 w-full rounded"
             {...register(`${header.name}.data_redundant_value`)}
           />
         </div>
@@ -30,7 +32,9 @@ const RedundantValidation = ({
         {/* redundant threshold */}
 
         <div>
-          <label className="text-sm">Data Redundant Threshold</label>
+          <label className="text-sm font-semibold mr-2">
+            Data Redundant Threshold
+          </label>
 
           <input
             type="number"

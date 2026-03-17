@@ -11,13 +11,13 @@ const DataTypeSection = ({
   const selectedDataType = watch(`${headerName}.data_type`);
 
   return (
-    <div>
+    <div className="grid grid-cols-2 gap-4">
       {/* DATA TYPE */}
       <div>
-        <label className="text-sm">Data Type</label>
+        <label className="text-sm font-semibold mr-2">Data Type</label>
 
         <select
-          className="border p-2 w-full rounded"
+          className="border border-gray-400 p-2 w-full rounded"
           defaultValue="string"
           {...register(`${headerName}.data_type`)}
         >
@@ -31,12 +31,12 @@ const DataTypeSection = ({
 
       {/* DATE FORMAT */}
       {selectedDataType === "date" && (
-        <div className="mt-3">
-          <label className="text-sm font-semibold">Date Format</label>
+        <div>
+          <label className="text-sm font-semibold mr-2">Date Format</label>
 
           <select
             {...register(`${headerName}.def_date_format`)}
-            className="border p-2 rounded w-full"
+            className="border border-gray-400 p-2 w-full rounded"
           >
             {date_format_options.map((format) => (
               <option key={format} value={format}>
