@@ -1,7 +1,21 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useFieldArray } from "react-hook-form";
-import SubDependency from "./SubDependency";
+import DependencyItem from "./DependencyItem";
 import { InfoTooltip } from "../../../utils/ToolTips";
+import { useWatch } from "react-hook-form";
+
+const DEFAULT_DEPENDENCY = {
+  condition: "true",
+  value: "",
+  subDependencies: [
+    {
+      headers: [],
+      condition: "true",
+      value: "",
+    },
+  ],
+};
+
 const DependencyBuilder = ({
   headerName,
   headersList,
@@ -11,38 +25,36 @@ const DependencyBuilder = ({
   trigger,
   errors,
 }) => {
-  const depPath = `${headerName}.dependencies`;
-  console.log("DependencyBuilder");
-  const { fields, append, remove } = useFieldArray({
+  console.log("DEPENDANCY BUILDER start");
+  console.log(headersList);
+  console.log("DEPENDANCY BUILDER end");
+  // ✅ memoized path (micro-optimization but good practice)
+  const depPath = useMemo(() => `${headerName}.dependencies`, [headerName]);
+
+  const { fields, append } = useFieldArray({
     control,
     name: depPath,
   });
 
-  const isEnabled = watch(`${headerName}.has_dependency`);
+  // ✅ scoped watch (no global re-render)
+  const isEnabled = useWatch({
+    control,
+    name: `${headerName}.has_dependency`,
+  });
 
-  // ✅ Ensure at least 1 dependency (SAFE)
+  // ✅ safe initialization
   useEffect(() => {
     if (!isEnabled) return;
 
     if (fields.length === 0) {
-      append({
-        condition: "true",
-        value: "",
-        subDependencies: [
-          {
-            headers: [],
-            condition: "true",
-            value: "",
-          },
-        ],
-      });
+      append(DEFAULT_DEPENDENCY);
     }
-  }, [isEnabled]); // ✅ DO NOT include fields.length
+  }, [isEnabled, fields.length, append]);
 
   return (
     <div className="grid grid-cols-1 gap-4">
       <div>
-        {/* Checkbox */}
+        {/* CHECKBOX */}
         <label className="text-sm font-semibold flex items-center gap-1">
           <input
             type="checkbox"
@@ -52,96 +64,24 @@ const DependencyBuilder = ({
           Add Dependency
           <InfoTooltip
             id="dependancy-tooltip"
-            text="You can add dependancy and other depandancy"
+            text="You can add dependency and nested dependency"
           />
         </label>
 
         {/* MAIN UI */}
-        {isEnabled && (
+        {isEnabled && fields.length > 0 && (
           <div className="mt-3 space-y-4">
-            {fields[0] &&
-              (() => {
-                const index = 0;
-                const field = fields[0];
-                const condition = watch(`${depPath}.${index}.condition`);
-
-                return (
-                  <div key={field.id} className="border p-3 rounded">
-                    {/* MAIN CONDITION */}
-                    <div className="flex items-center gap-4 flex-wrap">
-                      {/* TRUE */}
-                      <label className="flex items-center gap-1 ">
-                        <input
-                          type="radio"
-                          value="true"
-                          {...register(`${depPath}.${index}.condition`)}
-                        />
-                        True
-                      </label>
-
-                      {/* OTHER */}
-                      <label className="flex items-center gap-1">
-                        <input
-                          type="radio"
-                          value="other"
-                          {...register(`${depPath}.${index}.condition`)}
-                        />
-                        Other Value
-                      </label>
-
-                      {/* TEXTBOX */}
-                      <input
-                        type="text"
-                        placeholder="Enter value"
-                        disabled={condition !== "other"}
-                        {...register(`${depPath}.${index}.value`, {
-                          validate: (val) => {
-                            if (condition === "other" && !val) {
-                              return "Other value is required";
-                            }
-                            return true;
-                          },
-                        })}
-                        className="border border-gray-400 p-1 rounded "
-                      />
-
-                      {/* ✅ ERROR MESSAGE */}
-                      <div className="w-full">
-                        {errors?.[headerName]?.dependencies?.[index]?.value && (
-                          <p className="text-red-500 text-sm">
-                            {
-                              errors[headerName].dependencies[index].value
-                                .message
-                            }
-                          </p>
-                        )}
-                      </div>
-                      {/* DELETE MAIN */}
-                      {/* {fields.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => remove(index)}
-                          className="text-red-500"
-                        >
-                          ✕--
-                        </button>
-                      )} */}
-                    </div>
-
-                    {/* SUB DEPENDENCY */}
-                    <SubDependency
-                      control={control}
-                      register={register}
-                      watch={watch}
-                      headerName={headerName}
-                      index={index}
-                      headersList={headersList}
-                      trigger={trigger}
-                      errors={errors}
-                    />
-                  </div>
-                );
-              })()}
+            <DependencyItem
+              field={fields[0]}
+              index={0}
+              depPath={depPath}
+              headerName={headerName}
+              control={control}
+              register={register}
+              headersList={headersList}
+              trigger={trigger}
+              errors={errors}
+            />
           </div>
         )}
       </div>
@@ -149,4 +89,4 @@ const DependencyBuilder = ({
   );
 };
 
-export default DependencyBuilder;
+export default React.memo(DependencyBuilder);

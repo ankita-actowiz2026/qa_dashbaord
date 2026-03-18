@@ -3,6 +3,8 @@ import MultiValueRules from "./MultiValueRules";
 import DependencyBuilder from "./DependencyBuilder";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import { InfoTooltip } from "../../../utils/ToolTips";
+import { useWatch } from "react-hook-form";
+
 const {
   def_var_min_len_str,
   def_var_max_len_str,
@@ -19,6 +21,8 @@ const {
   def_float_regex,
   def_email_regex,
   def_date_regex,
+  stringTypes,
+  numberTypes,
 } = DEFAULTS;
 interface HeaderValidationCardProps {
   header: any;
@@ -40,6 +44,7 @@ interface HeaderValidationCardProps {
   addMultiValueRules: any;
   cancelMultiValueRules: any;
   setValue: any;
+  headersList: any[];
 }
 
 const ValidationRow: React.FC<HeaderValidationCardProps> = ({
@@ -62,69 +67,110 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
   addMultiValueRules,
   cancelMultiValueRules,
   setValue,
+  headersList,
 }) => {
-  const formValues = watch();
-  const headerValues = formValues?.[header.name] || {};
-  const dataType = headerValues.data_type || "string";
-  //const validationType =    headerValues.length_validation_type || default_length_validation_value;
-  const stringTypes = ["string", "boolean", "email"];
-  const numberTypes = ["integer", "float"];
-  const multiValueRulesConfig = [
-    { inputType: "fixed_header", inputs: fixedHeaderInputs },
-    { inputType: "cell_start_with", inputs: cellStartWithInputs },
-    { inputType: "cell_end_with", inputs: cellEndWithInputs },
-    { inputType: "not_match_found", inputs: notMatchFoundInputs },
-  ];
-  const selectedDataType = watch(`${header.name}.data_type`);
-
-  const cellContains = watch(`${header.name}.cell_contains`);
-  const regexValue = getRegexByType(dataType);
-  const redundantValue = watch(`${header.name}.data_redundant_value`);
-  const validationType = watch(`${header.name}.length_validation_type`);
-
   const [defaultValue, setDefaultValue] = useState("");
-  console.log("validation row");
-  const regexMap = {
-    string: def_str_regex,
-    boolean: def_boolean_regex,
-    integer: def_int_regex,
-    float: def_float_regex,
-    email: def_email_regex,
-    date: def_date_regex,
-  };
+  const basePath = `${header.name}`;
+
+  const formValues = useWatch({
+    control,
+  });
+  console.log("formValues start");
+  console.log(formValues);
+  console.log("formValues end");
+  const values = useWatch({
+    control,
+    name: basePath,
+  });
+
+  const multiValueRulesConfig = React.useMemo(
+    () => [
+      { inputType: "fixed_header", inputs: fixedHeaderInputs },
+      { inputType: "cell_start_with", inputs: cellStartWithInputs },
+      { inputType: "cell_end_with", inputs: cellEndWithInputs },
+      { inputType: "not_match_found", inputs: notMatchFoundInputs },
+    ],
+    [
+      fixedHeaderInputs,
+      cellStartWithInputs,
+      cellEndWithInputs,
+      notMatchFoundInputs,
+    ],
+  );
+  const dataType = values?.data_type || "string";
+  const validationType = values?.length_validation_type || "variable";
+  const cellContains = values?.cell_contains;
+  const redundantValue = values?.data_redundant_value;
+
+  const regexMap = React.useMemo(
+    () => ({
+      string: def_str_regex,
+      boolean: def_boolean_regex,
+      integer: def_int_regex,
+      float: def_float_regex,
+      email: def_email_regex,
+      date: def_date_regex,
+    }),
+    [],
+  );
+  const getDefaultLengths = React.useCallback(() => {
+    if (dataType === "date") {
+      return validationType === "fixed"
+        ? { min: def_fixed_date }
+        : { min: def_var_min_len_date, max: def_var_max_len_date };
+    }
+
+    if (numberTypes.includes(dataType)) {
+      return validationType === "fixed"
+        ? { min: def_fixed_length_num }
+        : { min: def_var_min_len_num, max: def_var_max_len_num };
+    }
+
+    return validationType === "fixed"
+      ? { min: def_fixed_length_str }
+      : { min: def_var_min_len_str, max: def_var_max_len_str };
+  }, [dataType, validationType]);
+  useEffect(() => {
+    setValue(`${header.name}.cell_contains_value`, regexMap[dataType] || "", {
+      shouldValidate: true,
+    });
+  }, [dataType, header.name, setValue]);
 
   useEffect(() => {
-    console.log(def_var_min_len_date + "~~~~~~~~~~~~~~>" + selectedDataType);
-    if (setValue) {
-      setValue(`${header.name}.cell_contains_value`, regexMap[dataType] || "");
+    const { min, max } = getDefaultLengths();
+
+    setValue(`${header.name}.min_length`, min);
+
+    if (max !== undefined) {
+      setValue(`${header.name}.max_length`, max);
     }
-  }, [dataType]);
-  useEffect(() => {
-    console.log("validationType==>" + validationType);
-    console.log("selectedDataType==>" + selectedDataType);
-    if (selectedDataType === "date") {
-      if (validationType == "fixed") {
-        setValue(`${header.name}.min_length`, def_fixed_date);
-      } else {
-        setValue(`${header.name}.min_length`, def_var_min_len_date);
-        setValue(`${header.name}.max_length`, def_var_max_len_date);
-      }
-    } else if (numberTypes.includes(selectedDataType)) {
-      if (validationType == "fixed") {
-        setValue(`${header.name}.min_length`, def_fixed_length_num);
-      } else {
-        setValue(`${header.name}.min_length`, def_var_min_len_num);
-        setValue(`${header.name}.max_length`, def_var_max_len_num);
-      }
-    } else {
-      if (validationType == "fixed") {
-        setValue(`${header.name}.min_length`, def_fixed_length_str);
-      } else {
-        setValue(`${header.name}.min_length`, def_var_min_len_str);
-        setValue(`${header.name}.max_length`, def_var_max_len_str);
-      }
-    }
-  }, [selectedDataType, validationType]);
+  }, [getDefaultLengths, header.name, setValue]);
+
+  const multiValueRulesComponents = React.useMemo(() => {
+    return multiValueRulesConfig.map((rule) => (
+      <MultiValueRules
+        key={rule.inputType}
+        headerName={header.name}
+        control={control}
+        register={register}
+        errors={errors}
+        multiValueRulesInputs={rule.inputs}
+        handleMultiValueRulesInputChange={handleMultiValueRulesInputChange}
+        addMultiValueRules={addMultiValueRules}
+        cancelMultiValueRules={cancelMultiValueRules}
+        inputType={rule.inputType}
+      />
+    ));
+  }, [
+    multiValueRulesConfig,
+    header.name,
+    control,
+    register,
+    errors,
+    handleMultiValueRulesInputChange,
+    addMultiValueRules,
+    cancelMultiValueRules,
+  ]);
   return (
     <div className="bg-white border border-gray-300 rounded-xl shadow-sm overflow-hidden">
       <div className="bg-gray-300 px-4 py-2 border-b">
@@ -157,7 +203,7 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
             </select>
           </div>
 
-          {selectedDataType === "date" && (
+          {dataType === "date" && (
             <div>
               <label className="text-sm font-semibold flex items-center gap-1">
                 Date Format{" "}
@@ -387,7 +433,6 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
               <>
                 <div>
                   <label className="text-sm font-semibold mr-2">Min Date</label>
-                  {def_var_min_len_date}
                   <input
                     type="date"
                     // defaultValue={def_var_min_len_date}
@@ -494,7 +539,7 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
                     return "Threshold required when redundant value exists";
                   }
 
-                  if (value && !Number.isInteger(Number(value))) {
+                  if (value && !/^\d+$/.test(value)) {
                     return "Threshold must be integer";
                   }
 
@@ -513,24 +558,10 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
         </div>
         {/* DataRedundantSection end */}
 
-        {multiValueRulesConfig.map((rule) => (
-          <MultiValueRules
-            key={rule.inputType}
-            headerName={header.name}
-            control={control}
-            register={register}
-            watch={watch}
-            errors={errors}
-            multiValueRulesInputs={rule.inputs}
-            handleMultiValueRulesInputChange={handleMultiValueRulesInputChange}
-            addMultiValueRules={addMultiValueRules}
-            cancelMultiValueRules={cancelMultiValueRules}
-            inputType={rule.inputType}
-          />
-        ))}
+        {multiValueRulesComponents}
         <DependencyBuilder
           headerName={header.name}
-          headersList={Object.keys(formValues || {})}
+          headersList={headersList}
           control={control}
           register={register}
           watch={watch}
@@ -542,4 +573,4 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
   );
 };
 
-export default ValidationRow;
+export default React.memo(ValidationRow);

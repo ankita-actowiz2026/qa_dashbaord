@@ -1,9 +1,9 @@
 import React from "react";
-import DataTypeSection from "./DataTypeSection";
+import DataTypeSection from "./d_DataTypeSection";
 import AllowEmpty from "./AllowEmpty";
-import CellContainsSection from "./CellContainsSection";
-import LengthValidation from "./LengthValidation";
-import DataRedundantSection from "./DataRedundantSection";
+import CellContainsSection from "./d_CellContainsSection";
+import LengthValidation from "./d_LengthValidation";
+import DataRedundantSection from "./d_DataRedundantSection";
 import MultiValueRules from "./MultiValueRules";
 import DependencyBuilder from "./DependencyBuilder";
 

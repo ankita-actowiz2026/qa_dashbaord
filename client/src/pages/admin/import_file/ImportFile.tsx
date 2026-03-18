@@ -3,8 +3,52 @@ import { DEFAULTS } from "./defaultValues"; // adjust path
 import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
 import * as XLSX from "xlsx";
+
 import axios from "axios";
 import { useForm } from "react-hook-form";
+const buildDependencyPayload = (data) => {
+  const result = {};
+
+  Object.keys(data).forEach((header) => {
+    const field = data[header];
+
+    if (!field?.has_dependency) return;
+
+    field.dependencies?.forEach((dep) => {
+      // ✅ MAIN HEADER VALUE
+      result[header] = dep.condition === "true" ? true : dep.value;
+
+      // ✅ SUB DEPENDENCIES
+      dep.subDependencies?.forEach((sub) => {
+        if (!sub.headers || sub.headers.length === 0) return;
+
+        const key = sub.headers.join(",");
+
+        result[key] = sub.condition === "true" ? true : sub.value;
+      });
+    });
+  });
+
+  return result;
+};
+const getRegexByType = (type: string) => {
+  switch (type) {
+    case "string":
+      return def_str_regex;
+    case "boolean":
+      return def_boolean_regex;
+    case "int":
+      return def_int_regex;
+    case "float":
+      return def_float_regex;
+    case "email":
+      return def_email_regex;
+    case "date":
+      return def_date_regex;
+    default:
+      return def_str_regex;
+  }
+};
 const {
   allowedExtensions,
   dataTypes,
@@ -42,7 +86,6 @@ const ImportFile: React.FC = () => {
       def_dep: "true",
     },
   });
-  console.log("rerender");
   const [headers, setHeaders] = useState<HeaderType[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
@@ -54,7 +97,7 @@ const ImportFile: React.FC = () => {
   const [msgType, setMsgType] = useState<"success" | "danger" | "">("");
   const [responseData, setResponseData] = useState(null); // <-- store response here
   const [requestData, setRequestData] = useState(null); // <-- store response here
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     if (msg) {
       const timer = setTimeout(() => {
@@ -246,33 +289,28 @@ const ImportFile: React.FC = () => {
   };
 
   const readHeaders = async (file: File) => {
-    const ext = "." + file.name.split(".").pop()?.toLowerCase();
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase();
 
-    if (ext === ".json") {
-      const text = await file.text();
-      const json = JSON.parse(text);
-
-      if (Array.isArray(json) && json.length > 0) {
-        const keys = Object.keys(json[0]);
-        setHeaders(keys.map((k) => ({ name: k, type: "string" })));
+      if (ext === "json") {
+        const json = JSON.parse(await file.text());
+        if (Array.isArray(json) && json.length > 0) {
+          setHeaders(Object.keys(json[0]).map((name) => ({ name })));
+        }
+        return;
       }
-      return;
+
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      setHeaders((json[0] || []).map((h: string) => ({ name: h })));
+    } catch (err) {
+      setMsg("Invalid file format");
+      setMsgType("danger");
     }
-
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    const headerRow: any = json[0];
-
-    const headerList = headerRow.map((h: string) => ({
-      name: h,
-      type: "string",
-    }));
-
-    setHeaders(headerList);
   };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -290,49 +328,7 @@ const ImportFile: React.FC = () => {
 
     await readHeaders(selectedFile);
   };
-  const getRegexByType = (type: string) => {
-    switch (type) {
-      case "string":
-        return def_str_regex;
-      case "boolean":
-        return def_boolean_regex;
-      case "int":
-        return def_int_regex;
-      case "float":
-        return def_float_regex;
-      case "email":
-        return def_email_regex;
-      case "date":
-        return def_date_regex;
-      default:
-        return def_str_regex;
-    }
-  };
-  const buildDependencyPayload = (data) => {
-    const result = {};
 
-    Object.keys(data).forEach((header) => {
-      const field = data[header];
-
-      if (!field?.has_dependency) return;
-
-      field.dependencies?.forEach((dep) => {
-        // ✅ MAIN HEADER VALUE
-        result[header] = dep.condition === "true" ? true : dep.value;
-
-        // ✅ SUB DEPENDENCIES
-        dep.subDependencies?.forEach((sub) => {
-          if (!sub.headers || sub.headers.length === 0) return;
-
-          const key = sub.headers.join(",");
-
-          result[key] = sub.condition === "true" ? true : sub.value;
-        });
-      });
-    });
-
-    return result;
-  };
   const onSubmit = async (data: any) => {
     try {
       // ✅ STEP 1: trigger validation FIRST
@@ -396,8 +392,6 @@ const ImportFile: React.FC = () => {
         };
       }
 
-      console.log("Payload:", payload);
-
       const formData = new FormData();
 
       if (file) {
@@ -413,6 +407,7 @@ const ImportFile: React.FC = () => {
       }
       setRequestData(result);
       ///
+      setLoading(true);
       const response = await axios.post(
         `${BACKEND_URL}/api/qa_file`,
         formData,
@@ -431,9 +426,14 @@ const ImportFile: React.FC = () => {
       console.log(error);
       setMsg(error.response?.data?.message || "Login failed");
       setMsgType("danger");
+    } finally {
+      setLoading(false);
     }
   };
-
+  const headersList = React.useMemo(
+    () => headers.map((h) => h.name),
+    [headers],
+  );
   return (
     <div className="min-h-screen flex justify-center items-start bg-slate-200">
       <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6">
@@ -516,16 +516,18 @@ const ImportFile: React.FC = () => {
                     addMultiValueRules={addMultiValueRules}
                     cancelMultiValueRules={cancelMultiValueRules}
                     setValue={setValue}
+                    headersList={headersList}
                   />
                 ))}
               </div>
 
               <div className="flex justify-center mt-6">
                 <button
+                  disabled={loading}
                   type="submit"
                   className="mt-6 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 block mx-auto"
                 >
-                  Save
+                  {loading ? "Processing..." : "Save"}
                 </button>
               </div>
             </>

@@ -6,7 +6,6 @@ export default function MultiValueRules({
   headerName,
   control,
   register,
-  watch,
   errors,
   multiValueRulesInputs,
   handleMultiValueRulesInputChange,
@@ -14,7 +13,7 @@ export default function MultiValueRules({
   cancelMultiValueRules,
   inputType,
 }) {
-  console.log("MultiValueRules");
+  //console.log("MultiValueRules");
   const { fields, append, remove, update } = useFieldArray({
     control,
     name: `${headerName}.${inputType}`,

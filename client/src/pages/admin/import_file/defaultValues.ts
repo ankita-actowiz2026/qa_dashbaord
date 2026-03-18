@@ -9,7 +9,7 @@ export const DEFAULTS = {
   allowedExtensions: [".xlsx", ".xls", ".csv", ".json"],
   dataTypes: ["string", "integer", "float", "boolean", "date", "email"],
   stringTypes: ["string", "boolean", "email"],
-  numberTypes: ["int", "float"],
+  numberTypes: ["integer", "float"],
   date_format_options: [
     "YYYY-MM-DD",
     "DD-MM-YYYY",
