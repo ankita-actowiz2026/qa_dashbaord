@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import MultiValueRules from "./MultiValueRules";
+import DependencyBuilder from "./DependencyBuilder";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import { InfoTooltip } from "../../../utils/ToolTips";
 import { useWatch } from "react-hook-form";
-import SubDependencyLatest from "./SubDependencyLatest";
-import type { ValidationRowProps } from "../../../interface/importFile.interface";
+
 const {
   def_var_min_len_str,
   def_var_max_len_str,
@@ -24,16 +24,41 @@ const {
   stringTypes,
   numberTypes,
 } = DEFAULTS;
+interface HeaderValidationCardProps {
+  header: any;
+  index: number;
+  register: any;
+  watch: any;
+  errors: any;
+  control: any;
+  trigger: any;
+  dataTypes: any[];
+  date_format_options: any[];
+  getRegexByType: (type: string) => string;
+  default_length_validation_value: string;
+  fixedHeaderInputs: any[];
+  cellStartWithInputs: any[];
+  cellEndWithInputs: any[];
+  notMatchFoundInputs: any[];
+  handleMultiValueRulesInputChange: any;
+  addMultiValueRules: any;
+  cancelMultiValueRules: any;
+  setValue: any;
+  headersList: any[];
+}
 
-const ValidationRow: React.FC<ValidationRowProps> = ({
+const ValidationRow: React.FC<HeaderValidationCardProps> = ({
   header,
   index,
   register,
+  watch,
   errors,
   control,
   trigger,
-  setValue,
-  getValues,
+  dataTypes,
+  date_format_options,
+  getRegexByType,
+  default_length_validation_value,
   fixedHeaderInputs,
   cellStartWithInputs,
   cellEndWithInputs,
@@ -41,23 +66,21 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   handleMultiValueRulesInputChange,
   addMultiValueRules,
   cancelMultiValueRules,
-  dataTypes,
-  date_format_options,
+  setValue,
   headersList,
 }) => {
   const [defaultValue, setDefaultValue] = useState("");
   const basePath = `${header.name}`;
 
-  const values = useWatch({ control, name: basePath }) || {};
-  const hasDependency = useWatch({
+  const formValues = useWatch({
     control,
-    name: `${basePath}.has_dependency`,
   });
-  const condition = useWatch({
+
+  const values = useWatch({
     control,
-    name: `${basePath}.dependency_condition`,
-    defaultValue: "yes",
+    name: basePath,
   });
+
   const multiValueRulesConfig = React.useMemo(
     () => [
       { inputType: "fixed_header", inputs: fixedHeaderInputs },
@@ -106,13 +129,20 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
       : { min: def_var_min_len_str, max: def_var_max_len_str };
   }, [dataType, validationType]);
   useEffect(() => {
-    setValue(`${basePath}.cell_contains_value`, regexMap[dataType] || "", {
+    setValue(`${header.name}.cell_contains_value`, regexMap[dataType] || "", {
       shouldValidate: true,
     });
+  }, [dataType, header.name, setValue]);
+
+  useEffect(() => {
     const { min, max } = getDefaultLengths();
-    setValue(`${basePath}.min_length`, min);
-    if (max !== undefined) setValue(`${basePath}.max_length`, max);
-  }, [dataType, basePath, setValue, getDefaultLengths, regexMap]);
+
+    setValue(`${header.name}.min_length`, min);
+
+    if (max !== undefined) {
+      setValue(`${header.name}.max_length`, max);
+    }
+  }, [getDefaultLengths, header.name, setValue]);
 
   const multiValueRulesComponents = React.useMemo(() => {
     return multiValueRulesConfig.map((rule) => (
@@ -139,7 +169,6 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     addMultiValueRules,
     cancelMultiValueRules,
   ]);
-
   return (
     <div className="bg-white border border-gray-300 rounded-xl shadow-sm overflow-hidden">
       <div className="bg-gray-300 px-4 py-2 border-b">
@@ -528,80 +557,17 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         {/* DataRedundantSection end */}
 
         {multiValueRulesComponents}
-
-        {/* depe */}
-        <div className="mt-4">
-          {/* Add Dependency */}
-          <label className="text-sm font-semibold flex items-center gap-2">
-            <input
-              type="checkbox"
-              {...register(`${header.name}.has_dependency`)}
-            />
-            Add Dependency
-          </label>
-
-          {hasDependency && (
-            <>
-              <div className="mt-2 flex items-center gap-4">
-                {/* YES */}
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    value="yes"
-                    defaultChecked
-                    {...register(`${header.name}.dependency_condition`)}
-                  />
-                  Yes
-                </label>
-
-                {/* NO */}
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    value="no"
-                    {...register(`${header.name}.dependency_condition`)}
-                  />
-                  Other
-                </label>
-
-                {/* TEXTBOX */}
-
-                <input
-                  type="text"
-                  placeholder="Enter value"
-                  disabled={condition !== "no"}
-                  className="border border-gray-400 p-1 rounded"
-                  {...register(`${header.name}.dependency_value`, {
-                    validate: (value) => {
-                      if (condition === "no" && !value) {
-                        return "for no value value is required";
-                      }
-                      return true;
-                    },
-                  })}
-                />
-
-                {errors?.[header.name]?.dependency_value && (
-                  <p className="text-red-500 text-xs">
-                    {errors[header.name].dependency_value.message}
-                  </p>
-                )}
-              </div>
-
-              <SubDependencyLatest
-                control={control}
-                register={register}
-                headerName={header.name}
-                index={index}
-                headersList={headersList}
-                trigger={trigger}
-                errors={errors}
-                setValue={setValue}
-                getValues={getValues}
-              />
-            </>
-          )}
-        </div>
+        <DependencyBuilder
+          headerName={header.name}
+          // headersList={Object.keys(formValues || {})}
+          headersList={headersList}
+          control={control}
+          register={register}
+          watch={watch}
+          trigger={trigger}
+          errors={errors}
+          setValue={setValue}
+        />
       </div>
     </div>
   );

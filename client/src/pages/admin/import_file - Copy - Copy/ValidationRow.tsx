@@ -1,10 +1,18 @@
 import React, { useState, useEffect } from "react";
 import MultiValueRules from "./MultiValueRules";
+import DependencyBuilder from "./DependencyBuilder";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import { InfoTooltip } from "../../../utils/ToolTips";
 import { useWatch } from "react-hook-form";
 import SubDependencyLatest from "./SubDependencyLatest";
-import type { ValidationRowProps } from "../../../interface/importFile.interface";
+import type {
+  UseFormSetValue,
+  UseFormGetValues,
+  Control,
+  UseFormRegister,
+  UseFormTrigger,
+  FieldErrors,
+} from "react-hook-form";
 const {
   def_var_min_len_str,
   def_var_max_len_str,
@@ -25,15 +33,65 @@ const {
   numberTypes,
 } = DEFAULTS;
 
-const ValidationRow: React.FC<ValidationRowProps> = ({
+type FormValues = {
+  [key: string]: {
+    has_dependency?: boolean;
+    dependency_condition?: "yes" | "no";
+    dependency_value?: string;
+
+    sub_dependencies: {
+      headers: string[];
+      condition: "true" | "other";
+      value: string;
+    }[];
+  };
+};
+interface HeaderValidationCardProps {
+  header: any;
+  index: number;
+
+  register: UseFormRegister<FormValues>;
+  control: Control<FormValues>;
+  trigger: UseFormTrigger<FormValues>;
+
+  errors: FieldErrors<FormValues>;
+
+  setValue: UseFormSetValue<FormValues>;
+  getValues: UseFormGetValues<FormValues>;
+
+  watch: any; // keep loose if heavily dynamic
+
+  dataTypes: any[];
+  date_format_options: any[];
+
+  getRegexByType: (type: string) => string;
+
+  default_length_validation_value: string;
+
+  fixedHeaderInputs: any[];
+  cellStartWithInputs: any[];
+  cellEndWithInputs: any[];
+  notMatchFoundInputs: any[];
+
+  handleMultiValueRulesInputChange: any;
+  addMultiValueRules: any;
+  cancelMultiValueRules: any;
+
+  headersList: string[]; // ✅ improve this at least
+}
+
+const ValidationRow: React.FC<HeaderValidationCardProps> = ({
   header,
   index,
   register,
+  watch,
   errors,
   control,
   trigger,
-  setValue,
-  getValues,
+  dataTypes,
+  date_format_options,
+  getRegexByType,
+  default_length_validation_value,
   fixedHeaderInputs,
   cellStartWithInputs,
   cellEndWithInputs,
@@ -41,21 +99,29 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   handleMultiValueRulesInputChange,
   addMultiValueRules,
   cancelMultiValueRules,
-  dataTypes,
-  date_format_options,
+  setValue,
   headersList,
+  getValues,
 }) => {
   const [defaultValue, setDefaultValue] = useState("");
   const basePath = `${header.name}`;
 
-  const values = useWatch({ control, name: basePath }) || {};
+  const formValues = useWatch({
+    control,
+  });
+
+  const values = useWatch({
+    control,
+    name: basePath,
+  });
   const hasDependency = useWatch({
     control,
-    name: `${basePath}.has_dependency`,
+    name: `${header.name}.has_dependency`,
   });
+
   const condition = useWatch({
     control,
-    name: `${basePath}.dependency_condition`,
+    name: `${header.name}.dependency_condition`,
     defaultValue: "yes",
   });
   const multiValueRulesConfig = React.useMemo(
@@ -106,13 +172,20 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
       : { min: def_var_min_len_str, max: def_var_max_len_str };
   }, [dataType, validationType]);
   useEffect(() => {
-    setValue(`${basePath}.cell_contains_value`, regexMap[dataType] || "", {
+    setValue(`${header.name}.cell_contains_value`, regexMap[dataType] || "", {
       shouldValidate: true,
     });
+  }, [dataType, header.name, setValue]);
+
+  useEffect(() => {
     const { min, max } = getDefaultLengths();
-    setValue(`${basePath}.min_length`, min);
-    if (max !== undefined) setValue(`${basePath}.max_length`, max);
-  }, [dataType, basePath, setValue, getDefaultLengths, regexMap]);
+
+    setValue(`${header.name}.min_length`, min);
+
+    if (max !== undefined) {
+      setValue(`${header.name}.max_length`, max);
+    }
+  }, [getDefaultLengths, header.name, setValue]);
 
   const multiValueRulesComponents = React.useMemo(() => {
     return multiValueRulesConfig.map((rule) => (
@@ -139,7 +212,6 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     addMultiValueRules,
     cancelMultiValueRules,
   ]);
-
   return (
     <div className="bg-white border border-gray-300 rounded-xl shadow-sm overflow-hidden">
       <div className="bg-gray-300 px-4 py-2 border-b">
@@ -565,7 +637,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 </label>
 
                 {/* TEXTBOX */}
-
+                {condition}
                 <input
                   type="text"
                   placeholder="Enter value"
@@ -602,6 +674,18 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             </>
           )}
         </div>
+        {/* dep */}
+        {/* <DependencyBuilder
+          headerName={header.name}
+          // headersList={Object.keys(formValues || {})}
+          headersList={headersList}
+          control={control}
+          register={register}
+          watch={watch}
+          trigger={trigger}
+          errors={errors}
+          setValue={setValue}
+        /> */}
       </div>
     </div>
   );

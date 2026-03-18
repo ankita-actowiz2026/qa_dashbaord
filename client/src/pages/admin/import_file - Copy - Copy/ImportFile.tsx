@@ -48,6 +48,24 @@ const buildDependencyPayload1 = (data) => {
 
   return result;
 };
+const getRegexByType = (type: string) => {
+  switch (type) {
+    case "string":
+      return def_str_regex;
+    case "boolean":
+      return def_boolean_regex;
+    case "int":
+      return def_int_regex;
+    case "float":
+      return def_float_regex;
+    case "email":
+      return def_email_regex;
+    case "date":
+      return def_date_regex;
+    default:
+      return def_str_regex;
+  }
+};
 const {
   allowedExtensions,
   dataTypes,
@@ -87,7 +105,6 @@ const ImportFile: React.FC = () => {
       def_dep: "true",
     },
   });
-
   const [headers, setHeaders] = useState<HeaderType[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
@@ -100,35 +117,6 @@ const ImportFile: React.FC = () => {
   const [responseData, setResponseData] = useState(null); // <-- store response here
   const [requestData, setRequestData] = useState(null); // <-- store response here
   const [loading, setLoading] = useState(false);
-  const getRegexByType = React.useCallback(
-    (type: string) => {
-      switch (type) {
-        case "string":
-          return def_str_regex;
-        case "boolean":
-          return def_boolean_regex;
-        case "int":
-          return def_int_regex;
-        case "float":
-          return def_float_regex;
-        case "email":
-          return def_email_regex;
-        case "date":
-          return def_date_regex;
-        default:
-          return def_str_regex;
-      }
-    },
-    [
-      def_str_regex,
-      def_boolean_regex,
-      def_int_regex,
-      def_float_regex,
-      def_email_regex,
-      def_date_regex,
-    ],
-  );
-
   useEffect(() => {
     if (msg) {
       const timer = setTimeout(() => {
@@ -137,265 +125,180 @@ const ImportFile: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [msg]);
-
-  const multiValueInputs = {
-    fixed_header: [
-      fixedHeaderInputs,
-      setFixedHeaderInputs,
-      "fixed_header_input",
-    ],
-    cell_start_with: [
-      cellStartWithInputs,
-      setCellStartWithInputs,
-      "cell_start_with_input",
-    ],
-    cell_end_with: [
-      cellEndWithInputs,
-      setCellEndWithInputs,
-      "cell_end_with_input",
-    ],
-    not_match_found: [
-      notMatchFoundInputs,
-      setNotMatchFoundInputs,
-      "not_match_found_input",
-    ],
-  };
-
-  // handle change
+  ///////////////////////start multi value select
   const handleMultiValueRulesInputChange = (
     headerName: string,
     value: string,
     inputType: string,
   ) => {
-    const [state, setState] = multiValueInputs[inputType];
-    setState({ ...state, [headerName]: value });
+    if (inputType == "fixed_header") {
+      setFixedHeaderInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    } else if (inputType == "cell_start_with") {
+      setCellStartWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    } else if (inputType == "cell_end_with") {
+      setCellEndWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    } else if (inputType == "not_match_found") {
+      setNotMatchFoundInputs((prev: any) => ({
+        ...prev,
+        [headerName]: value,
+      }));
+    }
   };
-  const [multiValueErrors, setMultiValueErrors] = useState<{
-    [key: string]: { [headerName: string]: string };
-  }>({});
-  // cancel
-  // const cancelMultiValueRules = (headerName: string, inputType: string) => {
-  //   // Clear the input
-  //   const [, setState] = multiValueInputs[inputType];
-  //   setState((prev) => ({ ...prev, [headerName]: "" }));
 
-  //   // Clear the error for this header
-  //   setMultiValueErrors((prev) => ({
-  //     ...prev,
-  //     [inputType]: { ...prev[inputType], [headerName]: "" },
-  //   }));
-  // };
-
-  // add
   const addMultiValueRules = (
     headerName: string,
     fields: any[],
     append: any,
     inputType: string,
   ) => {
-    const [state, setState, errorField] = multiValueInputs[inputType];
-    const value = state[headerName]?.trim();
-    console.log("add multiple call");
-    if (!value) {
-      setError(`${headerName}.${errorField}`, {
-        message: `${inputType.replace("_", " ")} is required`,
-      });
-      return;
-    }
+    if (inputType == "fixed_header") {
+      const value = fixedHeaderInputs[headerName]?.trim();
 
-    const exists = fields.some(
-      (f) => f.value?.toLowerCase() === value.toLowerCase(),
-    );
-    if (exists) {
-      setError(`${headerName}.${errorField}`, {
-        message: `${inputType.replace("_", " ")} already exists`,
-      });
-      return;
-    }
+      if (!value) {
+        setError(`${headerName}.fixed_header_input`, {
+          message: "Fixed header is required",
+        });
+        return;
+      }
 
-    clearErrors(`${headerName}.${errorField}`);
-    append({ value });
-    setState((prev) => ({ ...prev, [headerName]: "" }));
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.fixed_header_input`, {
+          message: "Fixed header is already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.fixed_header_input`);
+
+      append({ value });
+
+      setFixedHeaderInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "cell_start_with") {
+      const value = cellStartWithInputs[headerName]?.trim();
+
+      if (!value) {
+        setError(`${headerName}.cell_start_with_input`, {
+          message: "Cell start with is required",
+        });
+        return;
+      }
+
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.cell_start_with_input`, {
+          message: "Cell start with is already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.cell_start_with_input`);
+
+      append({ value });
+
+      setCellStartWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "cell_end_with") {
+      const value = cellEndWithInputs[headerName]?.trim();
+
+      if (!value) {
+        setError(`${headerName}.cell_end_with_input`, {
+          message: "Cell end with is required",
+        });
+        return;
+      }
+
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.cell_end_with_input`, {
+          message: "Cell end with already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.cell_end_with_input`);
+
+      append({ value });
+
+      setCellEndWithInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    } else if (inputType == "not_match_found") {
+      const value = notMatchFoundInputs[headerName]?.trim();
+
+      if (!value) {
+        setError(`${headerName}.not_match_found_input`, {
+          message: "Blocked is required",
+        });
+        return;
+      }
+
+      const exists = fields.some(
+        (f) => f.value?.toLowerCase() === value.toLowerCase(),
+      );
+
+      if (exists) {
+        setError(`${headerName}.not_match_found_input`, {
+          message: "Blocked already exists",
+        });
+        return;
+      }
+
+      clearErrors(`${headerName}.not_match_found_input`);
+
+      append({ value });
+
+      setNotMatchFoundInputs((prev: any) => ({
+        ...prev,
+        [headerName]: "",
+      }));
+    }
   };
-
-  ///////////////////////start multi value select
-  // const handleMultiValueRulesInputChange = (
-  //   headerName: string,
-  //   value: string,
-  //   inputType: string,
-  // ) => {
-  //   if (inputType == "fixed_header") {
-  //     setFixedHeaderInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   } else if (inputType == "cell_start_with") {
-  //     setCellStartWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   } else if (inputType == "cell_end_with") {
-  //     setCellEndWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   } else if (inputType == "not_match_found") {
-  //     setNotMatchFoundInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   }
-  // };
-
-  // const addMultiValueRules = (
-  //   headerName: string,
-  //   fields: any[],
-  //   append: any,
-  //   inputType: string,
-  // ) => {
-  //   if (inputType == "fixed_header") {
-  //     const value = fixedHeaderInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.fixed_header_input`, {
-  //         message: "Fixed header is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.fixed_header_input`, {
-  //         message: "Fixed header is already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.fixed_header_input`);
-
-  //     append({ value });
-
-  //     setFixedHeaderInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   } else if (inputType == "cell_start_with") {
-  //     const value = cellStartWithInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.cell_start_with_input`, {
-  //         message: "Cell start with is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.cell_start_with_input`, {
-  //         message: "Cell start with is already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.cell_start_with_input`);
-
-  //     append({ value });
-
-  //     setCellStartWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   } else if (inputType == "cell_end_with") {
-  //     const value = cellEndWithInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.cell_end_with_input`, {
-  //         message: "Cell end with is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.cell_end_with_input`, {
-  //         message: "Cell end with already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.cell_end_with_input`);
-
-  //     append({ value });
-
-  //     setCellEndWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   } else if (inputType == "not_match_found") {
-  //     const value = notMatchFoundInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.not_match_found_input`, {
-  //         message: "Blocked is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.not_match_found_input`, {
-  //         message: "Blocked already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.not_match_found_input`);
-
-  //     append({ value });
-
-  //     setNotMatchFoundInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   }
-  // };
   const cancelMultiValueRules = (headerName: string, inputType: string) => {
     if (inputType == "fixed_header") {
       setFixedHeaderInputs((prev) => ({
         ...prev,
         [headerName]: "",
       }));
-      clearErrors(`${headerName}.fixed_header_input`);
     } else if (inputType == "cell_start_with") {
       setCellStartWithInputs((prev) => ({
         ...prev,
         [headerName]: "",
       }));
-      clearErrors(`${headerName}.cell_start_with_input`);
     } else if (inputType == "cell_end_with") {
       setCellEndWithInputs((prev) => ({
         ...prev,
         [headerName]: "",
       }));
-      clearErrors(`${headerName}.cell_end_with_input`);
     } else if (inputType == "not_match_found") {
       setNotMatchFoundInputs((prev) => ({
         ...prev,
         [headerName]: "",
       }));
-      clearErrors(`${headerName}.not_match_found_input`);
     }
   };
   ///////////////////////end multi value select
@@ -429,40 +332,20 @@ const ImportFile: React.FC = () => {
     }
   };
 
-  // const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const selectedFile = e.target.files?.[0];
-
-  //   if (!selectedFile) return;
-
-  //   if (!validateFile(selectedFile)) {
-  //     alert("Only .xlsx, .xls, .csv, .json files allowed");
-  //     return;
-  //   }
-
-  //   setFile(selectedFile);
-  //   setFileName(selectedFile.name);
-
-  //   await readHeaders(selectedFile);
-  // };
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
+
     if (!selectedFile) return;
 
     if (!validateFile(selectedFile)) {
-      setMsg("Invalid file type");
-      setMsgType("danger");
+      alert("Only .xlsx, .xls, .csv, .json files allowed");
       return;
     }
 
     setFile(selectedFile);
     setFileName(selectedFile.name);
 
-    try {
-      await readHeaders(selectedFile);
-    } catch {
-      setMsg("Failed to read file");
-      setMsgType("danger");
-    }
+    await readHeaders(selectedFile);
   };
 
   const onSubmit = async (data: any) => {
@@ -570,25 +453,6 @@ const ImportFile: React.FC = () => {
     () => headers.map((h) => h.name),
     [headers],
   );
-  const multiValueProps = {
-    fixedHeaderInputs,
-    cellStartWithInputs,
-    cellEndWithInputs,
-    notMatchFoundInputs,
-    handleMultiValueRulesInputChange,
-    addMultiValueRules,
-    cancelMultiValueRules,
-  };
-
-  const formHelpers = {
-    register,
-    watch,
-    errors,
-    control,
-    trigger,
-    setValue,
-    getValues,
-  };
   return (
     <div className="min-h-screen flex justify-center items-start bg-slate-200">
       <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6">
@@ -650,15 +514,29 @@ const ImportFile: React.FC = () => {
                     key={header.name}
                     header={header}
                     index={index}
-                    {...multiValueProps}
-                    {...formHelpers}
+                    register={register}
+                    watch={watch}
+                    errors={errors}
+                    control={control}
+                    trigger={trigger}
                     dataTypes={dataTypes}
                     date_format_options={date_format_options}
                     getRegexByType={getRegexByType}
                     default_length_validation_value={
                       default_length_validation_value
                     }
+                    fixedHeaderInputs={fixedHeaderInputs}
+                    cellStartWithInputs={cellStartWithInputs}
+                    cellEndWithInputs={cellEndWithInputs}
+                    notMatchFoundInputs={notMatchFoundInputs}
+                    handleMultiValueRulesInputChange={
+                      handleMultiValueRulesInputChange
+                    }
+                    addMultiValueRules={addMultiValueRules}
+                    cancelMultiValueRules={cancelMultiValueRules}
+                    setValue={setValue}
                     headersList={headersList}
+                    getValues={getValues}
                   />
                 ))}
               </div>

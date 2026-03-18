@@ -1,0 +1,61 @@
+const oneYearAgo = new Date();
+oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+const year = oneYearAgo.getFullYear();
+const month = String(oneYearAgo.getMonth() + 1).padStart(2, "0"); // 01-12
+const day = String(oneYearAgo.getDate()).padStart(2, "0"); // 01-31
+
+export const DEFAULTS = {
+  allowedExtensions: [".xlsx", ".xls", ".csv", ".json"],
+  dataTypes: ["string", "integer", "float", "boolean", "date", "email"],
+  stringTypes: ["string", "boolean", "email"],
+  numberTypes: ["integer", "float"],
+  date_format_options: [
+    "YYYY-MM-DD",
+    "DD-MM-YYYY",
+    "MM-DD-YYYY",
+    "YYYY/MM/DD",
+    "DD/MM/YYYY",
+    "MM/DD/YYYY",
+    "YYYY-MM-DD HH:mm:ss",
+    "DD-MM-YYYY HH:mm:ss",
+    "MM/DD/YYYY HH:mm:ss",
+    "YYYY-MM-DDTHH:mm:ss",
+    "DD-MM-YYYY h:i:s a",
+    "MM/DD/YYYY h:i a",
+    "YYYY-MM-DD h:i:s A",
+    "DD MMM YYYY",
+    "MMM DD, YYYY",
+    "MMMM DD, YYYY",
+    "DD Month YYYY",
+    "DD-MM-YY",
+    "MM/DD/YY",
+    "DD_MM_YYYY",
+    "MM_DD_YYYY",
+    "YYYY_MM_DD",
+    "DD_MM_YYYY h:i:s a",
+    "MM_DD_YYYY h:i:s a",
+    "YYYY_MM_DD h:i:s a",
+    "DD_MM_YYYY HH:mm:ss",
+    "MM_DD_YYYY HH:mm:ss",
+    "YYYY_MM_DD HH:mm:ss",
+  ],
+  default_length_validation_value: "variable",
+  def_var_min_len_str: 1,
+  def_var_max_len_str: 500,
+  def_var_min_len_num: 1,
+  def_var_max_len_num: 15,
+
+  def_var_min_len_date: `${year}-${month}-${day}`,
+  def_var_max_len_date: new Date().toISOString().slice(0, 10),
+  def_fixed_date: `${year}-${month}-${day}`,
+  def_fixed_length_str: 100,
+  def_fixed_length_num: 15,
+  def_cell_contains_value: 1,
+  def_str_regex: "^.*$",
+  def_boolean_regex: "^(true|false|0|1|T|F|TRUE|FALSE)$",
+  def_int_regex: "^[0-9]+$",
+  def_float_regex: "^[0-9]+(\\.[0-9]+)?$",
+  def_email_regex: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+  def_date_regex: "^\\d{4}-\\d{2}-\\d{2}$",
+};
