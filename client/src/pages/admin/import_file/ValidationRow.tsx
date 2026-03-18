@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import MultiValueRules from "./MultiValueRules";
 import DependencyBuilder from "./DependencyBuilder";
 import { DEFAULTS } from "./defaultValues"; // adjust path
-
+import { InfoTooltip } from "../../../utils/ToolTips";
 const {
   def_var_min_len_str,
   def_var_max_len_str,
@@ -136,7 +136,13 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
         {/*DataTypeSection start  */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-semibold mr-2">Data Type</label>
+            <label className="text-sm font-semibold flex items-center gap-1">
+              <span>Data Type</span>
+              <InfoTooltip
+                id="data-type-tooltip"
+                text="Please Select data type"
+              />
+            </label>
 
             <select
               className="border border-gray-400 p-2 w-full rounded"
@@ -153,7 +159,13 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
 
           {selectedDataType === "date" && (
             <div>
-              <label className="text-sm font-semibold mr-2">Date Format</label>
+              <label className="text-sm font-semibold flex items-center gap-1">
+                Date Format{" "}
+                <InfoTooltip
+                  id="date-format-tooltip"
+                  text="Please date format in which you want to pass date"
+                />
+              </label>
 
               <select
                 {...register(`${header.name}.def_date_format`)}
@@ -172,13 +184,17 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
         {/* AllowEmpty start */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-semibold flex items-center">
+            <label className="text-sm font-semibold flex items-center gap-1">
               <input
                 className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
                 type="checkbox"
                 {...register(`${header.name}.has_empty`)}
               />
-              Allow Empty
+              Allow Empty{" "}
+              <InfoTooltip
+                id="allow-empty-tooltip"
+                text="Select checkbox to allow empty for given filed"
+              />
             </label>
           </div>
         </div>
@@ -187,13 +203,17 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div>
             {/* Checkbox + Label */}
-            <label className="text-sm font-semibold mr-2">
+            <label className="text-sm font-semibold flex items-center gap-1">
               <input
                 type="checkbox"
                 {...register(`${header.name}.cell_contains`)}
                 className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
               />
-              Cell Contains (Regex)
+              Cell Contains (Regex){" "}
+              <InfoTooltip
+                id="cell-contains-tooltip"
+                text="for you want to apply regex on this colom"
+              />
             </label>
           </div>
 
@@ -234,8 +254,9 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
         {/* LengthValidation start */}
         {/* Validation Type */}
         <div className="flex items-center gap-6">
-          <label className="text-sm font-medium whitespace-nowrap">
+          <label className="text-sm font-semibold flex items-center gap-1">
             Data Length
+            <InfoTooltip id="data-length-tooltip" text="Data Length" />
           </label>
 
           <div className="flex gap-4">
@@ -252,6 +273,7 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
 
             <label className="text-sm font-semibold mr-2">
               <input
+                className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
                 type="radio"
                 value="fixed"
                 {...register(`${header.name}.length_validation_type`)}
@@ -436,8 +458,12 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
         <div className="grid grid-cols-2 gap-4">
           {/* Redundant Value */}
           <div>
-            <label className="text-sm font-semibold mr-2">
+            <label className="text-sm font-semibold flex items-center gap-1">
               Data Redundant Value
+              <InfoTooltip
+                id="data-redundant-tooltip"
+                text="Data Redundant Value"
+              />
             </label>
 
             <input
@@ -450,8 +476,12 @@ const ValidationRow: React.FC<HeaderValidationCardProps> = ({
 
           {/* Threshold */}
           <div>
-            <label className="text-sm font-semibold mr-2">
+            <label className="text-sm font-semibold flex items-center gap-1">
               Data Redundant Threshold
+              <InfoTooltip
+                id="data-redundant-threshold-tooltip"
+                text="Data Redundant Threshold"
+              />
             </label>
 
             <input

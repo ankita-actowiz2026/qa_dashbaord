@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useFieldArray } from "react-hook-form";
 import SubDependency from "./SubDependency";
-
+import { InfoTooltip } from "../../../utils/ToolTips";
 const DependencyBuilder = ({
   headerName,
   headersList,
@@ -43,13 +43,17 @@ const DependencyBuilder = ({
     <div className="grid grid-cols-1 gap-4">
       <div>
         {/* Checkbox */}
-        <label className="text-sm font-semibold mr-2">
+        <label className="text-sm font-semibold flex items-center gap-1">
           <input
             type="checkbox"
             {...register(`${headerName}.has_dependency`)}
             className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
           />
           Add Dependency
+          <InfoTooltip
+            id="dependancy-tooltip"
+            text="You can add dependancy and other depandancy"
+          />
         </label>
 
         {/* MAIN UI */}
@@ -93,7 +97,7 @@ const DependencyBuilder = ({
                         {...register(`${depPath}.${index}.value`, {
                           validate: (val) => {
                             if (condition === "other" && !val) {
-                              return "Value required";
+                              return "Other value is required";
                             }
                             return true;
                           },
@@ -102,21 +106,26 @@ const DependencyBuilder = ({
                       />
 
                       {/* ✅ ERROR MESSAGE */}
-                      {errors?.[headerName]?.dependencies?.[index]?.value && (
-                        <p className="text-red-500 text-sm">
-                          {errors[headerName].dependencies[index].value.message}
-                        </p>
-                      )}
+                      <div className="w-full">
+                        {errors?.[headerName]?.dependencies?.[index]?.value && (
+                          <p className="text-red-500 text-sm">
+                            {
+                              errors[headerName].dependencies[index].value
+                                .message
+                            }
+                          </p>
+                        )}
+                      </div>
                       {/* DELETE MAIN */}
-                      {fields.length > 1 && (
+                      {/* {fields.length > 1 && (
                         <button
                           type="button"
                           onClick={() => remove(index)}
                           className="text-red-500"
                         >
-                          ✕
+                          ✕--
                         </button>
-                      )}
+                      )} */}
                     </div>
 
                     {/* SUB DEPENDENCY */}

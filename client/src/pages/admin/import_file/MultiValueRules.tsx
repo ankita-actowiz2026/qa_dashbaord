@@ -1,7 +1,7 @@
 import { set, useFieldArray } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRef } from "react";
-
+import { InfoTooltip } from "../../../utils/ToolTips";
 export default function MultiValueRules({
   headerName,
   control,
@@ -71,7 +71,10 @@ export default function MultiValueRules({
   };
   return (
     <div className="space-y-3">
-      <label className="text-sm font-semibold mr-2">{title}</label>
+      <label className="text-sm font-semibold flex items-center gap-1">
+        {title}
+        <InfoTooltip id={`${inputType}-tooltip`} text={title} />
+      </label>
 
       {/* ADD */}
 

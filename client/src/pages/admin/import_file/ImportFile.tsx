@@ -103,7 +103,7 @@ const ImportFile: React.FC = () => {
 
       if (!value) {
         setError(`${headerName}.fixed_header_input`, {
-          message: "Please add fixed header value",
+          message: "Fixed header is required",
         });
         return;
       }
@@ -114,7 +114,7 @@ const ImportFile: React.FC = () => {
 
       if (exists) {
         setError(`${headerName}.fixed_header_input`, {
-          message: "Fixed header value is already exists",
+          message: "Fixed header is already exists",
         });
         return;
       }
@@ -132,7 +132,7 @@ const ImportFile: React.FC = () => {
 
       if (!value) {
         setError(`${headerName}.cell_start_with_input`, {
-          message: "Please add cell start with value",
+          message: "Cell start with is required",
         });
         return;
       }
@@ -143,7 +143,7 @@ const ImportFile: React.FC = () => {
 
       if (exists) {
         setError(`${headerName}.cell_start_with_input`, {
-          message: "Cell start with value already exists",
+          message: "Cell start with is already exists",
         });
         return;
       }
@@ -161,7 +161,7 @@ const ImportFile: React.FC = () => {
 
       if (!value) {
         setError(`${headerName}.cell_end_with_input`, {
-          message: "Please add cell end with value",
+          message: "Cell end with is required",
         });
         return;
       }
@@ -172,7 +172,7 @@ const ImportFile: React.FC = () => {
 
       if (exists) {
         setError(`${headerName}.cell_end_with_input`, {
-          message: "Cell end with value already exists",
+          message: "Cell end with already exists",
         });
         return;
       }
@@ -190,7 +190,7 @@ const ImportFile: React.FC = () => {
 
       if (!value) {
         setError(`${headerName}.not_match_found_input`, {
-          message: "Please add blocked value",
+          message: "Blocked is required",
         });
         return;
       }
@@ -201,7 +201,7 @@ const ImportFile: React.FC = () => {
 
       if (exists) {
         setError(`${headerName}.not_match_found_input`, {
-          message: "Blocked  value already exists",
+          message: "Blocked already exists",
         });
         return;
       }
@@ -485,7 +485,7 @@ const ImportFile: React.FC = () => {
           {headers.length > 0 && (
             <>
               <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                Headers validation
+                Please add validation rules for following headers
               </h2>
 
               {/* <div className="space-y-6"> */}
