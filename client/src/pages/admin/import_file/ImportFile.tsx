@@ -3,7 +3,7 @@ import { DEFAULTS } from "./defaultValues"; // adjust path
 import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
 import * as XLSX from "xlsx";
-
+import { InfoTooltip } from "../../../utils/ToolTips";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 const buildDependencyPayload = (data: any) => {
@@ -636,7 +636,7 @@ const ImportFile: React.FC = () => {
   };
   return (
     <div className="w-full min-h-full flex justify-center">
-      <div className="w-full bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6 ">
+      <div className="w-full bg-white shadow-xl  px-4 sm:px-8 py-6 ">
         {msg && (
           <div
             className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
@@ -657,7 +657,7 @@ const ImportFile: React.FC = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Upload Box */}
 
           <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
@@ -688,9 +688,43 @@ const ImportFile: React.FC = () => {
                 Please add validation rules for following headers
               </h2>
 
-              {/* <div className="space-y-6"> */}
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
+                <div
+                  className="grid grid-cols-[1.5fr_1fr_40px_1fr_4fr_40px] 
+    bg-gray-300 border-b 
+    px-4 py-3 gap-6  text-xs font-semibold text-gray-600 uppercase tracking-wide"
+                >
+                  <div className="flex items-center">Header Name</div>
+                  <div className="flex items-center gap-1">
+                    Data Type
+                    <InfoTooltip
+                      id="data-type-tooltip"
+                      text="Select the type of data expected in this column (e.g., string, integer, date). This helps validate the input format."
+                    />
+                  </div>
+                  <div className="flex items-center justify-center gap-1">
+                    Required
+                    <InfoTooltip
+                      id="allow-empty-tooltip"
+                      text="Enable this if the field can be left blank. Disable it to make the field mandatory."
+                    />
+                  </div>
+                  <div className="flex items-center justify-center  gap-1">
+                    Regex{" "}
+                    <InfoTooltip
+                      id="cell-contains-tooltip"
+                      text="Define a pattern that the cell value must match using regular expressions (advanced validation)."
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    Length
+                    <InfoTooltip
+                      id="data-length-tooltip"
+                      text="Choose whether the value length can vary within a range or must be exactly a fixed number of characters."
+                    />
+                  </div>
+                  <div></div>
+                </div>
                 {headers.map((header, index) => (
                   <ValidationRow
                     key={header.name}

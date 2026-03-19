@@ -2,6 +2,12 @@ import { set, useFieldArray } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { useRef } from "react";
 import { InfoTooltip } from "../../../utils/ToolTips";
+import { FaPlus } from "react-icons/fa";
+import { FiEdit } from "react-icons/fi";
+import { FiTrash2 } from "react-icons/fi";
+import { MdClear } from "react-icons/md";
+import { FiSave } from "react-icons/fi";
+
 export default function MultiValueRules({
   headerName,
   control,
@@ -71,14 +77,14 @@ export default function MultiValueRules({
   };
   return (
     <div className="space-y-3">
-      <label className="text-sm font-semibold flex items-center gap-1 mb-1">
+      <label className="text-sm font-semibold flex items-center gap-2 mb-2">
         {title}
         <InfoTooltip id={`${inputType}-tooltip`} text={rule.toolTips} />
       </label>
 
       {/* ADD */}
 
-      <div className="flex gap-3">
+      <div className="flex gap-2">
         <input
           name="{inputType}"
           ref={inputRef}
@@ -109,17 +115,17 @@ export default function MultiValueRules({
               inputRef.current?.focus();
             }, 0);
           }}
-          className="bg-blue-600 text-white px-4 rounded"
+          className="bg-blue-600 text-white px-2 rounded"
         >
-          Add
+          <FaPlus size={14} />
         </button>
 
         <button
           type="button"
           onClick={() => cancelMultiValueRules(headerName, inputType)}
-          className="bg-gray-400 text-white px-4 rounded"
+          className="bg-gray-400 text-white px-2 rounded"
         >
-          Clean
+          <MdClear size={14}></MdClear>
         </button>
       </div>
 
@@ -132,10 +138,10 @@ export default function MultiValueRules({
       {/* LIST */}
 
       {fields.map((field, idx) => (
-        <div key={field.id} className="flex gap-3 items-center">
+        <div key={field.id} className="flex gap-2 items-center">
           {editIndex === idx ? (
             <div className="w-full">
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <input
                   value={editValue}
                   onChange={(e) => {
@@ -150,7 +156,7 @@ export default function MultiValueRules({
                   onClick={updateValue}
                   className="bg-green-600 text-white px-3 rounded"
                 >
-                  Update
+                  <FiSave />
                 </button>
 
                 <button
@@ -161,7 +167,7 @@ export default function MultiValueRules({
                   }}
                   className="bg-gray-400 text-white px-3 rounded"
                 >
-                  Cancel
+                  <MdClear size={14}></MdClear>
                 </button>
               </div>
 
@@ -176,17 +182,17 @@ export default function MultiValueRules({
               <button
                 type="button"
                 onClick={() => startEdit(idx)}
-                className="bg-yellow-500 text-white px-3 rounded"
+                className="bg-blue-500 text-white px-3 rounded"
               >
-                Edit
+                <FiEdit size={18} />
               </button>
 
               <button
                 type="button"
                 onClick={() => handleDelete(idx)}
-                className="bg-red-500 text-white px-3 rounded"
+                className="bg-blue-500 text-white px-3 rounded"
               >
-                Delete
+                <FiTrash2 size={18} />
               </button>
             </>
           )}
