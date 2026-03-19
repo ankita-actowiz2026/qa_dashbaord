@@ -606,7 +606,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
           {hasDependency && (
             <div className="ml-5">
-              <div className="mt-2 flex gap-4">
+              <div className="mt-2 flex items-start gap-4">
                 {/* ✅ RADIO GROUP (center vertically) */}
                 <div className="flex items-center gap-4">
                   {/* YES */}
@@ -621,7 +621,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                         },
                       })}
                     />
-                    Yes
+                    Required
                   </label>
 
                   {/* NO */}
@@ -631,7 +631,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                       value="no"
                       {...register(`${header.name}.dependency_condition`)}
                     />
-                    Other
+                    With some value
                   </label>
                 </div>
                 {/* TEXTBOX */}
@@ -657,10 +657,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                     </p>
                   )}
                 </div>
-                <InfoTooltip
-                  id="dependant-parent-tooltip"
-                  text="Select Yes to make this field mandatory when the condition is applied. Select Other to apply this rule only when the field matches a specific value."
-                />
+                <div className="flex items-center">
+                  <InfoTooltip
+                    id="dependant-parent-tooltip"
+                    text="Select Yes to make this field mandatory when the condition is applied. Select Other to apply this rule only when the field matches a specific value."
+                  />
+                </div>
               </div>
 
               <SubDependencyLatest

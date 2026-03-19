@@ -635,8 +635,8 @@ const ImportFile: React.FC = () => {
     getValues,
   };
   return (
-    <div className="min-h-screen flex justify-center items-start bg-slate-200">
-      <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6">
+    <div className="min-h-screen flex justify-center items-start bg-slate-200 ">
+      <div className="w-full  bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6  ">
         {msg && (
           <div
             className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
@@ -689,7 +689,8 @@ const ImportFile: React.FC = () => {
               </h2>
 
               {/* <div className="space-y-6"> */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {headers.map((header, index) => (
                   <ValidationRow
                     key={header.name}
