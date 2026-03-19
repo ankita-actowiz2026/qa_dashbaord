@@ -635,8 +635,8 @@ const ImportFile: React.FC = () => {
     getValues,
   };
   return (
-    <div className="min-h-screen flex justify-center items-start bg-slate-200 ">
-      <div className="w-full  bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6  ">
+    <div className="w-full min-h-full flex justify-center">
+      <div className="w-full bg-white shadow-xl rounded-2xl px-4 sm:px-8 py-6 ">
         {msg && (
           <div
             className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
