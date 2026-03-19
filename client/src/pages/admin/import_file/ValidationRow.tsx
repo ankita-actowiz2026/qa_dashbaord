@@ -595,7 +595,6 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 index={index}
                 headersList={headersList}
                 trigger={trigger}
-                errors={errors}
                 setValue={setValue}
                 getValues={getValues}
               />

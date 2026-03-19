@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import { useFieldArray, Controller, useWatch } from "react-hook-form";
-
+import { useFormState } from "react-hook-form";
 const SubDependencyLatest = ({
   control,
   register,
@@ -8,12 +8,12 @@ const SubDependencyLatest = ({
   index,
   headersList,
   trigger,
-  errors,
   setValue,
-  getValues,
 }) => {
   const subPath = `${headerName}.sub_dependencies`;
-
+  const { errors: formErrors } = useFormState({
+    control,
+  });
   const { fields, append, remove } = useFieldArray({
     control,
     name: subPath,
@@ -84,7 +84,6 @@ const SubDependencyLatest = ({
                     ))}
                   </select>
 
-                  {/* ✅ SHOW ERROR FROM fieldState */}
                   {fieldState.error && (
                     <p className="text-red-500 text-xs">
                       {fieldState.error.message}
@@ -93,6 +92,7 @@ const SubDependencyLatest = ({
                 </>
               )}
             />
+
             {/* TRUE */}
             <label className="flex items-center gap-1">
               <input
@@ -100,12 +100,17 @@ const SubDependencyLatest = ({
                 value="true"
                 {...register(`${subPath}.${index}.condition`, {
                   onChange: () => {
-                    trigger(`${subPath}.${index}.value`);
+                    // ✅ clear value when switching to true
+                    setValue(`${subPath}.${index}.value`, "");
+                    setTimeout(() => {
+                      trigger(`${subPath}.${index}.value`);
+                    }, 0);
                   },
                 })}
               />
               True
             </label>
+
             {/* OTHER VALUE */}
             <label className="flex items-center gap-1">
               <input
@@ -113,29 +118,27 @@ const SubDependencyLatest = ({
                 value="other"
                 {...register(`${subPath}.${index}.condition`, {
                   onChange: () => {
-                    trigger([
-                      `${subPath}.${index}.value`,
-                      `${subPath}.${index}.headers`, // ✅ THIS FIXES YOUR MULTISELECT ISSUE
-                    ]);
+                    setValue(`${subPath}.${index}.value`, ""); // optional reset
                   },
                 })}
               />
               Other Value
             </label>
+
             {/* TEXTBOX */}
             <input
               type="text"
-              className="border  border-gray-400 p-2 w-full rounded"
+              className="border border-gray-400 p-2 w-full rounded"
               disabled={subCondition !== "other"}
               {...register(`${subPath}.${index}.value`, {
                 validate: (val) => {
-                  const currentCondition = getValues(
-                    `${subPath}.${index}.condition`,
-                  );
+                  const currentCondition = subDependencies?.[index]?.condition;
+
+                  console.log(currentCondition + "===" + val);
 
                   if (
                     currentCondition === "other" &&
-                    (val == null || val.trim() === "")
+                    (!val || val?.trim() === "")
                   ) {
                     return "for other dependancy value is required";
                   }
@@ -144,34 +147,19 @@ const SubDependencyLatest = ({
                 },
               })}
             />
-            {/* ERROR */}
-            {errors?.[headerName]?.sub_dependencies && (
-              <div className="text-red-600">
-                {Object.entries(errors[headerName].sub_dependencies).map(
-                  ([index, subDepErrors]) => (
-                    <div key={index}>
-                      <strong>Sub-dependency {parseInt(index) + 1}:</strong>
-                      <ul>
-                        {Object.entries(subDepErrors).map(
-                          ([fieldName, errorObj]) => (
-                            <li key={fieldName}>
-                              {fieldName}:{" "}
-                              {errorObj?.message || JSON.stringify(errorObj)}
-                            </li>
-                          ),
-                        )}
-                      </ul>
-                    </div>
-                  ),
-                )}
-              </div>
-            )}{" "}
-            {errors?.[headerName]?.sub_dependencies?.[index]?.value
-              ?.message && (
-              <p className="text-red-500 text-xs">
-                ={errors[headerName].sub_dependencies[index].value.message}
-              </p>
-            )}
+
+            {/* ✅ ERROR (only show when condition = other) */}
+            {subCondition === "other" &&
+              formErrors?.[headerName]?.sub_dependencies?.[index]?.value
+                ?.message && (
+                <p className="text-red-500 text-xs">
+                  {
+                    formErrors?.[headerName]?.sub_dependencies?.[index]?.value
+                      ?.message
+                  }
+                </p>
+              )}
+
             {/* DELETE BUTTON */}
             {fields.length > 1 && (
               <button
@@ -186,7 +174,7 @@ const SubDependencyLatest = ({
         );
       })}
 
-      {/* ✅ ADD BUTTON */}
+      {/* ADD BUTTON */}
       <button
         type="button"
         onClick={() =>
@@ -200,10 +188,11 @@ const SubDependencyLatest = ({
       >
         + Add Sub Dependency
       </button>
+
       <button
         type="button"
         onClick={() => {
-          console.log(getValues()); // ✅ full form data
+          console.log(subDependencies); // ✅ updated values
         }}
       >
         Log Values
