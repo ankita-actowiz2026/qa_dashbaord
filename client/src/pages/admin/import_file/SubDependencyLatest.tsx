@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import { useFieldArray, Controller, useWatch } from "react-hook-form";
 import { useFormState } from "react-hook-form";
+import { InfoTooltip } from "../../../utils/ToolTips";
 const SubDependencyLatest = ({
   control,
   register,
@@ -65,32 +66,38 @@ const SubDependencyLatest = ({
               }}
               render={({ field, fieldState }) => (
                 <>
-                  <select
-                    multiple
-                    className="border border-gray-400 p-2 w-40 rounded"
-                    value={field.value || []}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions).map(
-                        (o) => o.value,
-                      );
-                      field.onChange(selected);
-                    }}
-                    onBlur={field.onBlur}
-                  >
-                    {(filteredHeaders || []).map((h, i) => (
-                      <option key={`${h}-${i}`} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex flex-col justify-center">
+                    <select
+                      multiple
+                      className="border border-gray-400 p-2 w-40 rounded"
+                      value={field.value || []}
+                      onChange={(e) => {
+                        const selected = Array.from(
+                          e.target.selectedOptions,
+                        ).map((o) => o.value);
+                        field.onChange(selected);
+                      }}
+                      onBlur={field.onBlur}
+                    >
+                      {(filteredHeaders || []).map((h, i) => (
+                        <option key={`${h}-${i}`} value={h}>
+                          {h}
+                        </option>
+                      ))}
+                    </select>
 
-                  {fieldState.error && (
-                    <p className="text-red-500 text-xs">
-                      {fieldState.error.message}
-                    </p>
-                  )}
+                    {fieldState.error && (
+                      <p className="text-red-500 text-xs">
+                        {fieldState.error.message}
+                      </p>
+                    )}
+                  </div>
                 </>
               )}
+            />
+            <InfoTooltip
+              id="sub-dependancy-multiselect-tooltip"
+              text={`Select the column(s) and values that this field depends on. \nThe rule will apply only when the selected conditions are met.`}
             />
 
             {/* TRUE */}
@@ -128,7 +135,7 @@ const SubDependencyLatest = ({
             {/* TEXTBOX */}
             <input
               type="text"
-              className="border border-gray-400 p-2 w-full rounded"
+              className="border border-gray-400 p-1 rounded"
               disabled={subCondition !== "other"}
               {...register(`${subPath}.${index}.value`, {
                 validate: (val) => {
@@ -147,7 +154,10 @@ const SubDependencyLatest = ({
                 },
               })}
             />
-
+            <InfoTooltip
+              id="sub-dependancy-radio-tooltip"
+              text="Select Yes to make this field mandatory when the condition is applied. Select Other to apply this rule only when the field matches a specific value."
+            />
             {/* ✅ ERROR (only show when condition = other) */}
             {subCondition === "other" &&
               formErrors?.[headerName]?.sub_dependencies?.[index]?.value

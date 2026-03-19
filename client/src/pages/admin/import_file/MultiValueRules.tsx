@@ -12,6 +12,7 @@ export default function MultiValueRules({
   addMultiValueRules,
   cancelMultiValueRules,
   inputType,
+  rule,
 }) {
   //console.log("MultiValueRules");
   const { fields, append, remove, update } = useFieldArray({
@@ -70,9 +71,9 @@ export default function MultiValueRules({
   };
   return (
     <div className="space-y-3">
-      <label className="text-sm font-semibold flex items-center gap-1">
+      <label className="text-sm font-semibold flex items-center gap-1 mb-1">
         {title}
-        <InfoTooltip id={`${inputType}-tooltip`} text={title} />
+        <InfoTooltip id={`${inputType}-tooltip`} text={rule.toolTips} />
       </label>
 
       {/* ADD */}
@@ -96,7 +97,13 @@ export default function MultiValueRules({
         <button
           type="button"
           onClick={() => {
-            addMultiValueRules(headerName, fields, append, inputType);
+            addMultiValueRules(
+              headerName,
+              fields,
+              append,
+              inputType,
+              rule.errorMsgLabel,
+            );
 
             setTimeout(() => {
               inputRef.current?.focus();

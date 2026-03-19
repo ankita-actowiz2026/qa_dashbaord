@@ -60,10 +60,32 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   });
   const multiValueRulesConfig = React.useMemo(
     () => [
-      { inputType: "fixed_header", inputs: fixedHeaderInputs },
-      { inputType: "cell_start_with", inputs: cellStartWithInputs },
-      { inputType: "cell_end_with", inputs: cellEndWithInputs },
-      { inputType: "not_match_found", inputs: notMatchFoundInputs },
+      {
+        inputType: "fixed_header",
+        inputs: fixedHeaderInputs,
+        toolTips: "Only allow specific predefined values for this field.",
+        errorMsgLabel: "Fixed header",
+      },
+      {
+        inputType: "cell_start_with",
+        inputs: cellStartWithInputs,
+        toolTips:
+          "Ensure the value starts with one of the specified characters or strings.",
+        errorMsgLabel: "Cell start with",
+      },
+      {
+        inputType: "cell_end_with",
+        inputs: cellEndWithInputs,
+        toolTips:
+          "Ensure the value ends with one of the specified characters or strings.",
+        errorMsgLabel: "Cell end with",
+      },
+      {
+        inputType: "not_match_found",
+        inputs: notMatchFoundInputs,
+        toolTips: "Enter values that should not be allowed in this field.",
+        errorMsgLabel: "Blocked data",
+      },
     ],
     [
       fixedHeaderInputs,
@@ -127,6 +149,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         addMultiValueRules={addMultiValueRules}
         cancelMultiValueRules={cancelMultiValueRules}
         inputType={rule.inputType}
+        rule={rule}
       />
     ));
   }, [
@@ -151,11 +174,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         {/*DataTypeSection start  */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-semibold flex items-center gap-1">
+            <label className="text-sm font-semibold flex items-center gap-1 mb-1">
               <span>Data Type</span>
               <InfoTooltip
                 id="data-type-tooltip"
-                text="Please Select data type"
+                text="Select the type of data expected in this column (e.g., string, integer, date). This helps validate the input format."
               />
             </label>
 
@@ -174,11 +197,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
           {dataType === "date" && (
             <div>
-              <label className="text-sm font-semibold flex items-center gap-1">
+              <label className="text-sm font-semibold flex items-center gap-1 mb-1">
                 Date Format{" "}
                 <InfoTooltip
                   id="date-format-tooltip"
-                  text="Please date format in which you want to pass date"
+                  text="Select the format in which dates should appear. Example: YYYY-MM-DD → 2025-12-25"
                 />
               </label>
 
@@ -199,7 +222,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         {/* AllowEmpty start */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-semibold flex items-center gap-1">
+            <label className="text-sm font-semibold flex items-center gap-1 mb-1">
               <input
                 className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
                 type="checkbox"
@@ -208,7 +231,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               Allow Empty{" "}
               <InfoTooltip
                 id="allow-empty-tooltip"
-                text="Select checkbox to allow empty for given filed"
+                text="Enable this if the field can be left blank. Disable it to make the field mandatory."
               />
             </label>
           </div>
@@ -218,7 +241,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         <div className="grid grid-cols-2 gap-4">
           <div>
             {/* Checkbox + Label */}
-            <label className="text-sm font-semibold flex items-center gap-1">
+            <label className="text-sm font-semibold flex items-center gap-1 mb-1">
               <input
                 type="checkbox"
                 {...register(`${header.name}.cell_contains`)}
@@ -227,7 +250,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               Cell Contains (Regex){" "}
               <InfoTooltip
                 id="cell-contains-tooltip"
-                text="for you want to apply regex on this colom"
+                text="Define a pattern that the cell value must match using regular expressions (advanced validation)."
               />
             </label>
           </div>
@@ -269,9 +292,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         {/* LengthValidation start */}
         {/* Validation Type */}
         <div className="flex items-center gap-6">
-          <label className="text-sm font-semibold flex items-center gap-1">
+          <label className="text-sm font-semibold flex items-center gap-1 mb-1">
             Data Length
-            <InfoTooltip id="data-length-tooltip" text="Data Length" />
+            <InfoTooltip
+              id="data-length-tooltip"
+              text="Choose whether the value length can vary within a range or must be exactly a fixed number of characters."
+            />
           </label>
 
           <div className="flex gap-4">
@@ -305,8 +331,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             {stringTypes.includes(dataType) && (
               <>
                 <div>
-                  <label className="text-sm font-semibold mr-2">
-                    Min Length
+                  <label className="text-sm font-semibold flex items-center gap-1 mb-1">
+                    Min Length{" "}
+                    <InfoTooltip
+                      id="min-length-str-tooltip"
+                      text="Minimum number of characters allowed in the value."
+                    />
                   </label>
 
                   <input
@@ -326,8 +356,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold mr-2">
+                  <label className="text-sm font-semibold flex items-center gap-1 mb-1">
                     Max Length
+                    <InfoTooltip
+                      id="min-length-str-tooltip"
+                      text="Maximum number of characters allowed in the value."
+                    />
                   </label>
 
                   <input
@@ -353,8 +387,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             {numberTypes.includes(dataType) && (
               <>
                 <div>
-                  <label className="text-sm font-semibold mr-2">
+                  <label className="text-sm font-semibold flex items-center gap-1 mb-1">
                     Min Value
+                    <InfoTooltip
+                      id="min-val-tooltip"
+                      text="The smallest value allowed for this field. Values below this will be rejected."
+                    />
                   </label>
 
                   <input
@@ -374,8 +412,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold mr-2">
-                    Max Value
+                  <label className="text-sm font-semibold flex items-center gap-1 mb-1">
+                    Max Value{" "}
+                    <InfoTooltip
+                      id="max-val-tooltip"
+                      text="The largest value allowed for this field. Values above this will be rejected."
+                    />
                   </label>
 
                   <input
@@ -401,7 +443,13 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             {dataType === "date" && (
               <>
                 <div>
-                  <label className="text-sm font-semibold mr-2">Min Date</label>
+                  <label className="text-sm font-semibold flex items-center gap-1 mb-1">
+                    Min Date{" "}
+                    <InfoTooltip
+                      id="min-date-tooltip"
+                      text="The earliest date allowed. Dates before this will be rejected."
+                    />
+                  </label>
                   <input
                     type="date"
                     // defaultValue={def_var_min_len_date}
@@ -419,7 +467,13 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold mr-2">Max Date</label>
+                  <label className="text-sm font-semibold flex items-center gap-1 mb-1">
+                    Max Date
+                    <InfoTooltip
+                      id="max-date-tooltip"
+                      text="The latest date allowed. Dates after this will be rejected."
+                    />
+                  </label>
 
                   <input
                     type="date"
@@ -443,7 +497,13 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         {/* FIXED VALIDATION */}
         {validationType === "fixed" && (
           <div>
-            <label className="text-sm font-semibold mr-2">Fixed value</label>
+            <label className="text-sm font-semibold flex items-center gap-1 mb-1">
+              Fixed value
+              <InfoTooltip
+                id="fix-value-tooltip"
+                text="Only this exact value is allowed. Any other value will be considered invalid."
+              />
+            </label>
 
             <input
               type={dataType === "date" ? "date" : "number"}
@@ -472,11 +532,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         <div className="grid grid-cols-2 gap-4">
           {/* Redundant Value */}
           <div>
-            <label className="text-sm font-semibold flex items-center gap-1">
+            <label className="text-sm font-semibold flex items-center gap-1 mb-1">
               Data Redundant Value
               <InfoTooltip
                 id="data-redundant-tooltip"
-                text="Data Redundant Value"
+                text="Specify values that are considered repeated or unnecessary."
               />
             </label>
 
@@ -490,11 +550,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
           {/* Threshold */}
           <div>
-            <label className="text-sm font-semibold flex items-center gap-1">
+            <label className="text-sm font-semibold flex items-center gap-1 mb-1">
               Data Redundant Threshold
               <InfoTooltip
                 id="data-redundant-threshold-tooltip"
-                text="Data Redundant Threshold"
+                text="Set how many times a value can repeat before it is considered redundant."
               />
             </label>
 
@@ -505,11 +565,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               {...register(`${header.name}.data_redundant_threshold`, {
                 validate: (value: string) => {
                   if (redundantValue && !value) {
-                    return "Threshold required when redundant value exists";
+                    return "Threshold is required when redundant values are specified.";
                   }
 
                   if (value && !/^\d+$/.test(value)) {
-                    return "Threshold must be integer";
+                    return "Threshold must be a valid number. ";
                   }
 
                   return true;
@@ -538,54 +598,69 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               {...register(`${header.name}.has_dependency`)}
             />
             Add Dependency
+            <InfoTooltip
+              id="add dependancy-tooltip"
+              text="Add conditions where this field depends on another field's value."
+            />
           </label>
 
           {hasDependency && (
-            <>
-              <div className="mt-2 flex items-center gap-4">
-                {/* YES */}
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    value="yes"
-                    defaultChecked
-                    {...register(`${header.name}.dependency_condition`)}
-                  />
-                  Yes
-                </label>
+            <div className="ml-5">
+              <div className="mt-2 flex gap-4">
+                {/* ✅ RADIO GROUP (center vertically) */}
+                <div className="flex items-center gap-4">
+                  {/* YES */}
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="radio"
+                      value="yes"
+                      defaultChecked
+                      {...register(`${header.name}.dependency_condition`, {
+                        onChange: () => {
+                          setValue(`${header.name}.dependency_value`, "");
+                        },
+                      })}
+                    />
+                    Yes
+                  </label>
 
-                {/* NO */}
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    value="no"
-                    {...register(`${header.name}.dependency_condition`)}
-                  />
-                  Other
-                </label>
-
+                  {/* NO */}
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="radio"
+                      value="no"
+                      {...register(`${header.name}.dependency_condition`)}
+                    />
+                    Other
+                  </label>
+                </div>
                 {/* TEXTBOX */}
+                <div className="flex flex-col justify-center">
+                  <input
+                    type="text"
+                    placeholder="Enter value"
+                    disabled={condition !== "no"}
+                    className="border border-gray-400 p-1 rounded"
+                    {...register(`${header.name}.dependency_value`, {
+                      validate: (value) => {
+                        if (condition === "no" && !value) {
+                          return "for no value value is required";
+                        }
+                        return true;
+                      },
+                    })}
+                  />
 
-                <input
-                  type="text"
-                  placeholder="Enter value"
-                  disabled={condition !== "no"}
-                  className="border border-gray-400 p-1 rounded"
-                  {...register(`${header.name}.dependency_value`, {
-                    validate: (value) => {
-                      if (condition === "no" && !value) {
-                        return "for no value value is required";
-                      }
-                      return true;
-                    },
-                  })}
+                  {errors?.[header.name]?.dependency_value && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[header.name].dependency_value.message}
+                    </p>
+                  )}
+                </div>
+                <InfoTooltip
+                  id="dependant-parent-tooltip"
+                  text="Select Yes to make this field mandatory when the condition is applied. Select Other to apply this rule only when the field matches a specific value."
                 />
-
-                {errors?.[header.name]?.dependency_value && (
-                  <p className="text-red-500 text-xs">
-                    {errors[header.name].dependency_value.message}
-                  </p>
-                )}
               </div>
 
               <SubDependencyLatest
@@ -598,7 +673,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 setValue={setValue}
                 getValues={getValues}
               />
-            </>
+            </div>
           )}
         </div>
       </div>

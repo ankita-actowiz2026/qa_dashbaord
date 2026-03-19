@@ -6,8 +6,43 @@ import * as XLSX from "xlsx";
 
 import axios from "axios";
 import { useForm } from "react-hook-form";
+const buildDependencyPayload = (data: any) => {
+  const result: Record<string, any> = {};
 
-const buildDependencyPayload = (data) => {
+  Object.keys(data).forEach((header) => {
+    const field = data[header];
+
+    const parentCondition = field?.dependency_condition;
+    const parentValue = field?.dependency_value;
+    const subDeps = field?.sub_dependencies || [];
+
+    // ❌ skip if no dependency
+    if (!parentCondition) return;
+
+    // ✅ MAIN HEADER VALUE
+    if (parentCondition === "yes") {
+      result[header] = true;
+    } else if (parentCondition === "no" && parentValue) {
+      result[header] = parentValue.trim();
+    }
+
+    // ✅ SUB DEPENDENCIES
+    subDeps.forEach((sub: any) => {
+      if (!sub.headers || sub.headers.length === 0) return;
+
+      const key = sub.headers.join(",");
+
+      if (sub.condition === "true") {
+        result[key] = true;
+      } else if (sub.condition === "other" && sub.value) {
+        result[key] = sub.value.trim();
+      }
+    });
+  });
+
+  return result;
+};
+const buildDependencyPayload123 = (data) => {
   const result = {};
   Object.keys(data).forEach((header) => {
     const row = data[header];
@@ -25,10 +60,8 @@ const buildDependencyPayload = (data) => {
 
 const buildDependencyPayload1 = (data) => {
   const result = {};
-
   Object.keys(data).forEach((header) => {
     const field = data[header];
-
     if (!field?.has_dependency) return;
 
     field.dependencies?.forEach((dep) => {
@@ -137,7 +170,11 @@ const ImportFile: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [msg]);
-
+  const formatLabel = (str: string) =>
+    str
+      .replace(/_/g, " ") // replace all underscores
+      .toLowerCase() // make everything lowercase
+      .replace(/^./, (c) => c.toUpperCase()); // capitalize first letter
   const multiValueInputs = {
     fixed_header: [
       fixedHeaderInputs,
@@ -192,13 +229,14 @@ const ImportFile: React.FC = () => {
     fields: any[],
     append: any,
     inputType: string,
+    errorMsgLabel: string,
   ) => {
     const [state, setState, errorField] = multiValueInputs[inputType];
     const value = state[headerName]?.trim();
     console.log("add multiple call");
     if (!value) {
       setError(`${headerName}.${errorField}`, {
-        message: `${inputType.replace("_", " ")} is required`,
+        message: `${errorMsgLabel} is required`,
       });
       return;
     }
@@ -208,7 +246,7 @@ const ImportFile: React.FC = () => {
     );
     if (exists) {
       setError(`${headerName}.${errorField}`, {
-        message: `${inputType.replace("_", " ")} already exists`,
+        message: `${errorMsgLabel}  already exists`,
       });
       return;
     }
@@ -412,6 +450,8 @@ const ImportFile: React.FC = () => {
         const json = JSON.parse(await file.text());
         if (Array.isArray(json) && json.length > 0) {
           setHeaders(Object.keys(json[0]).map((name) => ({ name })));
+        } else {
+          setHeaders([]);
         }
         return;
       }
@@ -424,6 +464,7 @@ const ImportFile: React.FC = () => {
 
       setHeaders((json[0] || []).map((h: string) => ({ name: h })));
     } catch (err) {
+      setHeaders([]);
       setMsg("Invalid file format");
       setMsgType("danger");
     }
@@ -447,7 +488,9 @@ const ImportFile: React.FC = () => {
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
-
+    setHeaders([]);
+    setMsg("");
+    setMsgType("");
     if (!validateFile(selectedFile)) {
       setMsg("Invalid file type");
       setMsgType("danger");
@@ -460,6 +503,8 @@ const ImportFile: React.FC = () => {
     try {
       await readHeaders(selectedFile);
     } catch {
+      setHeaders([]); // extra safety
+
       setMsg("Failed to read file");
       setMsgType("danger");
     }
