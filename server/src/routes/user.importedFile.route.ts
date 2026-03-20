@@ -9,4 +9,10 @@ importedFileRouter.post(
   importFileController.addImportedFile,
 );
 
+importedFileRouter.post(
+  "/read_header",
+  upload.single("file"),
+  importFileController.readHeader,
+);
+
 export default importedFileRouter;

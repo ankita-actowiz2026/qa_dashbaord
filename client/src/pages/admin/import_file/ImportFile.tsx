@@ -450,6 +450,7 @@ const ImportFile: React.FC = () => {
         const json = JSON.parse(await file.text());
         if (Array.isArray(json) && json.length > 0) {
           setHeaders(Object.keys(json[0]).map((name) => ({ name })));
+          console.log(Object.keys(json[0]).map((name) => ({ name })));
         } else {
           setHeaders([]);
         }
@@ -469,22 +470,39 @@ const ImportFile: React.FC = () => {
       setMsgType("danger");
     }
   };
+  const readHeaderFromServer = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-  // const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const selectedFile = e.target.files?.[0];
+    setLoading(true);
 
-  //   if (!selectedFile) return;
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      setLoading(true);
+      const response = await axios.post(
+        `${BACKEND_URL}/api/qa_file/read_header`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
 
-  //   if (!validateFile(selectedFile)) {
-  //     alert("Only .xlsx, .xls, .csv, .json files allowed");
-  //     return;
-  //   }
+      console.log("Headers from server:", response.data.data);
 
-  //   setFile(selectedFile);
-  //   setFileName(selectedFile.name);
+      // Example: if API returns headers array
 
-  //   await readHeaders(selectedFile);
-  // };
+      setHeaders(response.data.data.map((h: string) => ({ name: h })));
+      setResponseData(null);
+      setRequestData(null);
+    } catch (error) {
+      console.error("File upload error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
@@ -501,7 +519,7 @@ const ImportFile: React.FC = () => {
     setFileName(selectedFile.name);
 
     try {
-      await readHeaders(selectedFile);
+      await readHeaderFromServer(selectedFile);
     } catch {
       setHeaders([]); // extra safety
 
@@ -649,14 +667,12 @@ const ImportFile: React.FC = () => {
           </div>
         )}
         {/* Title */}
-
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Import File</h1>
           <p className="text-gray-500">
             Upload a file and map column data types
           </p>
         </div>
-
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Upload Box */}
 
@@ -668,13 +684,22 @@ const ImportFile: React.FC = () => {
             <span className="text-sm text-gray-400 mt-1">
               .xlsx, .xls, .csv, .json supported
             </span>
-
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv,.json"
-              className="hidden"
-              onChange={onFileChange}
-            />
+            <div className="relative">
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv,.json"
+                className="hidden"
+                onChange={onFileChange}
+              />
+              {loading && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-white text-sm">Processing file...</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </label>
 
           {fileName && (
