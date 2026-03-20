@@ -4,8 +4,9 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 0;
+const debug = 1;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const stringRegex = /^[a-zA-Z]+$/;
 const integerRegex = /^-?\d+$/;
 const validBooleanValues = new Set([
   "true",
@@ -295,75 +296,117 @@ export const validateRow = (
 
     if (strValue === "") continue;
     // EMAIL
-    if (dataType === "email") {
-      if (!emailRegex.test(strValue)) {
-        columnStat.datatype_error_count++;
-        if (columnValid) columnStat.invalid_records++;
 
-        columnValid = false;
-        rowValid = false;
-        errorBuffer.add([
-          rowNumber,
-          columnName,
-          "Datatype Error",
-          `${strValue} does not match email format`,
-        ]);
-
-        if (debug == 1)
-          columnStat.error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Datatype Error",
-            error_description: `${strValue} does not match email format`,
-          });
-      }
-    } else if (dataType === "integer" && strValue !== null && strValue !== "") {
-      if (!integerRegex.test(String(strValue).trim())) {
-        if (columnValid === true) columnStat.invalid_records++;
-
-        columnValid = false;
-        rowValid = false;
-
-        columnStat.datatype_error_count++;
-
-        errorBuffer.add([
-          rowNumber,
-          columnName,
-          "Datatype Error",
-          `${strValue} is not a valid integer`,
-        ]);
-
-        if (debug == 1)
-          columnStat.error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Datatype Error",
-            error_description: `${strValue} is not a valid integer`,
-          });
-      }
-    }
     //pattern checking
     // if (rule.cell_contains && rule.cell_contains_value) {
     //   const regex = new RegExp(rule.cell_contains_value, "u");
+    if (columnName == "URL") {
+      console.log(rule.cellContainsRegex);
+    }
+    if (rule.cellContainsRegex) {
+      if (
+        rule.cellContainsRegex &&
+        !rule.cellContainsRegex.test(strValue.trim())
+      ) {
+        if (columnName == "URL") {
+          console.log("F");
+        }
 
-    if (rule.cellContainsRegex && !rule.cellContainsRegex.test(strValue)) {
-      columnStat.pattern_error_count++;
-      if (columnValid) columnStat.invalid_records++;
-      columnValid = false;
-      rowValid = false;
-      if (debug == 1)
-        columnStat.error_msg.push({
-          row: rowNumber,
-          column: columnName,
-          error_type: "Pattern Error",
-          error_description: `${strValue} does not match required format`,
-        });
-      errorBuffer.add([
-        rowNumber,
-        columnName,
-        "Pattern Error",
-        `${strValue} does not match required format`,
-      ]);
+        columnStat.pattern_error_count++;
+        if (columnValid) columnStat.invalid_records++;
+        columnValid = false;
+        rowValid = false;
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Pattern Error",
+            error_description: `${strValue} does not match required format`,
+          });
+        errorBuffer.add([
+          rowNumber,
+          columnName,
+          "Pattern Error",
+          `${strValue} does not match required format`,
+        ]);
+      }
+    } else {
+      if (columnName == "URL") {
+        console.log("else");
+      }
+      if (dataType === "string") {
+        if (!stringRegex.test(strValue)) {
+          columnStat.datatype_error_count++;
+          if (columnValid) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Datatype Error",
+            `${strValue} does not match string format`,
+          ]);
+
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${strValue} does not match string format`,
+            });
+        }
+      } else if (dataType === "email") {
+        if (!emailRegex.test(strValue)) {
+          columnStat.datatype_error_count++;
+          if (columnValid) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Datatype Error",
+            `${strValue} does not match email format`,
+          ]);
+
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${strValue} does not match email format`,
+            });
+        }
+      } else if (
+        dataType === "integer" &&
+        strValue !== null &&
+        strValue !== ""
+      ) {
+        if (!integerRegex.test(String(strValue).trim())) {
+          if (columnValid === true) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+
+          columnStat.datatype_error_count++;
+
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Datatype Error",
+            `${strValue} is not a valid integer`,
+          ]);
+
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${strValue} is not a valid integer`,
+            });
+        }
+      }
     }
     // }
 

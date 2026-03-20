@@ -1,3 +1,10 @@
+from react pass this for url : ^[a-zA-Z0-9:./?_=&%-]*$
+
+    "cell_contains_value": "^[a-zA-Z0-9:./\\-?_=&%]*$", //working
+"cell_contains_value": "^[a-zA-Z0-9:./\-?_=&%]*$", //error
+
+const regex = /^[a-zA-Z0-9./-]+$/;
+
  "dependency": {
       "Restaurant_Id":100,
       "RecId":"0a8f41036995986489ff1871475e4b02",
