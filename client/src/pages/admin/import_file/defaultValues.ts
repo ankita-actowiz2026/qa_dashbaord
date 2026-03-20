@@ -53,7 +53,7 @@ export const DEFAULTS = {
   def_fixed_length_num: 15,
   def_cell_contains_value: 1,
   def_str_regex: "^.*$",
-  def_boolean_regex: "^(true|false|0|1|T|F|TRUE|FALSE)$",
+  def_boolean_regex: "^(true|false|0|1|T|F|TRUE|FALSE|no|yes|No|Yes)$",
   def_int_regex: "^[0-9]+$",
   def_float_regex: "^[0-9]+(\\.[0-9]+)?$",
   def_email_regex: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",

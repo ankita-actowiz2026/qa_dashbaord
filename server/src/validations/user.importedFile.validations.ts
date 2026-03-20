@@ -415,8 +415,8 @@ export const validateRow = (
         }
       } else if (rule.length_validation_type === "fixed") {
         const digitLength = strValue.toString().length;
-
-        if (rule.min_length !== null && digitLength !== rule.min_length) {
+        //console.log(digitLength + "===" + rule.min_length);
+        if (rule.min_length !== null && strValue !== rule.min_length) {
           if (columnValid) columnStat.invalid_records++;
           columnValid = false;
           rowValid = false;
@@ -426,14 +426,14 @@ export const validateRow = (
             rowNumber,
             columnName,
             "Data Length Error",
-            `${columnName} must be exactly ${rule.min_length} digits`,
+            `${columnName} must be exactly ${rule.min_length}`,
           ]);
           if (debug == 1)
             columnStat.error_msg.push({
               row: rowNumber,
               column: columnName,
               error_type: "Data Length Error",
-              error_description: `${columnName} must be exactly ${rule.min_length} digits`,
+              error_description: `${columnName} must be exactly ${rule.min_length}`,
             });
         }
       }
@@ -493,7 +493,8 @@ export const validateRow = (
 
       // FIXED LENGTH
       else if (rule.length_validation_type === "fixed") {
-        if (rule.min_length !== null && strLen !== rule.min_length) {
+        //if (columnName == "URL") console.log(strLen + "!==" + rule.min_length);
+        if (rule.min_length !== null && strLen !== Number(rule.min_length)) {
           if (columnValid === true) columnStat.invalid_records++;
 
           columnValid = false;
@@ -626,9 +627,9 @@ export const validateRow = (
             const parts = dateStr.split("-");
             if (parts.length !== 3) return null;
 
-            const day = Number(parts[0]);
+            const day = Number(parts[2]);
             const month = Number(parts[1]) - 1;
-            const year = Number(parts[2]);
+            const year = Number(parts[0]);
 
             return new Date(year, month, day);
           };
@@ -651,13 +652,20 @@ export const validateRow = (
                 fixedDate.getMonth(),
                 fixedDate.getDate(),
               );
-
+              console.log(inputDate.getTime() + "!==" + compareDate.getTime());
               if (inputDate.getTime() !== compareDate.getTime()) {
+                console.log("invalid");
                 if (columnValid) columnStat.invalid_records++;
                 columnStat.length_validation_error_count++;
                 columnValid = false;
                 rowValid = false;
-
+                if (debug == 1)
+                  columnStat.error_msg.push({
+                    row: rowNumber,
+                    column: columnName,
+                    error_type: "Data Length Error",
+                    error_description: `${strValue} must be exactly ${rule.min_length}`,
+                  });
                 errorBuffer.add([
                   rowNumber,
                   columnName,
@@ -680,6 +688,10 @@ export const validateRow = (
               currentDate.getMonth(),
               currentDate.getDate(),
             );
+            if (columnName == "Scrape_DateTime") {
+              console.log("Input date-->" + inputDate);
+              console.log(minDate + "==min max date=" + maxDate);
+            }
 
             if (
               (minDate && inputDate.getTime() < minDate.getTime()) ||

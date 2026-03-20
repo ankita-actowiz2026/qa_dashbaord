@@ -5,6 +5,7 @@ import { InfoTooltip } from "../../../utils/ToolTips";
 import { useWatch } from "react-hook-form";
 import SubDependencyLatest from "./SubDependencyLatest";
 import type { ValidationRowProps } from "../../../interface/importFile.interface";
+import { FiChevronDown, FiChevronUp } from "react-icons/fi";
 const {
   def_var_min_len_str,
   def_var_max_len_str,
@@ -381,7 +382,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         {validationType === "fixed" && (
           <div className="flex items-center gap-3 whitespace-nowrap">
             {" "}
-            <span className="text-sm">Fixed Value</span>
+            <span className="text-sm">
+              Fixed{" "}
+              {["integer", "boolean", "float", "date"].includes(dataType)
+                ? "Value"
+                : "Length"}
+            </span>
             <input
               type={dataType === "date" ? "date" : "number"}
               className={`${inputClass} ${dataType === "date" ? "w-24" : "w-20"}`}
@@ -402,7 +408,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         className="text-right cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        {isExpanded ? "▲" : "▼"}
+        {isExpanded ? (
+          <FiChevronUp className="w-5 h-5 text-gray-600" />
+        ) : (
+          <FiChevronDown className="w-5 h-5 text-gray-600" />
+        )}
       </div>
       {isExpanded && (
         <div className="col-span-6 bg-gray-50 p-4">
@@ -499,7 +509,18 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             <label className="text-sm font-semibold flex items-center gap-2 mt-4">
               <input
                 type="checkbox"
-                {...register(`${header.name}.has_dependency`)}
+                {...register(`${header.name}.has_dependency`, {
+                  onChange: (e) => {
+                    const checked = e.target.checked;
+
+                    if (!checked) {
+                      // ✅ reset all dependency-related fields
+                      setValue(`${header.name}.dependency_condition`, "");
+                      setValue(`${header.name}.dependency_value`, "");
+                      setValue(`${header.name}.sub_dependencies`, []);
+                    }
+                  },
+                })}
               />
               Add Dependency
               <InfoTooltip

@@ -11,7 +11,8 @@ const buildDependencyPayload = (data: any) => {
 
   Object.keys(data).forEach((header) => {
     const field = data[header];
-
+    const hasDependency = field?.has_dependency;
+    if (!hasDependency) return; // ✅ KEY FIX
     const parentCondition = field?.dependency_condition;
     const parentValue = field?.dependency_value;
     const subDeps = field?.sub_dependencies || [];
@@ -497,7 +498,9 @@ const ImportFile: React.FC = () => {
       setHeaders(response.data.data.map((h: string) => ({ name: h })));
       setResponseData(null);
       setRequestData(null);
-    } catch (error) {
+    } catch (error: any) {
+      setMsg(error.response?.data?.message || "Login failed");
+      setMsgType("danger");
       console.error("File upload error:", error);
     } finally {
       setLoading(false);
@@ -534,8 +537,7 @@ const ImportFile: React.FC = () => {
       const isValid = await trigger();
 
       if (!isValid) {
-        console.log("Validation failed");
-        return; // ⛔ STOP submit
+        return;
       }
 
       // ✅ STEP 2: now safe to process data
@@ -543,6 +545,7 @@ const ImportFile: React.FC = () => {
 
       // ✅ build dependency ONLY ONCE (not inside loop)
       const dependency = buildDependencyPayload(data);
+      const firstDependencyKey = Object.keys(dependency)[0];
 
       for (const header of headers) {
         const row = data[header.name];
@@ -564,7 +567,7 @@ const ImportFile: React.FC = () => {
 
         payload[header.name] = {
           data_type: row?.data_type || "string",
-          has_empty: row?.has_empty || false,
+          has_empty: !row?.has_empty,
           length_validation_type: row?.length_validation_type || "variable",
           min_length: row?.min_length || null,
           max_length: row?.max_length || null,
@@ -587,7 +590,7 @@ const ImportFile: React.FC = () => {
               ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
               : null,
 
-          dependency, // ✅ correct place
+          ...(header.name === firstDependencyKey && { dependency }),
         };
       }
 
@@ -776,8 +779,9 @@ const ImportFile: React.FC = () => {
             </>
           )}
         </form>
-        {requestData}
+
         {responseData && <ValidationResult response={responseData} />}
+        {requestData}
       </div>
     </div>
   );
