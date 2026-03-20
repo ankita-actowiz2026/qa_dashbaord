@@ -212,14 +212,14 @@ const SubDependencyLatest = ({
         + Add Sub Dependency
       </button>
 
-      <button
+      {/* <button
         type="button"
         onClick={() => {
           console.log(subDependencies); // ✅ updated values
         }}
       >
         Log Values
-      </button>
+      </button> */}
     </div>
   );
 };

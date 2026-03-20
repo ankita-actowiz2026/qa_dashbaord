@@ -518,32 +518,32 @@ export const validateRow = (
       }
     }
 
-    if (dataType === "boolean") {
-      //const value = String(strValue).trim().toLowerCase();
-      const value = String(strValue);
+    // if (dataType === "boolean") {
+    //   //const value = String(strValue).trim().toLowerCase();
+    //   const value = String(strValue);
 
-      if (!validBooleanValues.has(value)) {
-        if (columnValid === true) columnStat.invalid_records++;
+    //   if (!validBooleanValues.has(value)) {
+    //     if (columnValid === true) columnStat.invalid_records++;
 
-        columnValid = false;
-        rowValid = false;
+    //     columnValid = false;
+    //     rowValid = false;
 
-        columnStat.datatype_error_count++;
-        errorBuffer.add([
-          rowNumber,
-          columnName,
-          "Datatype Error",
-          `${strValue} is not a valid boolean value`,
-        ]);
-        if (debug == 1)
-          columnStat.error_msg.push({
-            row: rowNumber,
-            column: columnName,
-            error_type: "Datatype Error",
-            error_description: `${strValue} is not a valid boolean value`,
-          });
-      }
-    }
+    //     columnStat.datatype_error_count++;
+    //     errorBuffer.add([
+    //       rowNumber,
+    //       columnName,
+    //       "Datatype Error",
+    //       `${strValue} is not a valid boolean value`,
+    //     ]);
+    //     if (debug == 1)
+    //       columnStat.error_msg.push({
+    //         row: rowNumber,
+    //         column: columnName,
+    //         error_type: "Datatype Error",
+    //         error_description: `${strValue} is not a valid boolean value`,
+    //       });
+    //   }
+    // }
     // DUPLICATE
     if (rule.data_redundant_threshold && rule.redundantCounter) {
       const threshold = Number(rule.data_redundant_threshold);
