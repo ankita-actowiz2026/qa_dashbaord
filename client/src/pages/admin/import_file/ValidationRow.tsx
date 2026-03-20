@@ -136,7 +136,8 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     setValue(`${basePath}.min_length`, min);
     if (max !== undefined) setValue(`${basePath}.max_length`, max);
   }, [dataType, basePath, setValue, getDefaultLengths, regexMap]);
-
+  const inputClass =
+    "border border-gray-300 rounded-md px-2 py-1 text-sm w-full focus:ring-2 focus:ring-blue-200";
   const multiValueRulesComponents = React.useMemo(() => {
     return multiValueRulesConfig.map((rule) => (
       <MultiValueRules
@@ -151,6 +152,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         cancelMultiValueRules={cancelMultiValueRules}
         inputType={rule.inputType}
         rule={rule}
+        inputClass={inputClass}
       />
     ));
   }, [
@@ -163,10 +165,9 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     addMultiValueRules,
     cancelMultiValueRules,
   ]);
-  const inputClass =
-    "border border-gray-300 rounded-md px-2 py-1 text-sm w-full focus:ring-2 focus:ring-blue-200";
+
   return (
-    <div className="grid grid-cols-[1.5fr_1fr_40px_1fr_4fr_40px] items-center px-4 py-3 gap-6 border-b odd:bg-gray-300 hover:bg-red-200  even:bg-white last:border-b-0">
+    <div className="grid grid-cols-[1.5fr_0.8fr_40px_1fr_4fr_40px] items-center px-4 py-3 gap-6 border-b odd:bg-gray-300 hover:bg-red-200  even:bg-white last:border-b-0">
       <div className="font-medium text-gray-800 truncate">{header.name}</div>
 
       {/*DataTypeSection start  */}
@@ -236,7 +237,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               type="radio"
               value="variable"
               defaultChecked
-              {...register(`${header.name}.length_validation_type`)}
+              {...register(`${header.name}.length_validation_type`, {
+                onChange: () => {
+                  setValue(`${header.name}.min_length`, "");
+                  setValue(`${header.name}.max_length`, "");
+                },
+              })}
             />
             Variable
           </label>
@@ -245,7 +251,16 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             <input
               type="radio"
               value="fixed"
-              {...register(`${header.name}.length_validation_type`)}
+              {...register(`${header.name}.length_validation_type`, {
+                onChange: () => {
+                  setValue(`${header.name}.min_length`, "");
+                  setValue(`${header.name}.max_length`, "");
+                  setTimeout(() => {
+                    trigger(`${header.name}.min_length`);
+                    trigger(`${header.name}.max_length`);
+                  }, 0);
+                },
+              })}
             />
             Fixed
           </label>
@@ -355,12 +370,12 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         )}
         {/* FIXED VALIDATION */}
         {validationType === "fixed" && (
-          <>
+          <div className="flex items-center gap-3 whitespace-nowrap">
             {" "}
             <span className="text-sm">Fixed Value</span>
             <input
               type={dataType === "date" ? "date" : "number"}
-              className={inputClass + " w-32"}
+              className={inputClass + " w-24"}
               {...register(`${header.name}.min_length`, {
                 required: "Value is required",
               })}
@@ -370,7 +385,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 {errors[header.name].min_length.message}
               </p>
             )}
-          </>
+          </div>
         )}
       </div>
       {/* LengthValidation end  */}
@@ -383,10 +398,10 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
       {isExpanded && (
         <div className="col-span-6 bg-gray-50 p-4">
           {/* DataRedundantSection start */}
-          <div className="grid grid-cols-2 gap-6 mb-1">
+          <div className="flex flex-col gap-4 mb-1">
             {/* Redundant Value */}
             {dataType === "date" && (
-              <div>
+              <div className="w-full">
                 <label className="text-sm font-semibold flex items-center gap-1 mb-1">
                   Date Format{" "}
                   <InfoTooltip
@@ -397,7 +412,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                 <select
                   {...register(`${header.name}.def_date_format`)}
-                  className={inputClass}
+                  className={`${inputClass} w-[150px]`}
                 >
                   {date_format_options.map((format) => (
                     <option key={format} value={format}>
@@ -407,58 +422,61 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 </select>
               </div>
             )}
-            <div className=" gap-2 mb-2">
-              <label className="text-sm font-semibold flex items-center gap-2 mb-2">
-                Data Redundant Value
-                <InfoTooltip
-                  id="data-redundant-tooltip"
-                  text="Specify values that are considered repeated or unnecessary."
+
+            <div className="grid grid-cols-4 gap-6 mt-1">
+              <div>
+                <label className="text-sm font-semibold flex items-center gap-2 mb-2">
+                  Data Redundant Value
+                  <InfoTooltip
+                    id="data-redundant-tooltip"
+                    text="Specify values that are considered repeated or unnecessary."
+                  />
+                </label>
+
+                <input
+                  type="text"
+                  placeholder="Enter redundant value"
+                  className={`${inputClass} w-[150px]`}
+                  {...register(`${header.name}.data_redundant_value`)}
                 />
-              </label>
+              </div>
 
-              <input
-                type="text"
-                placeholder="Enter redundant value"
-                className={inputClass}
-                {...register(`${header.name}.data_redundant_value`)}
-              />
-            </div>
+              {/* Threshold */}
+              <div>
+                <label className="text-sm font-semibold flex items-center gap-2 mb-2">
+                  Data Redundant Threshold
+                  <InfoTooltip
+                    id="data-redundant-threshold-tooltip"
+                    text="Set how many times a value can repeat before it is considered redundant."
+                  />
+                </label>
 
-            {/* Threshold */}
-            <div>
-              <label className="text-sm font-semibold flex items-center gap-2 mb-2">
-                Data Redundant Threshold
-                <InfoTooltip
-                  id="data-redundant-threshold-tooltip"
-                  text="Set how many times a value can repeat before it is considered redundant."
+                <input
+                  type="number"
+                  placeholder="Enter threshold"
+                  className={`${inputClass} w-[150px]`}
+                  {...register(`${header.name}.data_redundant_threshold`, {
+                    validate: (value: string) => {
+                      if (redundantValue && !value) {
+                        return "Threshold is required when redundant values are specified.";
+                      }
+
+                      if (value && !/^\d+$/.test(value)) {
+                        return "Threshold must be a valid number. ";
+                      }
+
+                      return true;
+                    },
+                  })}
                 />
-              </label>
 
-              <input
-                type="number"
-                placeholder="Enter threshold"
-                className={inputClass}
-                {...register(`${header.name}.data_redundant_threshold`, {
-                  validate: (value: string) => {
-                    if (redundantValue && !value) {
-                      return "Threshold is required when redundant values are specified.";
-                    }
-
-                    if (value && !/^\d+$/.test(value)) {
-                      return "Threshold must be a valid number. ";
-                    }
-
-                    return true;
-                  },
-                })}
-              />
-
-              {/* Error */}
-              {errors?.[header.name]?.data_redundant_threshold && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors[header.name].data_redundant_threshold.message}
-                </p>
-              )}
+                {/* Error */}
+                {errors?.[header.name]?.data_redundant_threshold && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors[header.name].data_redundant_threshold.message}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
           {/* DataRedundantSection end */}
@@ -508,7 +526,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                         value="no"
                         {...register(`${header.name}.dependency_condition`)}
                       />
-                      With some value
+                      Other value
                     </label>
                   </div>
                   {/* TEXTBOX */}

@@ -110,7 +110,7 @@ const SubDependencyLatest = ({
             <div className="flex flex-col">
               {/* LABEL */}
               <label className="flex items-center gap-1 font-medium mb-1">
-                Condition
+                Sub dependancy value
                 <InfoTooltip
                   id="sub-dependency-condition-tooltip"
                   text={`Choose True to always apply this rule.\nChoose Other Value to match a specific value.`}
@@ -133,7 +133,7 @@ const SubDependencyLatest = ({
                       },
                     })}
                   />
-                  True
+                  Required
                 </label>
 
                 {/* OTHER */}
@@ -147,7 +147,7 @@ const SubDependencyLatest = ({
                       },
                     })}
                   />
-                  Other Value
+                  Other value
                 </label>
               </div>
 

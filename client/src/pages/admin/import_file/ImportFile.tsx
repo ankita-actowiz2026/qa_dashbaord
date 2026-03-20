@@ -635,8 +635,8 @@ const ImportFile: React.FC = () => {
     getValues,
   };
   return (
-    <div className="w-full min-h-full flex justify-center">
-      <div className="w-full bg-white shadow-xl  px-4 sm:px-8 py-6 ">
+    <div className="w-full min-h-screen flex justify-center bg-gray-50">
+      <div className="w-full bg-white shadow-xl px-4 sm:px-6 lg:px-8 py-6">
         {msg && (
           <div
             className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
@@ -660,7 +660,7 @@ const ImportFile: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Upload Box */}
 
-          <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition">
+          <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8">
             <span className="text-gray-600 font-medium">
               Click to upload file
             </span>
@@ -688,12 +688,8 @@ const ImportFile: React.FC = () => {
                 Please add validation rules for following headers
               </h2>
 
-              <div className="bg-white border border-gray-300 rounded-xl overflow-hidden">
-                <div
-                  className="grid grid-cols-[1.5fr_1fr_40px_1fr_4fr_40px] 
-    bg-gray-300 border-b 
-    px-4 py-3 gap-6  text-xs font-semibold text-gray-600 uppercase tracking-wide"
-                >
+              <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto">
+                <div className="hidden md:grid grid-cols-[1.5fr_0.8fr_40px_1fr_4fr_40px]   bg-gray-300 border-b px-4 py-3 gap-4 text-xs font-semibold text-gray-600 uppercase tracking-wide ">
                   <div className="flex items-center">Header Name</div>
                   <div className="flex items-center gap-1">
                     Data Type

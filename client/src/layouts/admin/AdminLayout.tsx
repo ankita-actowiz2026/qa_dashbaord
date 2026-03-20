@@ -55,7 +55,7 @@ const AdminLayout = () => {
           </NavLink>
 
           {/* User Menu */}
-          <div>
+          {/* <div>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -111,7 +111,7 @@ const AdminLayout = () => {
           >
             <TbFileReport size={18} />
             {sidebarOpen && "Report"}
-          </NavLink>
+          </NavLink> */}
         </nav>
       </aside>
 
