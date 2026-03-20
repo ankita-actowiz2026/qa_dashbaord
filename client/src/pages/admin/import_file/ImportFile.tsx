@@ -234,7 +234,7 @@ const ImportFile: React.FC = () => {
   ) => {
     const [state, setState, errorField] = multiValueInputs[inputType];
     const value = state[headerName]?.trim();
-    console.log("add multiple call");
+
     if (!value) {
       setError(`${headerName}.${errorField}`, {
         message: `${errorMsgLabel} is required`,
@@ -451,7 +451,6 @@ const ImportFile: React.FC = () => {
         const json = JSON.parse(await file.text());
         if (Array.isArray(json) && json.length > 0) {
           setHeaders(Object.keys(json[0]).map((name) => ({ name })));
-          console.log(Object.keys(json[0]).map((name) => ({ name })));
         } else {
           setHeaders([]);
         }
@@ -491,8 +490,6 @@ const ImportFile: React.FC = () => {
         },
       );
 
-      console.log("Headers from server:", response.data.data);
-
       // Example: if API returns headers array
 
       setHeaders(response.data.data.map((h: string) => ({ name: h })));
@@ -501,7 +498,6 @@ const ImportFile: React.FC = () => {
     } catch (error: any) {
       setMsg(error.response?.data?.message || "Login failed");
       setMsgType("danger");
-      console.error("File upload error:", error);
     } finally {
       setLoading(false);
     }
@@ -622,10 +618,7 @@ const ImportFile: React.FC = () => {
       );
 
       setResponseData(response.data);
-
-      console.log(response.data);
     } catch (error: any) {
-      console.log(error);
       setMsg(error.response?.data?.message || "Login failed");
       setMsgType("danger");
     } finally {
@@ -781,7 +774,7 @@ const ImportFile: React.FC = () => {
         </form>
 
         {responseData && <ValidationResult response={responseData} />}
-        {requestData}
+        {/* {requestData} */}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 1;
+const debug = 0;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const integerRegex = /^-?\d+$/;
 const validBooleanValues = new Set([
@@ -652,9 +652,8 @@ export const validateRow = (
                 fixedDate.getMonth(),
                 fixedDate.getDate(),
               );
-              console.log(inputDate.getTime() + "!==" + compareDate.getTime());
+
               if (inputDate.getTime() !== compareDate.getTime()) {
-                console.log("invalid");
                 if (columnValid) columnStat.invalid_records++;
                 columnStat.length_validation_error_count++;
                 columnValid = false;
@@ -688,10 +687,6 @@ export const validateRow = (
               currentDate.getMonth(),
               currentDate.getDate(),
             );
-            if (columnName == "Scrape_DateTime") {
-              console.log("Input date-->" + inputDate);
-              console.log(minDate + "==min max date=" + maxDate);
-            }
 
             if (
               (minDate && inputDate.getTime() < minDate.getTime()) ||

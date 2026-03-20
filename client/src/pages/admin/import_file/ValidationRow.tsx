@@ -168,7 +168,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   ]);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1fr_3.5fr_60px] items-center px-4 py-3 gap-4 sm:gap-6 border-b odd:bg-gray-300 hover:bg-red-200 even:bg-white last:border-b-0">
+    <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1fr_3.5fr_60px] items-center px-4 py-3 gap-4 sm:gap-6 border-b odd:bg-gray-300 even:bg-white hover:!bg-blue-100 last:border-b-0">
       <div>
         <span className="block text-xs text-gray-500 lg:hidden">Header</span>
         <div className="font-medium text-gray-800 truncate">{header.name}</div>
@@ -415,7 +415,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         )}
       </div>
       {isExpanded && (
-        <div className="col-span-6 bg-gray-50 p-4">
+        <div className="col-span-6 bg-transparent-50 p-4">
           {/* DataRedundantSection start */}
           <div className="flex flex-col gap-4 mb-1">
             {/* Redundant Value */}
