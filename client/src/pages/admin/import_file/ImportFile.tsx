@@ -689,7 +689,7 @@ const ImportFile: React.FC = () => {
               </h2>
 
               <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto">
-                <div className="hidden md:grid grid-cols-[1.5fr_0.8fr_40px_1fr_4fr_40px]   bg-gray-300 border-b px-4 py-3 gap-4 text-xs font-semibold text-gray-600 uppercase tracking-wide ">
+                <div className="hidden md:grid grid-cols-[1.5fr_1fr_60px_1fr_3.5fr_60px]   bg-gray-300 border-b px-4 py-3 gap-4 text-xs font-semibold text-gray-600 uppercase tracking-wide ">
                   <div className="flex items-center">Header Name</div>
                   <div className="flex items-center gap-1">
                     Data Type

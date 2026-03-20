@@ -167,13 +167,19 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   ]);
 
   return (
-    <div className="grid grid-cols-[1.5fr_0.8fr_40px_1fr_4fr_40px] items-center px-4 py-3 gap-6 border-b odd:bg-gray-300 hover:bg-red-200  even:bg-white last:border-b-0">
-      <div className="font-medium text-gray-800 truncate">{header.name}</div>
+    <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1fr_3.5fr_60px] items-center px-4 py-3 gap-4 sm:gap-6 border-b odd:bg-gray-300 hover:bg-red-200 even:bg-white last:border-b-0">
+      <div>
+        <span className="block text-xs text-gray-500 lg:hidden">Header</span>
+        <div className="font-medium text-gray-800 truncate">{header.name}</div>
+      </div>
 
       {/*DataTypeSection start  */}
-      <div>
+      <div className="w-full">
+        <label className="block text-xs text-gray-500 mb-1 lg:hidden">
+          Data Type
+        </label>
         <select
-          className={inputClass}
+          className={`${inputClass} w-full sm:w-auto min-w-[120px]`}
           defaultValue="string"
           {...register(`${header.name}.data_type`)}
         >
@@ -186,7 +192,10 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
       </div>
       {/* DataTypeSection end */}
       {/* AllowEmpty start */}
-      <div className="flex justify-center items-center">
+      <div className="flex items-center justify-start lg:justify-center">
+        <label className="text-xs text-gray-500 mr-2 lg:hidden">
+          Allow Empty
+        </label>
         <input
           className="w-4 h-4"
           type="checkbox"
@@ -210,7 +219,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               type="text"
               defaultValue={defaultValue}
               placeholder="Enter regex value"
-              className={inputClass}
+              className={`${inputClass} w-24`}
               {...register(`${header.name}.cell_contains_value`, {
                 required: "Regex pattern is required",
                 validate: (value: string) => {
@@ -275,7 +284,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 <span className="text-sm">Min</span>
                 <input
                   type="number"
-                  className={inputClass + " w-24"}
+                  className={inputClass + "  w-20"}
                   {...register(`${header.name}.min_length`, {
                     required: "Min length is required",
                   })}
@@ -288,7 +297,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 <span className="text-sm">Max</span>
                 <input
                   type="number"
-                  className={inputClass + " w-24"}
+                  className={inputClass + " w-20"}
                   {...register(`${header.name}.max_length`, {
                     required: "Max length is required",
                   })}
@@ -309,7 +318,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 <span className="text-sm">Min</span>
                 <input
                   type="number"
-                  className={inputClass + " w-24"}
+                  className={inputClass + " w-20"}
                   {...register(`${header.name}.min_length`)}
                 />
                 {errors?.[header.name]?.min_length && (
@@ -320,7 +329,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 <span className="text-sm">Max</span>
                 <input
                   type="number"
-                  className={inputClass + " w-24"}
+                  className={inputClass + " w-20"}
                   {...register(`${header.name}.max_length`)}
                 />
 
@@ -375,7 +384,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             <span className="text-sm">Fixed Value</span>
             <input
               type={dataType === "date" ? "date" : "number"}
-              className={inputClass + " w-24"}
+              className={`${inputClass} ${dataType === "date" ? "w-24" : "w-20"}`}
               {...register(`${header.name}.min_length`, {
                 required: "Value is required",
               })}
