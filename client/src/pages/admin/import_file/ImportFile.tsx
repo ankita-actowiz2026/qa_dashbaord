@@ -647,10 +647,12 @@ const ImportFile: React.FC = () => {
     trigger,
     setValue,
     getValues,
+    setError,
+    clearErrors,
   };
   return (
     <div className="w-full min-h-screen flex justify-center bg-gray-50">
-      <div className="w-full bg-white shadow-xl px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {msg && (
           <div
             className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
@@ -706,11 +708,11 @@ const ImportFile: React.FC = () => {
           {headers.length > 0 && (
             <>
               <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                Please add validation rules for following headers
+                Please add validation rules for headers.
               </h2>
 
               <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto">
-                <div className="hidden md:grid grid-cols-[1.5fr_1fr_60px_1.5fr_3.5fr_60px] items-center px-5 h-14 gap-4  bg-gray-500 border-b border-gray-400 text-[15px] font-bold text-gray-100 rounded-t-lg tracking-wide shadow-sm">
+                <div className="hidden md:grid grid-cols-[1.5fr_1fr_60px_1.5fr_3.5fr_60px] items-center px-5 h-14 gap-4  bg-gray-700 border-b border-gray-400 text-[15px] font-bold text-gray-100 rounded-t-lg tracking-wide shadow-sm">
                   <div className="flex items-center">Header Name</div>
                   <div className="flex items-center gap-1">
                     Data Type
@@ -774,7 +776,7 @@ const ImportFile: React.FC = () => {
         </form>
 
         {responseData && <ValidationResult response={responseData} />}
-        {/* {requestData} */}
+        {requestData}
       </div>
     </div>
   );

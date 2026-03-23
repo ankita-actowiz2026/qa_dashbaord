@@ -6,6 +6,8 @@ import type {
   UseFormTrigger,
   UseFormSetValue,
   UseFormGetValues,
+  UseFormSetError,
+  UseFormClearErrors,
 } from "react-hook-form";
 
 export interface MultiValueProps {
@@ -35,6 +37,8 @@ export interface FormHelpers {
   trigger: UseFormTrigger<any>;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
+  setError: UseFormSetError<any>;
+  clearErrors: UseFormClearErrors<any>;
 }
 
 export interface ValidationRowProps extends MultiValueProps, FormHelpers {

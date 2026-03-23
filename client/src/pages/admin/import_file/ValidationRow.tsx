@@ -45,7 +45,10 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   dataTypes,
   date_format_options,
   headersList,
+  clearErrors,
 }) => {
+  const [showDependencyModal, setShowDependencyModal] = useState(false);
+  const [savedDependency, setSavedDependency] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [defaultValue, setDefaultValue] = useState("");
   const basePath = `${header.name}`;
@@ -169,177 +172,215 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     addMultiValueRules,
     cancelMultiValueRules,
   ]);
+
+  useEffect(() => {
+    const existing = getValues(header.name);
+
+    // ✅ Only set defaults if empty (first time)
+    if (!existing || Object.keys(existing).length === 0) {
+      setValue(`${header.name}.has_dependency`, false);
+      setValue(`${header.name}.dependency_condition`, "yes");
+      setValue(`${header.name}.dependency_value`, "");
+      setValue(`${header.name}.sub_dependencies`, []);
+    }
+  }, []);
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1.5fr_3.5fr_60px] 
-items-center px-4 py-3 gap-4 sm:gap-6 
-border-b border-gray-300 
-hover:bg-[#dde1e6] 
-transition-colors duration-150 
-last:border-b-0"
-    >
-      <div>
-        <span className="block text-xs text-gray-500 lg:hidden">Header</span>
-        <div className="font-medium text-gray-800 truncate">{header.name}</div>
-      </div>
-
-      {/*DataTypeSection start  */}
-      <div className="w-full">
-        <label className="block text-xs text-gray-500 mb-1 lg:hidden">
-          Data Type
-        </label>
-        <select
-          className={`${inputClass}  px-2 py-1 text-sm focus:outline-none`}
-          defaultValue="string"
-          {...register(`${header.name}.data_type`)}
-        >
-          {dataTypes.map((type) => (
-            <option key={type} value={type}>
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-            </option>
-          ))}
-        </select>
-      </div>
-      {/* DataTypeSection end */}
-      {/* AllowEmpty start */}
-      <div className="flex items-center justify-start lg:justify-center">
-        <label className="text-xs text-gray-500 mr-2 lg:hidden">
-          Allow Empty
-        </label>
-        <input
-          className={`${checkboxClass}`}
-          type="checkbox"
-          {...register(`${header.name}.has_empty`)}
-        />
-      </div>
-      {/* AllowEmpty end */}
-      {/* CellContainsSection start */}
-      <div className="flex justify-center items-center">
-        {/* Checkbox + Label */}
-
-        <input
-          type="checkbox"
-          {...register(`${header.name}.cell_contains`)}
-          className={`${checkboxClass}`}
-        />
-
-        {cellContains && (
-          <div className="flex flex-col ml-2">
-            <input
-              type="text"
-              defaultValue={defaultValue}
-              placeholder="Enter regex value"
-              className={`${textboxClass} w-28`}
-              {...register(`${header.name}.cell_contains_value`, {
-                required: "Regex pattern is required",
-                validate: (value: string) => {
-                  if (!value) return "Regex pattern is required";
-
-                  return true;
-                },
-              })}
-            />
-
-            {/* Error */}
-            {errors?.[header.name]?.cell_contains_value && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors[header.name].cell_contains_value.message}
-              </p>
-            )}
+    // <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1.5fr_3.5fr_60px] items-center  px-5 py-3 gap-4 sm:gap-6 border-b border-gray-300 hover:bg-[#dde1e6] transition-colors duration-150 last:border-b-0">
+    <div className="border-b border-gray-300 group hover:bg-gray-200 transition">
+      <div
+        className="
+       hidden md:grid
+      grid-cols-[1.5fr_1fr_60px_1.5fr_3.5fr_60px]
+      items-center
+      px-5
+      min-h-[56px]
+      gap-4"
+      >
+        <div>
+          <span className="block text-xs text-gray-500 lg:hidden">Header</span>
+          <div className="font-medium text-gray-800 truncate">
+            {" "}
+            {header.name
+              ?.replace(/_/g, " ")
+              .replace(/\b\w/g, (char) => char.toUpperCase())}
           </div>
-        )}
-      </div>
-      {/* LengthValidation start  */}
-      <div className="flex flex-col gap-1">
-        {/* ROW 1 */}
-        <div className="flex items-center gap-6 flex-wrap">
-          {/* Radios */}
-          <div className="flex items-center gap-4 min-w-[140px] h-full justify-center">
-            <label className="flex items-center gap-1 text-sm font-semibold">
+        </div>
+
+        {/*DataTypeSection start  */}
+        <div className="w-full">
+          <label className="block text-xs text-gray-500 mb-1 lg:hidden">
+            Data Type
+          </label>
+          <select
+            className={`${inputClass}  px-2 py-1 text-sm focus:outline-none w-28`}
+            defaultValue="string"
+            {...register(`${header.name}.data_type`)}
+          >
+            {dataTypes.map((type) => (
+              <option key={type} value={type}>
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+        {/* DataTypeSection end */}
+        {/* AllowEmpty start */}
+        <div className="flex items-center justify-start lg:justify-center">
+          <label className="text-xs text-gray-500 mr-2 lg:hidden">
+            Allow Empty
+          </label>
+          <input
+            className={`${checkboxClass}`}
+            type="checkbox"
+            {...register(`${header.name}.has_empty`)}
+          />
+        </div>
+        {/* AllowEmpty end */}
+        {/* CellContainsSection start */}
+        <div className="flex justify-center items-center">
+          {/* Checkbox + Label */}
+
+          <input
+            type="checkbox"
+            {...register(`${header.name}.cell_contains`)}
+            className={`${checkboxClass}`}
+          />
+
+          {cellContains && (
+            <div className="flex flex-col ml-2">
               <input
-                type="radio"
-                value="variable"
-                defaultChecked
-                {...register(`${header.name}.length_validation_type`, {
-                  onChange: () => {
-                    setValue(`${header.name}.min_length`, "");
-                    setValue(`${header.name}.max_length`, "");
+                type="text"
+                defaultValue={defaultValue}
+                placeholder="Enter regex value"
+                className={`${textboxClass} w-28`}
+                {...register(`${header.name}.cell_contains_value`, {
+                  required: "Regex pattern is required",
+                  validate: (value: string) => {
+                    if (!value) return "Regex pattern is required";
+
+                    return true;
                   },
                 })}
               />
-              Variable
-            </label>
 
-            <label className="flex items-center gap-1 text-sm font-semibold">
-              <input
-                type="radio"
-                value="fixed"
-                {...register(`${header.name}.length_validation_type`, {
-                  onChange: () => {
-                    setValue(`${header.name}.min_length`, "");
-                    setValue(`${header.name}.max_length`, "");
-                    setTimeout(() => {
-                      trigger(`${header.name}.min_length`);
-                      trigger(`${header.name}.max_length`);
-                    }, 0);
-                  },
-                })}
-              />
-              Fixed
-            </label>
-          </div>
-
-          {/* VARIABLE */}
-          {validationType === "variable" && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold">Min</span>
-              <input
-                type={dataType === "date" ? "date" : "number"}
-                className={`${inputClass} w-24`}
-                {...register(`${header.name}.min_length`, {
-                  required: "Min length is required",
-                })}
-              />
-
-              <span className="text-sm font-semibold">Max</span>
-              <input
-                type={dataType === "date" ? "date" : "number"}
-                className={`${inputClass} w-24`}
-                {...register(`${header.name}.max_length`, {
-                  required: "Max length is required",
-                })}
-              />
-            </div>
-          )}
-
-          {/* FIXED */}
-          {validationType === "fixed" && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold">
-                Fixed{" "}
-                {["integer", "boolean", "float", "date"].includes(dataType)
-                  ? "Value"
-                  : "Length"}
-              </span>
-
-              <input
-                type={dataType === "date" ? "date" : "number"}
-                className={`${inputClass} ${
-                  dataType === "date" ? "w-[7.5rem]" : "w-24"
-                }`}
-                {...register(`${header.name}.min_length`, {
-                  required: "Value is required",
-                })}
-              />
+              {/* Error */}
+              {errors?.[header.name]?.cell_contains_value && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors[header.name].cell_contains_value.message}
+                </p>
+              )}
             </div>
           )}
         </div>
+        {/* LengthValidation start  */}
+        <div className="flex flex-col gap-1">
+          {/* ROW 1 */}
+          <div className="flex items-center gap-6 flex-wrap">
+            {/* Radios */}
+            <div className="flex items-center gap-2 min-w-[100px] h-full justify-left">
+              <label className="flex items-center gap-1 text-sm font-semibold">
+                <input
+                  type="radio"
+                  value="variable"
+                  defaultChecked
+                  {...register(`${header.name}.length_validation_type`, {
+                    onChange: () => {
+                      setValue(`${header.name}.min_length`, "");
+                      setValue(`${header.name}.max_length`, "");
+                    },
+                  })}
+                />
+                Variable
+              </label>
 
-        {/* ROW 2: ERRORS */}
-        <div className="flex gap-6">
-          <div className="min-w-[140px]" /> {/* aligns with radios */}
-          {validationType === "variable" && (
-            <div className="flex gap-10">
+              <label className="flex items-center gap-2 text-sm font-semibold">
+                <input
+                  type="radio"
+                  value="fixed"
+                  {...register(`${header.name}.length_validation_type`, {
+                    onChange: () => {
+                      setValue(`${header.name}.min_length`, "");
+                      setValue(`${header.name}.max_length`, "");
+                      setTimeout(() => {
+                        trigger(`${header.name}.min_length`);
+                        trigger(`${header.name}.max_length`);
+                      }, 0);
+                    },
+                  })}
+                />
+                Fixed
+              </label>
+            </div>
+
+            {/* VARIABLE */}
+            {validationType === "variable" && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">Min</span>
+                <input
+                  type={dataType === "date" ? "date" : "number"}
+                  className={`${inputClass} w-[7.5rem]`}
+                  {...register(`${header.name}.min_length`, {
+                    required: "Min length is required",
+                  })}
+                />
+
+                <span className="text-sm font-semibold">Max</span>
+                <input
+                  type={dataType === "date" ? "date" : "number"}
+                  className={`${inputClass} w-[7.5rem]`}
+                  {...register(`${header.name}.max_length`, {
+                    required: "Max length is required",
+                  })}
+                />
+              </div>
+            )}
+
+            {/* FIXED */}
+            {validationType === "fixed" && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">
+                  Fixed{" "}
+                  {["integer", "boolean", "float", "date"].includes(dataType)
+                    ? "Value"
+                    : "Length"}
+                </span>
+
+                <input
+                  type={dataType === "date" ? "date" : "number"}
+                  className={`${inputClass} ${
+                    dataType === "date" ? "w-[7.5rem]" : "w-24"
+                  }`}
+                  {...register(`${header.name}.min_length`, {
+                    required: "Value is required",
+                  })}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* ROW 2: ERRORS */}
+          <div className="flex gap-6">
+            <div className="min-w-[140px]" /> {/* aligns with radios */}
+            {validationType === "variable" && (
+              <div className="flex gap-10">
+                <div className="w-32">
+                  {errors?.[header.name]?.min_length && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[header.name].min_length.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="w-32">
+                  {errors?.[header.name]?.max_length && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors[header.name].max_length.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+            {validationType === "fixed" && (
               <div className="w-32">
                 {errors?.[header.name]?.min_length && (
                   <p className="text-red-500 text-xs mt-1">
@@ -347,40 +388,23 @@ last:border-b-0"
                   </p>
                 )}
               </div>
-
-              <div className="w-32">
-                {errors?.[header.name]?.max_length && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors[header.name].max_length.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-          {validationType === "fixed" && (
-            <div className="w-32">
-              {errors?.[header.name]?.min_length && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors[header.name].min_length.message}
-                </p>
-              )}
-            </div>
+            )}
+          </div>
+        </div>
+        {/* LengthValidation end  */}
+        <div
+          className="text-right cursor-pointer"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? (
+            <FiChevronUp className="w-5 h-5 text-gray-600" />
+          ) : (
+            <FiChevronDown className="w-5 h-5 text-gray-600" />
           )}
         </div>
       </div>
-      {/* LengthValidation end  */}
-      <div
-        className="text-right cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {isExpanded ? (
-          <FiChevronUp className="w-5 h-5 text-gray-600" />
-        ) : (
-          <FiChevronDown className="w-5 h-5 text-gray-600" />
-        )}
-      </div>
       {isExpanded && (
-        <div className="col-span-6 bg-transparent-50 p-4">
+        <div className="px-5 py-4">
           {/* DataRedundantSection start */}
           <div className="flex flex-col gap-4 mb-1">
             {/* Redundant Value */}
@@ -396,7 +420,7 @@ last:border-b-0"
 
                 <select
                   {...register(`${header.name}.def_date_format`)}
-                  className={`${inputClass} w-[150px]`}
+                  className={`${inputClass} w-[180px]`}
                 >
                   {date_format_options.map((format) => (
                     <option key={format} value={format}>
@@ -420,7 +444,7 @@ last:border-b-0"
                 <input
                   type="text"
                   placeholder="Enter redundant value"
-                  className={`${textboxClass} w-[150px]`}
+                  className={`${textboxClass} w-[180px]`}
                   {...register(`${header.name}.data_redundant_value`)}
                 />
               </div>
@@ -438,7 +462,7 @@ last:border-b-0"
                 <input
                   type="number"
                   placeholder="Enter threshold"
-                  className={`${textboxClass} w-[150px]`}
+                  className={`${textboxClass} w-[180px]`}
                   {...register(`${header.name}.data_redundant_threshold`, {
                     validate: (value: string) => {
                       if (redundantValue && !value) {
@@ -468,107 +492,211 @@ last:border-b-0"
             {multiValueRulesComponents}
           </div>
 
-          {/* depe */}
-          <div>
-            {/* Add Dependency */}
-            <label className="text-sm font-semibold flex items-center gap-2 mt-4">
-              <input
-                type="checkbox"
-                className={`${checkboxClass}`}
-                {...register(`${header.name}.has_dependency`, {
-                  onChange: (e) => {
-                    const checked = e.target.checked;
+          <button
+            type="button"
+            onClick={() => {
+              if (savedDependency) {
+                // ✅ restore saved values
+                Object.entries(savedDependency).forEach(([key, value]) => {
+                  setValue(`${header.name}.${key}`, value);
+                });
+              } else {
+                // ✅ first time defaults
+                setValue(`${header.name}.has_dependency`, false);
+                setValue(`${header.name}.dependency_condition`, "yes");
+                setValue(`${header.name}.dependency_value`, "");
+                setValue(`${header.name}.sub_dependencies`, []);
+              }
 
-                    if (!checked) {
-                      // ✅ reset all dependency-related fields
-                      setValue(`${header.name}.dependency_condition`, "");
-                      setValue(`${header.name}.dependency_value`, "");
-                      setValue(`${header.name}.sub_dependencies`, []);
-                    }
-                  },
-                })}
-              />
-              Add Dependency
-              <InfoTooltip
-                id="add dependancy-tooltip"
-                text="Add conditions where this field depends on another field's value."
-              />
-            </label>
-
-            {hasDependency && (
-              <div className="ml-5">
-                <div className="mt-2 flex items-start gap-4">
-                  {/* ✅ RADIO GROUP (center vertically) */}
-                  <div className="flex items-center gap-4">
-                    {/* YES */}
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        value="yes"
-                        defaultChecked
-                        {...register(`${header.name}.dependency_condition`, {
-                          onChange: () => {
-                            setValue(`${header.name}.dependency_value`, "");
-                          },
-                        })}
-                      />
-                      Required
-                    </label>
-
-                    {/* NO */}
-                    <label className="flex items-center gap-1">
-                      <input
-                        type="radio"
-                        value="no"
-                        {...register(`${header.name}.dependency_condition`)}
-                      />
-                      Other value
-                    </label>
-                  </div>
-                  {/* TEXTBOX */}
-                  <div className="flex flex-col justify-center">
+              setShowDependencyModal(true);
+            }}
+            className="bg-blue-500 text-white px-3 py-1 rounded mt-4"
+          >
+            Add Dependency
+          </button>
+          {showDependencyModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+              <div className="p-5 bg-white w-[700px] max-h-[80vh] rounded-xl shadow-xl transform transition-all duration-300 ease-out scale-100 opacity-100 flex flex-col">
+                <h2 className="px-5 py-3 border-b font-semibold text-lg sticky top-0 bg-white z-10 ">
+                  Dependency Configuration
+                </h2>
+                <div className="p-5 overflow-y-auto flex-1 space-y-4">
+                  {/* CHECKBOX */}
+                  <label className="flex items-center gap-2 font-semibold">
                     <input
-                      type="text"
-                      placeholder="Enter value"
-                      disabled={condition !== "no"}
-                      className={textboxClass}
-                      {...register(`${header.name}.dependency_value`, {
-                        validate: (value) => {
-                          if (condition === "no" && !value) {
-                            return "for no value value is required";
+                      type="checkbox"
+                      {...register(`${header.name}.has_dependency`, {
+                        onChange: (e) => {
+                          const checked = e.target.checked;
+                          clearErrors([
+                            `${header.name}.dependency_value`,
+                            `${header.name}.sub_dependencies`,
+                          ]);
+                          if (!checked) {
+                            setValue(
+                              `${header.name}.dependency_condition`,
+                              "yes",
+                            );
+                            setValue(`${header.name}.dependency_value`, "");
+                            setValue(`${header.name}.sub_dependencies`, []);
                           }
-                          return true;
                         },
                       })}
                     />
+                    Add Dependency
+                  </label>
 
-                    {errors?.[header.name]?.dependency_value && (
-                      <p className="text-red-500 text-xs mt-1">
-                        {errors[header.name].dependency_value.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center">
-                    <InfoTooltip
-                      id="dependant-parent-tooltip"
-                      text="Select Yes to make this field mandatory when the condition is applied. Select Other to apply this rule only when the field matches a specific value."
-                    />
-                  </div>
+                  {hasDependency && (
+                    <div className="mt-4 ml-3">
+                      {/* ROW: RADIO + TEXTBOX */}
+                      <div className="flex items-start gap-6">
+                        {/* RADIO */}
+                        <div className="flex items-center gap-4 mt-1">
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="radio"
+                              value="yes"
+                              {...register(
+                                `${header.name}.dependency_condition`,
+                                {
+                                  onChange: () => {
+                                    setValue(
+                                      `${header.name}.dependency_value`,
+                                      "",
+                                    );
+                                    clearErrors(
+                                      `${header.name}.dependency_value`,
+                                    );
+                                  },
+                                },
+                              )}
+                            />
+                            Required
+                          </label>
+
+                          <label className="flex items-center gap-1">
+                            <input
+                              type="radio"
+                              value="no"
+                              {...register(
+                                `${header.name}.dependency_condition`,
+                              )}
+                            />
+                            Other value
+                          </label>
+                        </div>
+
+                        {/* TEXTBOX */}
+                        <div className="flex flex-col">
+                          <input
+                            type="text"
+                            placeholder="Enter value"
+                            disabled={condition !== "no"}
+                            className={`${inputClass} border px-2 py-1 rounded`}
+                            {...register(`${header.name}.dependency_value`, {
+                              validate: (val) => {
+                                if (condition === "no" && !val?.trim()) {
+                                  return "Value is required when 'Other Value' is selected";
+                                }
+                                return true;
+                              },
+                            })}
+                          />
+
+                          {/* ERROR BELOW TEXTBOX */}
+                          <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                            {errors?.[header.name]?.dependency_value?.message}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* SUB DEPENDENCY */}
+                      <SubDependencyLatest
+                        control={control}
+                        register={register}
+                        headerName={header.name}
+                        headersList={headersList}
+                        trigger={trigger}
+                        setValue={setValue}
+                        inputClass={inputClass}
+                        clearErrors={clearErrors}
+                      />
+                    </div>
+                  )}
                 </div>
+                {/* ACTION BUTTONS */}
+                <div className="flex justify-center gap-3 mt-6">
+                  <button
+                    type="button"
+                    className="bg-gray-600 text-white px-4 py-2"
+                    onClick={() => {
+                      if (savedDependency) {
+                        Object.entries(savedDependency).forEach(
+                          ([key, value]) => {
+                            setValue(`${header.name}.${key}`, value);
+                          },
+                        );
+                      } else {
+                        // reset to default
+                        setValue(`${header.name}.has_dependency`, false);
+                        setValue(`${header.name}.dependency_condition`, "yes");
+                        setValue(`${header.name}.dependency_value`, "");
+                        setValue(`${header.name}.sub_dependencies`, []);
+                      }
 
-                <SubDependencyLatest
-                  control={control}
-                  register={register}
-                  headerName={header.name}
-                  index={index}
-                  headersList={headersList}
-                  trigger={trigger}
-                  setValue={setValue}
-                  getValues={getValues}
-                />
+                      setShowDependencyModal(false);
+                    }}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const isChecked = getValues(
+                        `${header.name}.has_dependency`,
+                      );
+
+                      // ✅ If unchecked → clear everything
+                      if (!isChecked) {
+                        setSavedDependency(null);
+
+                        setValue(`${header.name}.dependency_condition`, "yes");
+                        setValue(`${header.name}.dependency_value`, "");
+                        setValue(`${header.name}.sub_dependencies`, []);
+
+                        setShowDependencyModal(false);
+                        return;
+                      }
+
+                      // ✅ Validate
+                      const valid = await trigger([
+                        `${header.name}.dependency_value`,
+                        `${header.name}.sub_dependencies`,
+                      ]);
+
+                      if (!valid) return;
+
+                      // ✅ Save snapshot
+                      const data = getValues(`${header.name}`);
+
+                      setSavedDependency({
+                        has_dependency: data.has_dependency,
+                        dependency_condition: data.dependency_condition,
+                        dependency_value: data.dependency_value,
+                        sub_dependencies: data.sub_dependencies,
+                      });
+
+                      setShowDependencyModal(false);
+                    }}
+                    className="bg-green-600 text-white px-4 py-2"
+                  >
+                    Save
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>

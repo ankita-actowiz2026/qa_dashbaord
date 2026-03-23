@@ -4,25 +4,19 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 1;
+const debug = 0;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const stringRegex = /^[a-zA-Z]+$/;
 const integerRegex = /^-?\d+$/;
 const validBooleanValues = new Set([
   "true",
+  "Yes",
+  "Enabled",
+  1,
   "false",
-  "TRUE",
-  "FALSE",
-  "1",
-  "0",
-  "yes",
-  "no",
-  "y",
-  "n",
-  "YES",
-  "NO",
-  "Y",
-  "N",
+  "No",
+  "Disabled",
+  0,
 ]);
 export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
@@ -300,18 +294,14 @@ export const validateRow = (
     //pattern checking
     // if (rule.cell_contains && rule.cell_contains_value) {
     //   const regex = new RegExp(rule.cell_contains_value, "u");
-    if (columnName == "URL") {
-      console.log(rule.cellContainsRegex);
-    }
+    // if (columnName == "URL") {
+    //   console.log(rule.cellContainsRegex);
+    // }
     if (rule.cellContainsRegex) {
       if (
         rule.cellContainsRegex &&
         !rule.cellContainsRegex.test(strValue.trim())
       ) {
-        if (columnName == "URL") {
-          console.log("F");
-        }
-
         columnStat.pattern_error_count++;
         if (columnValid) columnStat.invalid_records++;
         columnValid = false;
@@ -331,9 +321,6 @@ export const validateRow = (
         ]);
       }
     } else {
-      if (columnName == "URL") {
-        console.log("else");
-      }
       if (dataType === "string") {
         if (!stringRegex.test(strValue)) {
           columnStat.datatype_error_count++;
@@ -404,6 +391,31 @@ export const validateRow = (
               column: columnName,
               error_type: "Datatype Error",
               error_description: `${strValue} is not a valid integer`,
+            });
+        }
+      } else if (dataType === "boolean") {
+        //const value = String(strValue).trim().toLowerCase();
+        const value = String(strValue);
+
+        if (!validBooleanValues.has(value)) {
+          if (columnValid === true) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+
+          columnStat.datatype_error_count++;
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Datatype Error",
+            `${strValue} is not a valid boolean value`,
+          ]);
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${strValue} is not a valid boolean value`,
             });
         }
       }
@@ -561,32 +573,6 @@ export const validateRow = (
       }
     }
 
-    // if (dataType === "boolean") {
-    //   //const value = String(strValue).trim().toLowerCase();
-    //   const value = String(strValue);
-
-    //   if (!validBooleanValues.has(value)) {
-    //     if (columnValid === true) columnStat.invalid_records++;
-
-    //     columnValid = false;
-    //     rowValid = false;
-
-    //     columnStat.datatype_error_count++;
-    //     errorBuffer.add([
-    //       rowNumber,
-    //       columnName,
-    //       "Datatype Error",
-    //       `${strValue} is not a valid boolean value`,
-    //     ]);
-    //     if (debug == 1)
-    //       columnStat.error_msg.push({
-    //         row: rowNumber,
-    //         column: columnName,
-    //         error_type: "Datatype Error",
-    //         error_description: `${strValue} is not a valid boolean value`,
-    //       });
-    //   }
-    // }
     // DUPLICATE
     if (rule.data_redundant_threshold && rule.redundantCounter) {
       const threshold = Number(rule.data_redundant_threshold);

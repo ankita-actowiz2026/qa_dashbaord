@@ -120,11 +120,11 @@ const AdminLayout = () => {
         <Header
           title="Admin Dashboard"
           userName="Admin"
-          onMenuClick={() => setSidebarOpen(!sidebarOpen)} // 🔥 Toggle
+          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           onLogout={() => console.log("logout")}
         />
 
-        <main className="flex-1 p-6 overflow-auto bg-slate-200">
+        <main className="flex-1 overflow-auto bg-slate-200">
           <Outlet />
         </main>
       </div>

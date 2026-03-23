@@ -67,7 +67,7 @@ export default function MultiValueRules({
     );
 
     if (exists) {
-      setEditError("Value is already exist. please add another.");
+      setEditError("Value is already exist.");
       return;
     }
 
@@ -78,15 +78,17 @@ export default function MultiValueRules({
     setEditError("");
   };
   return (
-    <div className="space-y-3 mt-2">
-      <label className="text-sm font-semibold flex items-center gap-2 mb-1">
-        {title}
-        <InfoTooltip id={`${inputType}-tooltip`} text={rule.toolTips} />
-      </label>
+    <div className="border border-gray-300 rounded-xl p-4 bg-transparent shadow-sm space-y-4 mt-3">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-semibold flex items-center gap-2  ">
+          {title}
+          <InfoTooltip id={`${inputType}-tooltip`} text={rule.toolTips} />
+        </label>
+      </div>
 
       {/* ADD */}
 
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         <input
           name="{inputType}"
           ref={inputRef}
@@ -99,7 +101,7 @@ export default function MultiValueRules({
               inputType,
             )
           }
-          className={`${inputClass} w-[150px]`}
+          className={`${inputClass} w-[180px]`}
         />
 
         <button
@@ -117,7 +119,7 @@ export default function MultiValueRules({
               inputRef.current?.focus();
             }, 0);
           }}
-          className="bg-blue-600 text-white px-2 rounded"
+          className="p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
         >
           <FaPlus size={14} />
         </button>
@@ -125,7 +127,7 @@ export default function MultiValueRules({
         <button
           type="button"
           onClick={() => cancelMultiValueRules(headerName, inputType)}
-          className="bg-gray-400 text-white px-2 rounded"
+          className="p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
         >
           <MdClear size={14}></MdClear>
         </button>
@@ -140,25 +142,28 @@ export default function MultiValueRules({
       {/* LIST */}
 
       {fields.map((field, idx) => (
-        <div key={field.id} className="flex gap-2 items-center">
+        <div
+          key={field.id}
+          className="flex items-start justify-between gap-3 p-3 mb-3 border border-gray-300 rounded-xl bg-white shadow-sm hover:shadow-md transition"
+        >
           {editIndex === idx ? (
             <div className="w-full">
-              <div className="flex gap-2">
+              <div className="flex items-center gap-3 border p-100 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400">
                 <input
                   value={editValue}
                   onChange={(e) => {
                     setEditValue(e.target.value);
                     setEditError("");
                   }}
-                  className="border p-2 rounded w-full"
+                  className={`${inputClass} w-[180px]`}
                 />
 
                 <button
                   type="button"
                   onClick={updateValue}
-                  className="bg-green-600 text-white px-3 rounded"
+                  className=" rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
                 >
-                  <FiSave />
+                  <FiSave size={18} />
                 </button>
 
                 <button
@@ -167,9 +172,9 @@ export default function MultiValueRules({
                     setEditIndex(null);
                     setEditError("");
                   }}
-                  className="bg-gray-400 text-white px-3 rounded"
+                  className=" rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition"
                 >
-                  <MdClear size={14}></MdClear>
+                  <MdClear size={18}></MdClear>
                 </button>
               </div>
 
@@ -184,7 +189,7 @@ export default function MultiValueRules({
               <button
                 type="button"
                 onClick={() => startEdit(idx)}
-                className="bg-blue-500 text-white px-3 rounded"
+                className=" rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition duration-150"
               >
                 <FiEdit size={18} />
               </button>
@@ -192,7 +197,7 @@ export default function MultiValueRules({
               <button
                 type="button"
                 onClick={() => handleDelete(idx)}
-                className="bg-blue-500 text-white px-3 rounded"
+                className=" rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition duration-150"
               >
                 <FiTrash2 size={18} />
               </button>

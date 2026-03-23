@@ -10,6 +10,7 @@ const SubDependencyLatest = ({
   headersList,
   trigger,
   setValue,
+  inputClass,
 }) => {
   const subPath = `${headerName}.sub_dependencies`;
   const { errors: formErrors } = useFormState({
@@ -53,7 +54,7 @@ const SubDependencyLatest = ({
         return (
           <div
             key={field.id}
-            className="flex items-start gap-6 text-sm border border-gray-300 p-3 rounded"
+            className="relative flex items-start gap-6 text-sm border border-gray-300 p-3 rounded"
           >
             {/* ✅ HEADERS MULTISELECT */}
             <div className="flex flex-col w-44">
@@ -77,24 +78,43 @@ const SubDependencyLatest = ({
                 }}
                 render={({ field, fieldState }) => (
                   <>
-                    <select
-                      multiple
-                      className="border border-gray-400 p-2 rounded"
-                      value={field.value || []}
-                      onChange={(e) => {
-                        const selected = Array.from(
-                          e.target.selectedOptions,
-                        ).map((o) => o.value);
-                        field.onChange(selected);
-                      }}
-                      onBlur={field.onBlur}
-                    >
-                      {(filteredHeaders || []).map((h, i) => (
-                        <option key={`${h}-${i}`} value={h}>
-                          {h}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex flex-col">
+                      <select
+                        multiple
+                        className="
+      w-48
+      border border-gray-300 
+      rounded-lg 
+      p-2 
+      text-sm 
+      bg-white
+      focus:outline-none 
+      focus:ring-2 
+      focus:ring-blue-400 
+      focus:border-blue-400
+      hover:border-gray-500
+      transition
+    "
+                        value={field.value || []}
+                        onChange={(e) => {
+                          const selected = Array.from(
+                            e.target.selectedOptions,
+                          ).map((o) => o.value);
+                          field.onChange(selected);
+                        }}
+                        onBlur={field.onBlur}
+                      >
+                        {(filteredHeaders || []).map((h, i) => (
+                          <option
+                            key={`${h}-${i}`}
+                            value={h}
+                            className="px-2 py-1 hover:bg-blue-100"
+                          >
+                            {h}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
                     {fieldState.error && (
                       <p className="text-red-500 text-xs mt-1">
@@ -107,7 +127,7 @@ const SubDependencyLatest = ({
             </div>
 
             {/* ✅ CONDITION */}
-            <div className="flex flex-col">
+            <div className="flex flex-col flex-1">
               {/* LABEL */}
               <label className="flex items-center gap-1 font-medium mb-1">
                 Sub dependancy value
@@ -117,70 +137,77 @@ const SubDependencyLatest = ({
                 />
               </label>
 
-              {/* RADIO BUTTONS */}
-              <div className="flex items-center gap-4">
-                {/* TRUE */}
-                <label className="flex items-center gap-1">
-                  <input
-                    type="radio"
-                    value="true"
-                    {...register(`${subPath}.${index}.condition`, {
-                      onChange: () => {
-                        setValue(`${subPath}.${index}.value`, "");
-                        setTimeout(() => {
-                          trigger(`${subPath}.${index}.value`);
-                        }, 0);
-                      },
-                    })}
-                  />
-                  Required
-                </label>
+              {/* ROW: RADIO + TEXTBOX */}
+              <div className="flex items-center gap-6">
+                {/* RADIO */}
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="radio"
+                      value="true"
+                      {...register(`${subPath}.${index}.condition`, {
+                        onChange: () => {
+                          setValue(`${subPath}.${index}.value`, "");
 
-                {/* OTHER */}
-                <label className="flex items-center gap-1">
+                          setTimeout(() => {
+                            trigger(`${subPath}.${index}.value`);
+                          }, 0);
+                        },
+                      })}
+                    />
+                    Required
+                  </label>
+
+                  <label className="flex items-center gap-1">
+                    <input
+                      type="radio"
+                      value="other"
+                      {...register(`${subPath}.${index}.condition`, {
+                        onChange: () => {
+                          setValue(`${subPath}.${index}.value`, "");
+                        },
+                      })}
+                    />
+                    Other value
+                  </label>
+                </div>
+
+                {/* TEXTBOX */}
+                <div className="flex flex-col ">
                   <input
-                    type="radio"
-                    value="other"
-                    {...register(`${subPath}.${index}.condition`, {
-                      onChange: () => {
-                        setValue(`${subPath}.${index}.value`, "");
+                    type="text"
+                    placeholder="Enter value"
+                    disabled={subCondition !== "other"}
+                    className={`${inputClass} border px-2 py-1 rounded w-40 mt-5 disabled:bg-gray-100 ${
+                      subCondition === "other" &&
+                      formErrors?.[headerName]?.sub_dependencies?.[index]?.value
+                        ? "border-red-500"
+                        : "border-gray-400"
+                    }`}
+                    {...register(`${subPath}.${index}.value`, {
+                      validate: (val) => {
+                        const currentCondition =
+                          subDependencies?.[index]?.condition;
+
+                        if (
+                          currentCondition === "other" &&
+                          (!val || !val.trim())
+                        ) {
+                          return "Value is required when 'Other Value' is selected";
+                        }
+
+                        return true;
                       },
                     })}
                   />
-                  Other value
-                </label>
+                  {/* ERROR BELOW */}
+                  <p className="text-red-500 text-xs mt-1 min-h-[16px]">
+                    {subCondition === "other" &&
+                      formErrors?.[headerName]?.sub_dependencies?.[index]?.value
+                        ?.message}
+                  </p>
+                </div>
               </div>
-
-              {/* VALUE INPUT (NEXT LINE) */}
-              <input
-                type="text"
-                placeholder="Enter value"
-                disabled={subCondition !== "other"}
-                className={`border rounded px-2 py-1 mt-1 disabled:bg-gray-100 ${
-                  formErrors?.[headerName]?.sub_dependencies?.[index]?.value
-                    ? "border-red-500"
-                    : "border-gray-400"
-                }`}
-                {...register(`${subPath}.${index}.value`, {
-                  validate: (val) => {
-                    const currentCondition =
-                      subDependencies?.[index]?.condition;
-
-                    if (currentCondition === "other" && (!val || !val.trim())) {
-                      return "Value is required when 'Other Value' is selected";
-                    }
-
-                    return true;
-                  },
-                })}
-              />
-
-              {/* ERROR MESSAGE (ALWAYS RESERVED SPACE) */}
-              <p className="text-red-500 text-xs mt-1 min-h-[16px]">
-                {subCondition === "other" &&
-                  formErrors?.[headerName]?.sub_dependencies?.[index]?.value
-                    ?.message}
-              </p>
             </div>
 
             {/* ✅ DELETE BUTTON */}
@@ -188,7 +215,7 @@ const SubDependencyLatest = ({
               <button
                 type="button"
                 onClick={() => remove(index)}
-                className="text-red-500 mt-6"
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
               >
                 ✕
               </button>

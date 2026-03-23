@@ -58,7 +58,7 @@ export default function MultiValueRules({
     );
 
     if (exists) {
-      setEditError("Value is already exist. please add another.");
+      setEditError("Value is already exist.");
       return;
     }
 
