@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
@@ -43,45 +43,7 @@ const buildDependencyPayload = (data: any) => {
 
   return result;
 };
-const buildDependencyPayload123 = (data) => {
-  const result = {};
-  Object.keys(data).forEach((header) => {
-    const row = data[header];
 
-    if (!row?.has_dependency) return;
-
-    if (row.dependency_condition === "yes") {
-      result[header] = true;
-    } else {
-      result[header] = Number(row.dependency_value);
-    }
-  });
-  return result;
-};
-
-const buildDependencyPayload1 = (data) => {
-  const result = {};
-  Object.keys(data).forEach((header) => {
-    const field = data[header];
-    if (!field?.has_dependency) return;
-
-    field.dependencies?.forEach((dep) => {
-      // ✅ MAIN HEADER VALUE
-      result[header] = dep.condition === "true" ? true : dep.value;
-
-      // ✅ SUB DEPENDENCIES
-      dep.subDependencies?.forEach((sub) => {
-        if (!sub.headers || sub.headers.length === 0) return;
-
-        const key = sub.headers.join(",");
-
-        result[key] = sub.condition === "true" ? true : sub.value;
-      });
-    });
-  });
-
-  return result;
-};
 const {
   allowedExtensions,
   dataTypes,
@@ -111,6 +73,7 @@ const ImportFile: React.FC = () => {
     trigger,
     setValue,
     getValues,
+    reset,
     formState: { errors },
   } = useForm({
     mode: "onSubmit", // ✅ important
@@ -121,7 +84,8 @@ const ImportFile: React.FC = () => {
       def_dep: "true",
     },
   });
-
+  const msgRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [headers, setHeaders] = useState<HeaderType[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
@@ -471,6 +435,7 @@ const ImportFile: React.FC = () => {
     }
   };
   const readHeaderFromServer = async (file: File) => {
+    console.log("calling me");
     const formData = new FormData();
     formData.append("file", file);
 
@@ -491,13 +456,23 @@ const ImportFile: React.FC = () => {
       );
 
       // Example: if API returns headers array
+      const newHeaders = response.data.data.map((h) => ({ name: h }));
 
-      setHeaders(response.data.data.map((h: string) => ({ name: h })));
+      reset();
+      setHeaders(newHeaders);
+
       setResponseData(null);
       setRequestData(null);
     } catch (error: any) {
-      setMsg(error.response?.data?.message || "Login failed");
-      setMsgType("danger");
+      reset();
+      setHeaders([]);
+      if (error?.response?.data?.message || error?.message) {
+        setMsg(error?.response?.data?.message || error?.message);
+      } else if (error.message?.includes("ERR_UPLOAD_FILE_CHANGED")) {
+        setMsg("File was changed. Please re-select and upload again.");
+      } else if (error.request) {
+        setMsg("Something get wrong. Please upload file again");
+      }
     } finally {
       setLoading(false);
     }
@@ -505,12 +480,19 @@ const ImportFile: React.FC = () => {
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (!selectedFile) return;
+
     setHeaders([]);
     setMsg("");
     setMsgType("");
+
     if (!validateFile(selectedFile)) {
       setMsg("Invalid file type");
       setMsgType("danger");
+
+      // ✅ Clear so same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       return;
     }
 
@@ -520,12 +502,41 @@ const ImportFile: React.FC = () => {
     try {
       await readHeaderFromServer(selectedFile);
     } catch {
-      setHeaders([]); // extra safety
-
+      setHeaders([]);
       setMsg("Failed to read file");
       setMsgType("danger");
     }
+
+    // ✅ VERY IMPORTANT: clear after success too
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
+  // const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   console.log("change");
+  //   const selectedFile = e.target.files?.[0];
+  //   if (!selectedFile) return;
+  //   setHeaders([]);
+  //   setMsg("");
+  //   setMsgType("");
+  //   if (!validateFile(selectedFile)) {
+  //     setMsg("Invalid file type");
+  //     setMsgType("danger");
+  //     return;
+  //   }
+
+  //   setFile(selectedFile);
+  //   setFileName(selectedFile.name);
+
+  //   try {
+  //     await readHeaderFromServer(selectedFile);
+  //   } catch {
+  //     setHeaders([]); // extra safety
+
+  //     setMsg("Failed to read file");
+  //     setMsgType("danger");
+  //   }
+  // };
 
   const onSubmit = async (data: any) => {
     try {
@@ -619,8 +630,20 @@ const ImportFile: React.FC = () => {
 
       setResponseData(response.data);
     } catch (error: any) {
-      setMsg(error.response?.data?.message || "Login failed");
+      if (error?.response?.data?.message || error?.message) {
+        console.log("!11");
+        setMsg(error?.response?.data?.message || error?.message);
+      } else if (error.message?.includes("ERR_UPLOAD_FILE_CHANGED")) {
+        console.log("222");
+        setMsg("File was changed. Please re-select and upload again.");
+      } else if (error.request) {
+        console.log("3333");
+        setMsg("Something get wrong. Please upload file again");
+      }
       setMsgType("danger");
+      setResponseData([]);
+      setRequestData([]);
+      setHeaders([]);
     } finally {
       setLoading(false);
     }
@@ -638,7 +661,16 @@ const ImportFile: React.FC = () => {
     addMultiValueRules,
     cancelMultiValueRules,
   };
+  useEffect(() => {
+    if (msg && msgType !== "success") {
+      msgRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
 
+      msgRef.current?.focus();
+    }
+  }, [msg, msgType]);
   const formHelpers = {
     register,
     watch,
@@ -655,6 +687,7 @@ const ImportFile: React.FC = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {msg && (
           <div
+            ref={msgRef}
             className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
               msgType === "success"
                 ? "bg-green-100 text-green-700"
@@ -684,6 +717,7 @@ const ImportFile: React.FC = () => {
             </span>
             <div className="relative">
               <input
+                ref={fileInputRef}
                 type="file"
                 accept=".xlsx,.xls,.csv,.json"
                 className="hidden"

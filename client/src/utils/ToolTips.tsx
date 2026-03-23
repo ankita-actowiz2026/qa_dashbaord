@@ -4,15 +4,24 @@ import { FiInfo } from "react-icons/fi";
 type InfoTooltipProps = {
   id: string;
   text: string;
+  tooltip_type: string;
 };
 
-export const InfoTooltip = ({ id, text }: InfoTooltipProps) => {
+export const InfoTooltip = ({
+  id,
+  text,
+  tooltip_type = "heading",
+}: InfoTooltipProps) => {
   return (
     <>
       <span
         data-tooltip-id={id}
         data-tooltip-content={text}
-        className="cursor-pointer text-gray-400 hover:text-gray-700 flex items-center"
+        className={`cursor-pointer text-gray-400 flex items-center ${
+          tooltip_type === "heading"
+            ? "hover:text-gray-300"
+            : "hover:text-gray-700"
+        }`}
       >
         <FiInfo size={14} />
       </span>

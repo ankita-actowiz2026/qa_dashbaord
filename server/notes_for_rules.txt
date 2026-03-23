@@ -1,3 +1,14 @@
+todo 
+1)design issue
+2) when import file it took older data
+3)regex validation must start with ^ and end with $
+1) node side. readHeader optiomize code
+2)node side while reading json take 50 records for headers : test
+2) react side : make responsive design
+4) focus on depency validation
+
+
+
 from react pass this for url : ^[a-zA-Z0-9:./?_=&%-]*$
 
     "cell_contains_value": "^[a-zA-Z0-9:./\\-?_=&%]*$", //working

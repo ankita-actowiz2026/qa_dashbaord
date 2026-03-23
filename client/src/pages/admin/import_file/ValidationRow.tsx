@@ -133,9 +133,9 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
       : { min: def_var_min_len_str, max: def_var_max_len_str };
   }, [dataType, validationType]);
   useEffect(() => {
-    setValue(`${basePath}.cell_contains_value`, regexMap[dataType] || "", {
-      shouldValidate: true,
-    });
+    //setValue(`${basePath}.cell_contains_value`, regexMap[dataType] || "", {
+    //  shouldValidate: true,
+    //});
     const { min, max } = getDefaultLengths();
     setValue(`${basePath}.min_length`, min);
     if (max !== undefined) setValue(`${basePath}.max_length`, max);
@@ -251,7 +251,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               <input
                 type="text"
                 defaultValue={defaultValue}
-                placeholder="Enter regex value"
+                placeholder="Enter regex"
                 className={`${textboxClass} w-28`}
                 {...register(`${header.name}.cell_contains_value`, {
                   required: "Regex pattern is required",
@@ -415,6 +415,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                   <InfoTooltip
                     id="date-format-tooltip"
                     text="Select the format in which dates should appear. Example: YYYY-MM-DD → 2025-12-25"
+                    tooltip_type="listing"
                   />
                 </label>
 
@@ -438,6 +439,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                   <InfoTooltip
                     id="data-redundant-tooltip"
                     text="Specify values that are considered repeated or unnecessary."
+                    tooltip_type="listing"
                   />
                 </label>
 
@@ -456,6 +458,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                   <InfoTooltip
                     id="data-redundant-threshold-tooltip"
                     text="Set how many times a value can repeat before it is considered redundant."
+                    tooltip_type="listing"
                   />
                 </label>
 

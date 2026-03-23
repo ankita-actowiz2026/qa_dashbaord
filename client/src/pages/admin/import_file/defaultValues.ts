@@ -52,10 +52,10 @@ export const DEFAULTS = {
   def_fixed_length_str: 100,
   def_fixed_length_num: 15,
   def_cell_contains_value: 1,
-  def_str_regex: "^[a-zA-Z]+$",
-  def_boolean_regex: "^(True|Yes|Enabled|1|False|No|Disabled|0})$",
+  def_str_regex: "^[a-zA-Z ]+$",
+  def_boolean_regex: "^(True|Yes|Enabled|1|False|No|Disabled|0)$",
   def_int_regex: "^[0-9]+$",
   def_float_regex: "^[0-9]+(\\.[0-9]+)?$",
-  def_email_regex: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+  def_email_regex: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
   def_date_regex: "^\\d{4}-\\d{2}-\\d{2}$",
 };

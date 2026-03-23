@@ -63,6 +63,7 @@ const SubDependencyLatest = ({
                 <InfoTooltip
                   id="sub-dependency-multiselect-tooltip"
                   text={`Select the column(s) this field depends on.\nThe rule applies only when these conditions are met.`}
+                  tooltip_type="listing"
                 />
               </label>
 
@@ -134,6 +135,7 @@ const SubDependencyLatest = ({
                 <InfoTooltip
                   id="sub-dependency-condition-tooltip"
                   text={`Choose True to always apply this rule.\nChoose Other Value to match a specific value.`}
+                  tooltip_type="listing"
                 />
               </label>
 
