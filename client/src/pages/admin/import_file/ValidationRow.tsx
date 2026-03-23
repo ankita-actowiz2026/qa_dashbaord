@@ -137,8 +137,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     setValue(`${basePath}.min_length`, min);
     if (max !== undefined) setValue(`${basePath}.max_length`, max);
   }, [dataType, basePath, setValue, getDefaultLengths, regexMap]);
+  //const inputClass =    "border border-gray-300 rounded-md px-2 py-1 text-sm w-full focus:ring-2 focus:ring-blue-200";
   const inputClass =
-    "border border-gray-300 rounded-md px-2 py-1 text-sm w-full focus:ring-2 focus:ring-blue-200";
+    "rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-200 focus:outline-none";
+  const checkboxClass = inputClass + " w-4 h-4";
+  const textboxClass = inputClass + "  px-2 py-1 text-sm focus:outline-none";
   const multiValueRulesComponents = React.useMemo(() => {
     return multiValueRulesConfig.map((rule) => (
       <MultiValueRules
@@ -166,9 +169,15 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     addMultiValueRules,
     cancelMultiValueRules,
   ]);
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1fr_3.5fr_60px] items-center px-4 py-3 gap-4 sm:gap-6 border-b odd:bg-gray-300 even:bg-white hover:!bg-blue-100 last:border-b-0">
+    <div
+      className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1.5fr_3.5fr_60px] 
+items-center px-4 py-3 gap-4 sm:gap-6 
+border-b border-gray-300 
+hover:bg-[#dde1e6] 
+transition-colors duration-150 
+last:border-b-0"
+    >
       <div>
         <span className="block text-xs text-gray-500 lg:hidden">Header</span>
         <div className="font-medium text-gray-800 truncate">{header.name}</div>
@@ -180,7 +189,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
           Data Type
         </label>
         <select
-          className={`${inputClass} w-full sm:w-auto min-w-[120px]`}
+          className={`${inputClass}  px-2 py-1 text-sm focus:outline-none`}
           defaultValue="string"
           {...register(`${header.name}.data_type`)}
         >
@@ -198,7 +207,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
           Allow Empty
         </label>
         <input
-          className="w-4 h-4"
+          className={`${checkboxClass}`}
           type="checkbox"
           {...register(`${header.name}.has_empty`)}
         />
@@ -211,16 +220,16 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         <input
           type="checkbox"
           {...register(`${header.name}.cell_contains`)}
-          className="w-4 h-4 text-blue-600 border-gray-400 rounded mr-2"
+          className={`${checkboxClass}`}
         />
 
         {cellContains && (
-          <>
+          <div className="flex flex-col ml-2">
             <input
               type="text"
               defaultValue={defaultValue}
               placeholder="Enter regex value"
-              className={`${inputClass} w-24`}
+              className={`${textboxClass} w-28`}
               {...register(`${header.name}.cell_contains_value`, {
                 required: "Regex pattern is required",
                 validate: (value: string) => {
@@ -237,171 +246,127 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 {errors[header.name].cell_contains_value.message}
               </p>
             )}
-          </>
+          </div>
         )}
       </div>
-      <div className="flex items-center gap-6 flex-wrap">
-        <div className="flex items-center gap-4">
-          <label className="flex items-center gap-1 text-sm font-semibold">
-            <input
-              type="radio"
-              value="variable"
-              defaultChecked
-              {...register(`${header.name}.length_validation_type`, {
-                onChange: () => {
-                  setValue(`${header.name}.min_length`, "");
-                  setValue(`${header.name}.max_length`, "");
-                },
-              })}
-            />
-            Variable
-          </label>
+      {/* LengthValidation start  */}
+      <div className="flex flex-col gap-1">
+        {/* ROW 1 */}
+        <div className="flex items-center gap-6 flex-wrap">
+          {/* Radios */}
+          <div className="flex items-center gap-4 min-w-[140px] h-full justify-center">
+            <label className="flex items-center gap-1 text-sm font-semibold">
+              <input
+                type="radio"
+                value="variable"
+                defaultChecked
+                {...register(`${header.name}.length_validation_type`, {
+                  onChange: () => {
+                    setValue(`${header.name}.min_length`, "");
+                    setValue(`${header.name}.max_length`, "");
+                  },
+                })}
+              />
+              Variable
+            </label>
 
-          <label className="flex items-center gap-1 text-sm font-semibold">
-            <input
-              type="radio"
-              value="fixed"
-              {...register(`${header.name}.length_validation_type`, {
-                onChange: () => {
-                  setValue(`${header.name}.min_length`, "");
-                  setValue(`${header.name}.max_length`, "");
-                  setTimeout(() => {
-                    trigger(`${header.name}.min_length`);
-                    trigger(`${header.name}.max_length`);
-                  }, 0);
-                },
-              })}
-            />
-            Fixed
-          </label>
+            <label className="flex items-center gap-1 text-sm font-semibold">
+              <input
+                type="radio"
+                value="fixed"
+                {...register(`${header.name}.length_validation_type`, {
+                  onChange: () => {
+                    setValue(`${header.name}.min_length`, "");
+                    setValue(`${header.name}.max_length`, "");
+                    setTimeout(() => {
+                      trigger(`${header.name}.min_length`);
+                      trigger(`${header.name}.max_length`);
+                    }, 0);
+                  },
+                })}
+              />
+              Fixed
+            </label>
+          </div>
+
+          {/* VARIABLE */}
+          {validationType === "variable" && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold">Min</span>
+              <input
+                type={dataType === "date" ? "date" : "number"}
+                className={`${inputClass} w-24`}
+                {...register(`${header.name}.min_length`, {
+                  required: "Min length is required",
+                })}
+              />
+
+              <span className="text-sm font-semibold">Max</span>
+              <input
+                type={dataType === "date" ? "date" : "number"}
+                className={`${inputClass} w-24`}
+                {...register(`${header.name}.max_length`, {
+                  required: "Max length is required",
+                })}
+              />
+            </div>
+          )}
+
+          {/* FIXED */}
+          {validationType === "fixed" && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold">
+                Fixed{" "}
+                {["integer", "boolean", "float", "date"].includes(dataType)
+                  ? "Value"
+                  : "Length"}
+              </span>
+
+              <input
+                type={dataType === "date" ? "date" : "number"}
+                className={`${inputClass} ${
+                  dataType === "date" ? "w-[7.5rem]" : "w-24"
+                }`}
+                {...register(`${header.name}.min_length`, {
+                  required: "Value is required",
+                })}
+              />
+            </div>
+          )}
         </div>
-        {/* VARIABLE VALIDATION */}
-        {validationType === "variable" && (
-          <div className="flex items-center gap-3">
-            {/* STRING / BOOLEAN / EMAIL */}
 
-            {stringTypes.includes(dataType) && (
-              <>
-                <span className="text-sm">Min</span>
-                <input
-                  type="number"
-                  className={inputClass + "  w-20"}
-                  {...register(`${header.name}.min_length`, {
-                    required: "Min length is required",
-                  })}
-                />
+        {/* ROW 2: ERRORS */}
+        <div className="flex gap-6">
+          <div className="min-w-[140px]" /> {/* aligns with radios */}
+          {validationType === "variable" && (
+            <div className="flex gap-10">
+              <div className="w-32">
                 {errors?.[header.name]?.min_length && (
-                  <p className="text-red-500 text-xs">
+                  <p className="text-red-500 text-xs mt-1">
                     {errors[header.name].min_length.message}
                   </p>
                 )}
-                <span className="text-sm">Max</span>
-                <input
-                  type="number"
-                  className={inputClass + " w-20"}
-                  {...register(`${header.name}.max_length`, {
-                    required: "Max length is required",
-                  })}
-                />
+              </div>
 
+              <div className="w-32">
                 {errors?.[header.name]?.max_length && (
-                  <p className="text-red-500 text-xs">
+                  <p className="text-red-500 text-xs mt-1">
                     {errors[header.name].max_length.message}
                   </p>
                 )}
-              </>
-            )}
-
-            {/* NUMBER */}
-
-            {numberTypes.includes(dataType) && (
-              <>
-                <span className="text-sm">Min</span>
-                <input
-                  type="number"
-                  className={inputClass + " w-20"}
-                  {...register(`${header.name}.min_length`)}
-                />
-                {errors?.[header.name]?.min_length && (
-                  <p className="text-red-500 text-xs">
-                    {errors[header.name].min_length.message}
-                  </p>
-                )}
-                <span className="text-sm">Max</span>
-                <input
-                  type="number"
-                  className={inputClass + " w-20"}
-                  {...register(`${header.name}.max_length`)}
-                />
-
-                {errors?.[header.name]?.max_length && (
-                  <p className="text-red-500 text-xs">
-                    {errors[header.name].max_length.message}
-                  </p>
-                )}
-              </>
-            )}
-
-            {/* DATE */}
-
-            {dataType === "date" && (
-              <>
-                <span className="text-sm">Min</span>
-                <input
-                  type="date"
-                  // defaultValue={def_var_min_len_date}
-                  className={inputClass}
-                  {...register(`${header.name}.min_length`, {
-                    required: "Min date required",
-                  })}
-                />
-                {errors?.[header.name]?.min_length && (
-                  <p className="text-red-500 text-xs">
-                    {errors[header.name].min_length.message}
-                  </p>
-                )}
-                <span className="text-sm">Max</span>
-                <input
-                  type="date"
-                  // defaultValue={def_var_max_len_date}
-                  className={inputClass}
-                  {...register(`${header.name}.max_length`, {
-                    required: "Max date required",
-                  })}
-                />
-                {errors?.[header.name]?.max_length && (
-                  <p className="text-red-500 text-xs">
-                    {errors[header.name].max_length.message}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        )}
-        {/* FIXED VALIDATION */}
-        {validationType === "fixed" && (
-          <div className="flex items-center gap-3 whitespace-nowrap">
-            {" "}
-            <span className="text-sm">
-              Fixed{" "}
-              {["integer", "boolean", "float", "date"].includes(dataType)
-                ? "Value"
-                : "Length"}
-            </span>
-            <input
-              type={dataType === "date" ? "date" : "number"}
-              className={`${inputClass} ${dataType === "date" ? "w-24" : "w-20"}`}
-              {...register(`${header.name}.min_length`, {
-                required: "Value is required",
-              })}
-            />
-            {errors?.[header.name]?.min_length && (
-              <p className="text-red-500 text-xs">
-                {errors[header.name].min_length.message}
-              </p>
-            )}
-          </div>
-        )}
+              </div>
+            </div>
+          )}
+          {validationType === "fixed" && (
+            <div className="w-32">
+              {errors?.[header.name]?.min_length && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors[header.name].min_length.message}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       {/* LengthValidation end  */}
       <div
@@ -455,7 +420,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 <input
                   type="text"
                   placeholder="Enter redundant value"
-                  className={`${inputClass} w-[150px]`}
+                  className={`${textboxClass} w-[150px]`}
                   {...register(`${header.name}.data_redundant_value`)}
                 />
               </div>
@@ -473,7 +438,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                 <input
                   type="number"
                   placeholder="Enter threshold"
-                  className={`${inputClass} w-[150px]`}
+                  className={`${textboxClass} w-[150px]`}
                   {...register(`${header.name}.data_redundant_threshold`, {
                     validate: (value: string) => {
                       if (redundantValue && !value) {
@@ -509,6 +474,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             <label className="text-sm font-semibold flex items-center gap-2 mt-4">
               <input
                 type="checkbox"
+                className={`${checkboxClass}`}
                 {...register(`${header.name}.has_dependency`, {
                   onChange: (e) => {
                     const checked = e.target.checked;
@@ -565,7 +531,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                       type="text"
                       placeholder="Enter value"
                       disabled={condition !== "no"}
-                      className={inputClass}
+                      className={textboxClass}
                       {...register(`${header.name}.dependency_value`, {
                         validate: (value) => {
                           if (condition === "no" && !value) {

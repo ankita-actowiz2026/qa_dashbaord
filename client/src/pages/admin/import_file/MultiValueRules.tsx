@@ -20,6 +20,7 @@ export default function MultiValueRules({
   inputType,
   rule,
   inputClass,
+  textboxClass,
 }) {
   //console.log("MultiValueRules");
   const { fields, append, remove, update } = useFieldArray({
