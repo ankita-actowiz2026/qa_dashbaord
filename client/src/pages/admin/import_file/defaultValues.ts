@@ -7,8 +7,16 @@ const day = String(oneYearAgo.getDate()).padStart(2, "0"); // 01-31
 
 export const DEFAULTS = {
   allowedExtensions: [".xlsx", ".xls", ".csv", ".json"],
-  dataTypes: ["string", "integer", "float", "boolean", "date", "email"],
-  stringTypes: ["string", "boolean", "email"],
+  dataTypes: [
+    "string",
+    "alphabetic",
+    "integer",
+    "float",
+    "boolean",
+    "date",
+    "email",
+  ],
+  stringTypes: ["string", "alphabetic", "boolean", "email"],
   numberTypes: ["integer", "float"],
   date_format_options: [
     "YYYY-MM-DD",
@@ -52,7 +60,8 @@ export const DEFAULTS = {
   def_fixed_length_str: 100,
   def_fixed_length_num: 15,
   def_cell_contains_value: 1,
-  def_str_regex: "^[a-zA-Z ]+$",
+  def_str_regex: "^.*$",
+  def_alphabetic_regex: "^[a-zA-Z ]+$",
   def_boolean_regex: "^(True|Yes|Enabled|1|False|No|Disabled|0)$",
   def_int_regex: "^[0-9]+$",
   def_float_regex: "^[0-9]+(\\.[0-9]+)?$",

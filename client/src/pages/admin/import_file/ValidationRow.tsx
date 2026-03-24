@@ -17,6 +17,7 @@ const {
   def_fixed_length_num,
   def_fixed_date,
   def_str_regex,
+  def_alphabetic_regex,
   def_boolean_regex,
   def_int_regex,
   def_float_regex,
@@ -107,6 +108,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   const regexMap = React.useMemo(
     () => ({
       string: def_str_regex,
+      alphabetic: def_alphabetic_regex,
       boolean: def_boolean_regex,
       integer: def_int_regex,
       float: def_float_regex,
@@ -359,7 +361,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
           </div>
 
           {/* ROW 2: ERRORS */}
-          <div className="flex gap-6">
+          <div className="flex gap-2">
             <div className="min-w-[140px]" /> {/* aligns with radios */}
             {validationType === "variable" && (
               <div className="flex gap-10">

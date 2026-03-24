@@ -113,8 +113,15 @@ class ImportFileController {
         (m) => m !== "error_msg",
       );
       // Header Row
-      const totalHeaderRow = totalsSheet.addRow(["", ...columns]);
-      totalHeaderRow.font = { bold: true };
+      const totalHeaderRow = totalsSheet.addRow([
+        "Validation Type",
+        ...columns,
+      ]);
+
+      totalHeaderRow.eachCell((cell) => {
+        cell.font = { bold: true };
+      });
+
       totalHeaderRow.commit();
 
       // Loop metrics

@@ -82,7 +82,11 @@ export default function MultiValueRules({
       <div className="flex items-center justify-between">
         <label className="text-sm font-semibold flex items-center gap-2  ">
           {title}
-          <InfoTooltip id={`${inputType}-tooltip`} text={rule.toolTips} />
+          <InfoTooltip
+            id={`${inputType}-tooltip`}
+            text={rule.toolTips}
+            tooltip_type="listing"
+          />
         </label>
       </div>
 
@@ -140,71 +144,72 @@ export default function MultiValueRules({
       )}
 
       {/* LIST */}
+      <div className="overflow-x-auto">
+        {fields.map((field, idx) => (
+          <div
+            key={field.id}
+            className="flex items-start justify-between gap-3 p-3 mb-3 border border-gray-300 rounded-xl bg-white shadow-sm min-w-max"
+          >
+            {editIndex === idx ? (
+              <div className="w-full">
+                <div className="flex items-center gap-3 border p-100 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400">
+                  <input
+                    value={editValue}
+                    onChange={(e) => {
+                      setEditValue(e.target.value);
+                      setEditError("");
+                    }}
+                    className={`${inputClass} w-[180px]`}
+                  />
 
-      {fields.map((field, idx) => (
-        <div
-          key={field.id}
-          className="flex items-start justify-between gap-3 p-3 mb-3 border border-gray-300 rounded-xl bg-white shadow-sm hover:shadow-md transition"
-        >
-          {editIndex === idx ? (
-            <div className="w-full">
-              <div className="flex items-center gap-3 border p-100 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-400">
-                <input
-                  value={editValue}
-                  onChange={(e) => {
-                    setEditValue(e.target.value);
-                    setEditError("");
-                  }}
-                  className={`${inputClass} w-[180px]`}
-                />
+                  <button
+                    type="button"
+                    onClick={updateValue}
+                    className=" rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                  >
+                    <FiSave size={18} />
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={updateValue}
-                  className=" rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-                >
-                  <FiSave size={18} />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditIndex(null);
+                      setEditError("");
+                    }}
+                    className=" rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition"
+                  >
+                    <MdClear size={18}></MdClear>
+                  </button>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditIndex(null);
-                    setEditError("");
-                  }}
-                  className=" rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition"
-                >
-                  <MdClear size={18}></MdClear>
-                </button>
+                {editError && (
+                  <p className="text-red-500 text-xs mt-1">{editError}</p>
+                )}
               </div>
+            ) : (
+              <>
+                <span className="flex-1 whitespace-nowrap">{field.value}</span>
 
-              {editError && (
-                <p className="text-red-500 text-xs mt-1">{editError}</p>
-              )}
-            </div>
-          ) : (
-            <>
-              <span className="flex-1">{field.value}</span>
+                <button
+                  type="button"
+                  onClick={() => startEdit(idx)}
+                  className=" rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition duration-150"
+                >
+                  <FiEdit size={18} />
+                </button>
 
-              <button
-                type="button"
-                onClick={() => startEdit(idx)}
-                className=" rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition duration-150"
-              >
-                <FiEdit size={18} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleDelete(idx)}
-                className=" rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition duration-150"
-              >
-                <FiTrash2 size={18} />
-              </button>
-            </>
-          )}
-        </div>
-      ))}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(idx)}
+                  className=" rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition duration-150"
+                >
+                  <FiTrash2 size={18} />
+                </button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

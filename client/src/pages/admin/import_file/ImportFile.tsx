@@ -17,17 +17,14 @@ const buildDependencyPayload = (data: any) => {
     const parentValue = field?.dependency_value;
     const subDeps = field?.sub_dependencies || [];
 
-    // ❌ skip if no dependency
     if (!parentCondition) return;
 
-    // ✅ MAIN HEADER VALUE
     if (parentCondition === "yes") {
       result[header] = true;
     } else if (parentCondition === "no" && parentValue) {
       result[header] = parentValue.trim();
     }
 
-    // ✅ SUB DEPENDENCIES
     subDeps.forEach((sub: any) => {
       if (!sub.headers || sub.headers.length === 0) return;
 
@@ -50,6 +47,7 @@ const {
   date_format_options,
   default_length_validation_value,
   def_str_regex,
+  def_alphabetic_regex,
   def_boolean_regex,
   def_int_regex,
   def_float_regex,
@@ -103,6 +101,8 @@ const ImportFile: React.FC = () => {
       switch (type) {
         case "string":
           return def_str_regex;
+        case "alphabetic":
+          return def_alphabetic_regex;
         case "boolean":
           return def_boolean_regex;
         case "int":
@@ -119,6 +119,7 @@ const ImportFile: React.FC = () => {
     },
     [
       def_str_regex,
+      def_alphabetic_regex,
       def_boolean_regex,
       def_int_regex,
       def_float_regex,
@@ -407,35 +408,34 @@ const ImportFile: React.FC = () => {
     return allowedExtensions.includes(ext);
   };
 
-  const readHeaders = async (file: File) => {
-    try {
-      const ext = file.name.split(".").pop()?.toLowerCase();
+  // const readHeaders = async (file: File) => {
+  //   try {
+  //     const ext = file.name.split(".").pop()?.toLowerCase();
 
-      if (ext === "json") {
-        const json = JSON.parse(await file.text());
-        if (Array.isArray(json) && json.length > 0) {
-          setHeaders(Object.keys(json[0]).map((name) => ({ name })));
-        } else {
-          setHeaders([]);
-        }
-        return;
-      }
+  //     if (ext === "json") {
+  //       const json = JSON.parse(await file.text());
+  //       if (Array.isArray(json) && json.length > 0) {
+  //         setHeaders(Object.keys(json[0]).map((name) => ({ name })));
+  //       } else {
+  //         setHeaders([]);
+  //       }
+  //       return;
+  //     }
 
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
+  //     const buffer = await file.arrayBuffer();
+  //     const workbook = XLSX.read(buffer, { type: "array" });
 
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  //     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  //     const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-      setHeaders((json[0] || []).map((h: string) => ({ name: h })));
-    } catch (err) {
-      setHeaders([]);
-      setMsg("Invalid file format");
-      setMsgType("danger");
-    }
-  };
+  //     setHeaders((json[0] || []).map((h: string) => ({ name: h })));
+  //   } catch (err) {
+  //     setHeaders([]);
+  //     setMsg("Invalid file format");
+  //     setMsgType("danger");
+  //   }
+  // };
   const readHeaderFromServer = async (file: File) => {
-    console.log("calling me");
     const formData = new FormData();
     formData.append("file", file);
 
@@ -488,7 +488,10 @@ const ImportFile: React.FC = () => {
     if (!validateFile(selectedFile)) {
       setMsg("Invalid file type");
       setMsgType("danger");
-
+      setResponseData(null);
+      setRequestData(null);
+      setFile(null);
+      setFileName("");
       // ✅ Clear so same file can be selected again
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -537,7 +540,10 @@ const ImportFile: React.FC = () => {
   //     setMsgType("danger");
   //   }
   // };
-
+  const onError = (errors: any) => {
+    setResponseData(null);
+    setRequestData(null);
+  };
   const onSubmit = async (data: any) => {
     try {
       // ✅ STEP 1: trigger validation FIRST
@@ -558,19 +564,19 @@ const ImportFile: React.FC = () => {
         const row = data[header.name];
 
         // 🔒 your existing validations
-        if (row.length_validation_type === "variable") {
-          if (!row.min_length || !row.max_length) {
-            alert(`Min and Max values required for ${header.name}`);
-            return;
-          }
-        }
+        // if (row.length_validation_type === "variable") {
+        //   if (!row.min_length || !row.max_length) {
+        //     alert(`Min and Max values required for ${header.name}`);
+        //     return;
+        //   }
+        // }
 
-        if (row.length_validation_type === "fixed") {
-          if (!row.min_length) {
-            alert(`Fixed value required for ${header.name}`);
-            return;
-          }
-        }
+        // if (row.length_validation_type === "fixed") {
+        //   if (!row.min_length) {
+        //     alert(`Fixed value required for ${header.name}`);
+        //     return;
+        //   }
+        // }
 
         payload[header.name] = {
           data_type: row?.data_type || "string",
@@ -631,18 +637,15 @@ const ImportFile: React.FC = () => {
       setResponseData(response.data);
     } catch (error: any) {
       if (error?.response?.data?.message || error?.message) {
-        console.log("!11");
         setMsg(error?.response?.data?.message || error?.message);
       } else if (error.message?.includes("ERR_UPLOAD_FILE_CHANGED")) {
-        console.log("222");
         setMsg("File was changed. Please re-select and upload again.");
       } else if (error.request) {
-        console.log("3333");
         setMsg("Something get wrong. Please upload file again");
       }
       setMsgType("danger");
-      setResponseData([]);
-      setRequestData([]);
+      setResponseData(null);
+      setRequestData(null);
       setHeaders([]);
     } finally {
       setLoading(false);
@@ -704,7 +707,7 @@ const ImportFile: React.FC = () => {
             Upload a file and map column data types
           </p>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
           {/* Upload Box */}
 
           <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8">
@@ -752,7 +755,8 @@ const ImportFile: React.FC = () => {
                     Data Type
                     <InfoTooltip
                       id="data-type-tooltip"
-                      text="Select the type of data expected in this column (e.g., string, integer, date). This helps validate the input format."
+                      text="Select the type of data expected in this column (e.g., string, integer, date ). This helps validate the input format."
+                      tooltip_type="heading"
                     />
                   </div>
                   <div className="flex items-center justify-center gap-1">
@@ -760,6 +764,7 @@ const ImportFile: React.FC = () => {
                     <InfoTooltip
                       id="allow-empty-tooltip"
                       text="Enable this if the field can be left blank. Disable it to make the field mandatory."
+                      tooltip_type="heading"
                     />
                   </div>
                   <div className="flex items-center justify-center  gap-1">
@@ -767,6 +772,7 @@ const ImportFile: React.FC = () => {
                     <InfoTooltip
                       id="cell-contains-tooltip"
                       text="Define a pattern that the cell value must match using regular expressions (advanced validation)."
+                      tooltip_type="heading"
                     />
                   </div>
                   <div className="flex items-center gap-1">
@@ -774,6 +780,7 @@ const ImportFile: React.FC = () => {
                     <InfoTooltip
                       id="data-length-tooltip"
                       text="Choose whether the value length can vary within a range or must be exactly a fixed number of characters."
+                      tooltip_type="heading"
                     />
                   </div>
                   <div></div>

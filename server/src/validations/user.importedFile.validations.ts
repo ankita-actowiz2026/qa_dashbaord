@@ -4,18 +4,19 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 0;
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const stringRegex = /^[a-zA-Z]+$/;
-const integerRegex = /^-?\d+$/;
+const debug = 1;
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const stringRegex = /^.*$/s;
+const alphabeticsRegex = /^[a-zA-Z ]*$/;
+const integerRegex = /^-?\d*$/;
 const validBooleanValues = new Set([
   "true",
-  "Yes",
-  "Enabled",
+  "yes",
+  "enabled",
   1,
   "false",
-  "No",
-  "Disabled",
+  "no",
+  "disabled",
   0,
 ]);
 export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
@@ -343,6 +344,28 @@ export const validateRow = (
               error_description: `${strValue} does not match string format`,
             });
         }
+      } else if (dataType === "alphabetic") {
+        if (!alphabeticsRegex.test(strValue)) {
+          columnStat.datatype_error_count++;
+          if (columnValid) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Datatype Error",
+            `${strValue} does not match alphabetic format`,
+          ]);
+
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${strValue} does not match alphabetic format`,
+            });
+        }
       } else if (dataType === "email") {
         if (!emailRegex.test(strValue)) {
           columnStat.datatype_error_count++;
@@ -397,7 +420,7 @@ export const validateRow = (
         //const value = String(strValue).trim().toLowerCase();
         const value = String(strValue);
 
-        if (!validBooleanValues.has(value)) {
+        if (!validBooleanValues.has(value.toLowerCase())) {
           if (columnValid === true) columnStat.invalid_records++;
 
           columnValid = false;

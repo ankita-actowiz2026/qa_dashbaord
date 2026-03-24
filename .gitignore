@@ -1,3 +1,5 @@
 server/node_modules/*
 server/validation_result/*
 server/uploads/*
+client/.env
+server/.env

@@ -59,7 +59,7 @@ const SubDependencyLatest = ({
             {/* ✅ HEADERS MULTISELECT */}
             <div className="flex flex-col w-44">
               <label className="flex items-center gap-1 font-medium mb-1">
-                Headers
+                Select headers
                 <InfoTooltip
                   id="sub-dependency-multiselect-tooltip"
                   text={`Select the column(s) this field depends on.\nThe rule applies only when these conditions are met.`}

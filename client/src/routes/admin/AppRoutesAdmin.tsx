@@ -8,7 +8,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import Report from "../../pages/report/Report";
 import ImportFile from "../../pages/admin/import_file/ImportFile";
-
+import PageNotFound from "../../pages/admin/PageNotFound";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -36,6 +36,7 @@ const AppRoutes = () => {
         <Route path="user/add/:id?" element={<UserAdd />} />
         <Route path="/report" element={<Report type="Admin" />} />
         <Route path="/import_file" element={<ImportFile />} />
+        <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
   );
