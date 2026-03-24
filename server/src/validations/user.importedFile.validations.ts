@@ -531,7 +531,8 @@ export const validateRow = (
     } else if (
       dataType === "string" ||
       dataType === "email" ||
-      dataType === "boolean"
+      dataType === "boolean" ||
+      dataType === "alphabetic"
     ) {
       const strLen = strValue.length;
 

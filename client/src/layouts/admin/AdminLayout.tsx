@@ -124,7 +124,7 @@ const AdminLayout = () => {
       {/* Main Section */}
       <div className="flex-1 flex flex-col">
         <Header
-          title="Admin"
+          title="Admin Dashboard"
           userName="Admin"
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           onLogout={() => console.log("logout")}

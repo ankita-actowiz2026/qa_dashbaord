@@ -539,7 +539,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
           </button>
           {showDependencyModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-              <div className="bg-white w-[500px] max-h-[80vh] rounded-xl shadow-xl flex flex-col overflow-hidden">
+              <div className="bg-white w-[550px] max-h-[80vh] rounded-xl shadow-xl flex flex-col overflow-hidden">
                 {" "}
                 {/* HEADER */}
                 <div className="flex items-center justify-between border-b px-5 py-3">

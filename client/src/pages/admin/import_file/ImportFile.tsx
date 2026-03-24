@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
-import * as XLSX from "xlsx";
+
+import { FiUpload } from "react-icons/fi";
+
 import { InfoTooltip } from "../../../utils/ToolTips";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -93,8 +95,8 @@ const ImportFile: React.FC = () => {
   const [notMatchFoundInputs, setNotMatchFoundInputs] = useState<any>({});
   const [msg, setMsg] = useState("");
   const [msgType, setMsgType] = useState<"success" | "danger" | "">("");
-  const [responseData, setResponseData] = useState(null); // <-- store response here
-  const [requestData, setRequestData] = useState(null); // <-- store response here
+  const [responseData, setResponseData] = useState(null);
+  const [requestData, setRequestData] = useState(null);
   const [loading, setLoading] = useState(false);
   const getRegexByType = React.useCallback(
     (type: string) => {
@@ -710,32 +712,47 @@ const ImportFile: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
           {/* Upload Box */}
 
-          <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8">
-            <span className="text-gray-600 font-medium">
-              Click to upload file
-            </span>
+          <div
+            className="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-2 text-center cursor-pointer hover:border-blue-500 transition"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const file = e.dataTransfer.files[0];
+              if (file) {
+                onFileChange({ target: { files: [file] } });
+              }
+            }}
+            onClick={() => fileInputRef.current.click()}
+          >
+            <div className="flex flex-col items-center  text-gray-600">
+              <FiUpload size={32} />
 
-            <span className="text-sm text-gray-400 mt-1">
-              .xlsx, .xls, .csv, .json supported
-            </span>
-            <div className="relative">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv,.json"
-                className="hidden"
-                onChange={onFileChange}
-              />
-              {loading && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-white text-sm">Processing file...</p>
-                  </div>
-                </div>
-              )}
+              <p className="font-medium">Drag & drop file here</p>
+
+              <p className="text-sm text-gray-400">
+                or click to upload (.xlsx, .xls, .csv, .json)
+              </p>
             </div>
-          </label>
+
+            {/* Hidden input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv,.json"
+              className="hidden"
+              onChange={onFileChange}
+            />
+          </div>
+
+          {/* Loader OUTSIDE */}
+          {loading && (
+            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-white text-sm">Processing file...</p>
+              </div>
+            </div>
+          )}
 
           {fileName && (
             <p className="text-center text-sm text-green-600 mt-3">
