@@ -2,7 +2,7 @@ import { ColumnStats } from "../interface/importedFile.interface";
 export const errorMessageMap: Record<string, string> = {
   empty_count: "Value cannot be empty",
   datatype_error_count: "Invalid datatype",
-  pattern_error_count: "Pattern validation failed",
+  regex_pattern_error_count: "Regex Pattern validation failed",
   redundant_error_count: "Duplicate value found",
   fixed_header_error_count: "Invalid header value",
   date_format_error_count: "Invalid date format",
@@ -18,7 +18,7 @@ export const importFileDefaultColumnStats: ColumnStats = {
   invalid_records: 0,
   empty_count: 0,
   datatype_error_count: 0,
-  pattern_error_count: 0,
+  regex_pattern_error_count: 0,
   redundant_error_count: 0,
   fixed_header_error_count: 0,
   date_format_error_count: 0,

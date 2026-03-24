@@ -38,7 +38,7 @@ const ValidationResult = ({ response }) => {
               <th className="p-2 border">Valid Records</th>
               <th className="p-2 border">Invalid Records</th>
               <th className="p-2 border">Empty Count</th>
-              <th className="p-2 border">Pattern Error Count</th>
+              <th className="p-2 border">Regex Error Count</th>
               <th className="p-2 border">Redundant Error Count</th>
               <th className="p-2 border">Error Messages</th>
             </tr>

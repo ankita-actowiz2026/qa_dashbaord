@@ -6,6 +6,8 @@ import { useWatch } from "react-hook-form";
 import SubDependencyLatest from "./SubDependencyLatest";
 import type { ValidationRowProps } from "../../../interface/importFile.interface";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiX } from "react-icons/fi";
+
 const {
   def_var_min_len_str,
   def_var_max_len_str,
@@ -186,6 +188,22 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
       setValue(`${header.name}.sub_dependencies`, []);
     }
   }, []);
+
+  const handleCancelDependency = () => {
+    if (savedDependency) {
+      Object.entries(savedDependency).forEach(([key, value]) => {
+        setValue(`${header.name}.${key}`, value);
+      });
+    } else {
+      // reset to default
+      setValue(`${header.name}.has_dependency`, false);
+      setValue(`${header.name}.dependency_condition`, "yes");
+      setValue(`${header.name}.dependency_value`, "");
+      setValue(`${header.name}.sub_dependencies`, []);
+    }
+
+    setShowDependencyModal(false);
+  };
   return (
     // <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr_60px_1.5fr_3.5fr_60px] items-center  px-5 py-3 gap-4 sm:gap-6 border-b border-gray-300 hover:bg-[#dde1e6] transition-colors duration-150 last:border-b-0">
     <div className="border-b border-gray-300 group hover:bg-gray-200 transition">
@@ -253,8 +271,8 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               <input
                 type="text"
                 defaultValue={defaultValue}
-                placeholder="Enter regex"
-                className={`${textboxClass} w-28`}
+                placeholder="Enter regex value"
+                className={`${textboxClass} w-32`}
                 {...register(`${header.name}.cell_contains_value`, {
                   required: "Regex pattern is required",
                   validate: (value: string) => {
@@ -412,7 +430,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             {/* Redundant Value */}
             {dataType === "date" && (
               <div className="w-full">
-                <label className="text-sm font-semibold flex items-center gap-1 mb-1">
+                <label className="text-sm font-semibold flex items-center gap-2 mb-2">
                   Date Format{" "}
                   <InfoTooltip
                     id="date-format-tooltip"
@@ -466,7 +484,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                 <input
                   type="number"
-                  placeholder="Enter threshold"
+                  placeholder="Enter threshold value"
                   className={`${textboxClass} w-[180px]`}
                   {...register(`${header.name}.data_redundant_threshold`, {
                     validate: (value: string) => {
@@ -521,11 +539,25 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
           </button>
           {showDependencyModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-              <div className="p-5 bg-white w-[700px] max-h-[80vh] rounded-xl shadow-xl transform transition-all duration-300 ease-out scale-100 opacity-100 flex flex-col">
-                <h2 className="px-5 py-3 border-b font-semibold text-lg sticky top-0 bg-white z-10 ">
-                  Dependency Configuration
-                </h2>
-                <div className="p-5 overflow-y-auto flex-1 space-y-4">
+              <div className="bg-white w-[500px] max-h-[80vh] rounded-xl shadow-xl flex flex-col overflow-hidden">
+                {" "}
+                {/* HEADER */}
+                <div className="flex items-center justify-between border-b px-5 py-3">
+                  <h2 className="font-semibold text-lg">
+                    Dependency Configuration
+                  </h2>
+
+                  <button
+                    onClick={handleCancelDependency}
+                    className="p-2 rounded-full hover:bg-gray-100 transition"
+                  >
+                    <FiX
+                      size={20}
+                      className="text-gray-500 hover:text-red-500"
+                    />
+                  </button>
+                </div>
+                <div className="p-5 overflow-y-auto">
                   {/* CHECKBOX */}
                   <label className="flex items-center gap-2 font-semibold">
                     <input
@@ -630,27 +662,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                   )}
                 </div>
                 {/* ACTION BUTTONS */}
-                <div className="flex justify-center gap-3 mt-6">
+                <div className="flex justify-center gap-3 px-5 py-4 border-t">
                   <button
                     type="button"
-                    className="bg-gray-600 text-white px-4 py-2"
-                    onClick={() => {
-                      if (savedDependency) {
-                        Object.entries(savedDependency).forEach(
-                          ([key, value]) => {
-                            setValue(`${header.name}.${key}`, value);
-                          },
-                        );
-                      } else {
-                        // reset to default
-                        setValue(`${header.name}.has_dependency`, false);
-                        setValue(`${header.name}.dependency_condition`, "yes");
-                        setValue(`${header.name}.dependency_value`, "");
-                        setValue(`${header.name}.sub_dependencies`, []);
-                      }
-
-                      setShowDependencyModal(false);
-                    }}
+                    className="bg-gray-600 text-white px-4 py-2 rounded"
+                    onClick={handleCancelDependency}
                   >
                     Cancel
                   </button>
@@ -694,7 +710,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                       setShowDependencyModal(false);
                     }}
-                    className="bg-green-600 text-white px-4 py-2"
+                    className="bg-green-600 text-white px-4 py-2 rounded"
                   >
                     Save
                   </button>

@@ -13,11 +13,11 @@ const validBooleanValues = new Set([
   "true",
   "yes",
   "enabled",
-  1,
+  "1",
   "false",
   "no",
   "disabled",
-  0,
+  "0",
 ]);
 export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
@@ -62,7 +62,19 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
       rule.dateRegex = buildDateRegex(rule.date_format);
     }
     if (rule.cell_contains && rule.cell_contains_value) {
-      rule.cellContainsRegex = new RegExp(rule.cell_contains_value, "u");
+      const regexString = rule.cell_contains_value;
+
+      const match = regexString.match(/^\/(.+)\/([a-z]*)$/);
+
+      if (match) {
+        const pattern = match[1];
+        const flags = match[2]; // includes 'i'
+
+        rule.cellContainsRegex = new RegExp(pattern, flags);
+      } else {
+        // fallback (if plain pattern without / /)
+        rule.cellContainsRegex = new RegExp(regexString, "u");
+      }
     }
     if (rule.cell_start_with) {
       rule.cellStartWithMessage = rule.cell_start_with.join(", ");
@@ -288,7 +300,8 @@ export const validateRow = (
 
       continue;
     }
-
+    if (columnName == "is_active") {
+    }
     if (strValue === "") continue;
     // EMAIL
 
@@ -299,10 +312,11 @@ export const validateRow = (
     //   console.log(rule.cellContainsRegex);
     // }
     if (rule.cellContainsRegex) {
-      if (
-        rule.cellContainsRegex &&
-        !rule.cellContainsRegex.test(strValue.trim())
-      ) {
+      const value = String(strValue).trim();
+      console.log(rule.cellContainsRegex);
+      console.log(value);
+      if (rule.cellContainsRegex && !rule.cellContainsRegex.test(value)) {
+        console.log("error");
         columnStat.pattern_error_count++;
         if (columnValid) columnStat.invalid_records++;
         columnValid = false;
@@ -311,13 +325,13 @@ export const validateRow = (
           columnStat.error_msg.push({
             row: rowNumber,
             column: columnName,
-            error_type: "Pattern Error",
+            error_type: "Regex Pattern Error",
             error_description: `${strValue} does not match required format`,
           });
         errorBuffer.add([
           rowNumber,
           columnName,
-          "Pattern Error",
+          "Regex Pattern Error",
           `${strValue} does not match required format`,
         ]);
       }
@@ -419,7 +433,6 @@ export const validateRow = (
       } else if (dataType === "boolean") {
         //const value = String(strValue).trim().toLowerCase();
         const value = String(strValue);
-
         if (!validBooleanValues.has(value.toLowerCase())) {
           if (columnValid === true) columnStat.invalid_records++;
 

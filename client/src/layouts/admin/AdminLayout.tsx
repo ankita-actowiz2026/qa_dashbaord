@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
-import { FiUsers, FiUserPlus, FiHome, FiChevronDown } from "react-icons/fi";
+import {
+  FiUsers,
+  FiUserPlus,
+  FiHome,
+  FiChevronDown,
+  FiUpload,
+} from "react-icons/fi";
 import Header from "../../layouts/admin/Header";
 import { TbFileReport } from "react-icons/tb";
 
@@ -27,7 +33,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside
         className={`bg-gray-900 text-gray-200 h-full transition-all duration-300
-        ${sidebarOpen ? "w-64" : "w-0 md:w-16"} overflow-hidden`}
+        ${sidebarOpen ? "w-64" : "w-0 md:w-20"} overflow-hidden`}
       >
         {/* Logo */}
         <div className="p-5 border-b border-gray-800">
@@ -50,7 +56,7 @@ const AdminLayout = () => {
             to="/admin/import_file"
             className={({ isActive }) => navItemClass(isActive)}
           >
-            <FiHome size={18} />
+            <FiUpload size={18} />
             {sidebarOpen && "Import"}
           </NavLink>
 
@@ -118,7 +124,7 @@ const AdminLayout = () => {
       {/* Main Section */}
       <div className="flex-1 flex flex-col">
         <Header
-          title="Admin Dashboard"
+          title="Admin"
           userName="Admin"
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
           onLogout={() => console.log("logout")}

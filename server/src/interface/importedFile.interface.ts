@@ -90,7 +90,7 @@ export interface ColumnStats {
   invalid_records: number;
   empty_count: number;
   datatype_error_count: number;
-  pattern_error_count: number;
+  regex_pattern_error_count: number;
   redundant_error_count: number;
   fixed_header_error_count: number;
   date_format_error_count: number;

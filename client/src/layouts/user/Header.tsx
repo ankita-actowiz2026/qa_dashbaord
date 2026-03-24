@@ -1,8 +1,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState,useEffect } from "react";
-import { FiMenu, FiX,FiLogOut } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import { FiMenu, FiX, FiLogOut } from "react-icons/fi";
 import { useAuth } from "../../context/AuthContext";
-
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 import axios from "axios";
@@ -14,10 +13,9 @@ const Header = () => {
 
   const fetchMe = async () => {
     try {
-      const res = await axios.get(
-        BACKEND_URL + "/api/auth/profile",
-        { withCredentials: true }
-      );
+      const res = await axios.get(BACKEND_URL + "/api/auth/profile", {
+        withCredentials: true,
+      });
       sessionStorage.setItem("auth_user", JSON.stringify(res.data.data));
       setUser(res.data.data);
     } catch (error) {
@@ -31,7 +29,11 @@ const Header = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post(BACKEND_URL + "/api/auth/logout",{},{withCredentials: true,});
+      await axios.post(
+        BACKEND_URL + "/api/auth/logout",
+        {},
+        { withCredentials: true },
+      );
     } catch (err) {
       console.error("Server logout failed", err);
     }
@@ -53,7 +55,11 @@ const Header = () => {
           onClick={() => setOpen(!open)}
           className="md:hidden flex items-center text-gray-600 hover:text-blue-600 transition-colors"
         >
-          {open ? <FiMenu size={22} className="text-gray-700" /> : <FiMenu size={24} />}
+          {open ? (
+            <FiMenu size={22} className="text-gray-700" />
+          ) : (
+            <FiMenu size={24} />
+          )}
         </button>
 
         <nav
@@ -73,10 +79,10 @@ const Header = () => {
                 }
               >
                 Login
-              </NavLink>              
+              </NavLink>
             </>
           ) : (
-            <>              
+            <>
               <NavLink
                 to="/dashboard"
                 onClick={() => setOpen(false)}
@@ -86,7 +92,7 @@ const Header = () => {
                     : "block px-4 py-2 text-gray-600 hover:text-blue-600"
                 }
               >
-                Dashboard
+                Dashboard--
               </NavLink>
               <NavLink
                 to="/import_file"
@@ -98,7 +104,7 @@ const Header = () => {
                 }
               >
                 Import
-              </NavLink>            
+              </NavLink>
               <NavLink
                 to="/report"
                 onClick={() => setOpen(false)}
@@ -109,23 +115,25 @@ const Header = () => {
                 }
               >
                 Reports
-              </NavLink>              
-              
+              </NavLink>
+
               <div className="flex items-center gap-4">
                 <div className="hidden sm:flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full">
                   <span className="text-gray-700">Welcome,</span>
-                  <span className="font-bold text-blue-600">{user?.name || ""}</span>
-                </div>              
-                  <button
-                    onClick={() => {
-                      setOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors duration-200"
-                  >
-                    <FiLogOut size={18} />
-                    <span className="hidden sm:block">Logout</span>
-                  </button>
+                  <span className="font-bold text-blue-600">
+                    {user?.name || ""}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-2 text-red-500 hover:text-red-600 transition-colors duration-200"
+                >
+                  <FiLogOut size={18} />
+                  <span className="hidden sm:block">Logout</span>
+                </button>
               </div>
             </>
           )}
