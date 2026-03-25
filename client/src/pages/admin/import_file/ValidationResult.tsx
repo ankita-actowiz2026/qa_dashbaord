@@ -74,7 +74,11 @@ const ValidationResult = ({ response }) => {
                   index % 2 === 0 ? "bg-white" : "bg-gray-50"
                 } hover:bg-gray-100 transition`}
               >
-                <div className="p-3 font-medium break-words">{colName}</div>
+                <div className="p-3 font-medium break-words">
+                  {colName
+                    ?.replace(/_/g, " ")
+                    .replace(/\b\w/g, (char) => char.toUpperCase())}
+                </div>
 
                 <div className="p-3 text-center">{stats.total_records}</div>
                 <div className="p-3 text-center text-green-600 font-semibold">
@@ -111,9 +115,9 @@ const ValidationResult = ({ response }) => {
                     className="text-blue-600 hover:text-blue-800 text-lg"
                   >
                     {expandedRow === colName ? (
-                      <FiChevronUp />
+                      <FiChevronUp className="w-5 h-5 text-gray-600" />
                     ) : (
-                      <FiChevronDown />
+                      <FiChevronDown className="w-5 h-5 text-gray-600" />
                     )}
                   </button>
                 </div>
@@ -121,12 +125,18 @@ const ValidationResult = ({ response }) => {
 
               {/* Expanded Section */}
               {expandedRow === colName && (
-                <div className="bg-gray-50 p-4 border-t space-y-3">
+                <div className="bg-gray-50 p-4 border-t space-y-3 pl-16">
                   <div className="text-sm">
                     <span className="font-semibold">#Dependency Error:</span>{" "}
                     {stats.dependancy_error_count}
                   </div>
 
+                  <div className="text-sm">
+                    <span className="font-semibold">Invalid Types:</span>{" "}
+                    {errors_for_coloms[colName]?.length > 0
+                      ? errors_for_coloms[colName].join(", ")
+                      : "No errors"}
+                  </div>
                   <div>
                     <div className="font-semibold mb-1">Error Messages:</div>
                     <div className="max-h-40 overflow-y-auto text-sm space-y-1">
@@ -137,13 +147,6 @@ const ValidationResult = ({ response }) => {
                         </div>
                       ))}
                     </div>
-                  </div>
-
-                  <div className="text-sm">
-                    <span className="font-semibold">Invalid Types:</span>{" "}
-                    {errors_for_coloms[colName]?.length > 0
-                      ? errors_for_coloms[colName].join(", ")
-                      : "No errors"}
                   </div>
                 </div>
               )}

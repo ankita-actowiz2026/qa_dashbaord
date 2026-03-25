@@ -50,6 +50,8 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
   headersList,
   clearErrors,
 }) => {
+  const [subDepError, setSubDepError] = useState("");
+  const [savedSubDeps, setSavedSubDeps] = useState([]);
   const [showDependencyModal, setShowDependencyModal] = useState(false);
   const [savedDependency, setSavedDependency] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -518,6 +520,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
           <button
             type="button"
             onClick={() => {
+              setSubDepError("");
               if (savedDependency) {
                 // ✅ restore saved values
                 Object.entries(savedDependency).forEach(([key, value]) => {
@@ -608,7 +611,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                                 },
                               )}
                             />
-                            Required
+                            Value Required
                           </label>
 
                           <label className="flex items-center gap-1">
@@ -619,7 +622,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                                 `${header.name}.dependency_condition`,
                               )}
                             />
-                            Other value
+                            Some Other value
                           </label>
                         </div>
 
@@ -633,7 +636,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                             {...register(`${header.name}.dependency_value`, {
                               validate: (val) => {
                                 if (condition === "no" && !val?.trim()) {
-                                  return "Value is required when 'Other Value' is selected";
+                                  return "Value is required for some other value";
                                 }
                                 return true;
                               },
@@ -656,21 +659,21 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                         trigger={trigger}
                         setValue={setValue}
                         inputClass={inputClass}
-                        clearErrors={clearErrors}
+                        onSaveList={(list) => {
+                          setSavedSubDeps(list);
+                          setSubDepError("");
+                        }}
                       />
                     </div>
                   )}
                 </div>
+                <div className="flex flex-col items-center justify-center gap-2">
+                  {subDepError && (
+                    <p className="text-red-500 text-sm">{subDepError}</p>
+                  )}
+                </div>
                 {/* ACTION BUTTONS */}
                 <div className="flex justify-center gap-3 px-5 py-4 border-t">
-                  <button
-                    type="button"
-                    className="bg-gray-600 text-white px-4 py-2 rounded"
-                    onClick={handleCancelDependency}
-                  >
-                    Cancel
-                  </button>
-
                   <button
                     type="button"
                     onClick={async () => {
@@ -678,19 +681,22 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                         `${header.name}.has_dependency`,
                       );
 
-                      // ✅ If unchecked → clear everything
                       if (!isChecked) {
                         setSavedDependency(null);
-
                         setValue(`${header.name}.dependency_condition`, "yes");
                         setValue(`${header.name}.dependency_value`, "");
                         setValue(`${header.name}.sub_dependencies`, []);
-
                         setShowDependencyModal(false);
                         return;
                       }
+                      // ❗ NEW VALIDATION (IMPORTANT)
+                      if (!savedSubDeps || savedSubDeps.length === 0) {
+                        setSubDepError(
+                          "Please add at least one sub dependency",
+                        );
+                        return;
+                      }
 
-                      // ✅ Validate
                       const valid = await trigger([
                         `${header.name}.dependency_value`,
                         `${header.name}.sub_dependencies`,
@@ -698,21 +704,27 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                       if (!valid) return;
 
-                      // ✅ Save snapshot
                       const data = getValues(`${header.name}`);
 
                       setSavedDependency({
                         has_dependency: data.has_dependency,
                         dependency_condition: data.dependency_condition,
                         dependency_value: data.dependency_value,
-                        sub_dependencies: data.sub_dependencies,
+                        sub_dependencies: savedSubDeps,
                       });
 
                       setShowDependencyModal(false);
                     }}
-                    className="bg-green-600 text-white px-4 py-2 rounded"
+                    className="bg-blue-600 text-white px-4 py-2 rounded"
                   >
                     Save
+                  </button>
+                  <button
+                    type="button"
+                    className="bg-gray-400 text-white px-4 py-2 rounded"
+                    onClick={handleCancelDependency}
+                  >
+                    Cancel
                   </button>
                 </div>
               </div>

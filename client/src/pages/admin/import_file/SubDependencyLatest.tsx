@@ -1,269 +1,406 @@
-import React, { useRef, useEffect, useMemo } from "react";
-import { useFieldArray, Controller, useWatch } from "react-hook-form";
-import { useFormState } from "react-hook-form";
-import { InfoTooltip } from "../../../utils/ToolTips";
-import { FiTrash2, FiPlus } from "react-icons/fi";
-const SubDependencyLatest = ({
-  control,
-  register,
-  headerName,
-  index,
-  headersList,
-  trigger,
-  setValue,
-  inputClass,
-}) => {
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const subPath = `${headerName}.sub_dependencies`;
-  const { errors: formErrors } = useFormState({
-    control,
-  });
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: subPath,
-  });
+import React, { useMemo, useState, useEffect } from "react";
+import { useWatch } from "react-hook-form";
+import { FiTrash2, FiEdit } from "react-icons/fi";
+import { FaPlus } from "react-icons/fa";
 
-  /* ✅ Watch full array (IMPORTANT FIX) */
+const SubDependencyLatest = ({
+  headerName,
+  headersList,
+  onSaveList,
+  inputClass,
+  control,
+  setValue,
+}) => {
+  const subPath = `${headerName}.sub_dependencies`;
   const subDependencies = useWatch({
     control,
     name: subPath,
     defaultValue: [],
   });
 
-  /* ✅ Remove current header */
+  const savedList = Array.isArray(subDependencies) ? subDependencies : [];
+  const [showForm, setShowForm] = useState(false);
+  const [editIndex, setEditIndex] = useState(null);
+  const [error, setError] = useState({});
+  const [successMsg, setSuccessMsg] = useState("");
+  const [formData, setFormData] = useState({
+    headers: [],
+    condition: "true",
+    value: "",
+  });
+
+  /* ===================== */
+  /* FILTER HEADERS */
+  /* ===================== */
   const filteredHeaders = useMemo(() => {
     return headersList.filter((h) => h !== headerName);
   }, [headersList, headerName]);
 
-  const hasAppended = useRef(false);
+  /* ===================== */
+  /* VALIDATION */
+  /* ===================== */
+  const validate = () => {
+    const errors = {};
 
-  useEffect(() => {
-    if (!hasAppended.current && fields.length === 0) {
-      append({
-        headers: [],
-        condition: "true",
-        value: "",
-      });
-      hasAppended.current = true;
+    if (!formData.headers || formData.headers.length === 0) {
+      errors.headers = "Please select at least one column";
     }
-  }, [fields.length, append]);
 
+    if (formData.condition === "other" && !formData.value?.trim()) {
+      errors.value = "Value is required for some other value";
+    }
+
+    return errors;
+  };
+
+  /* ===================== */
+  /* RESET */
+  /* ===================== */
+  const resetForm = () => {
+    setFormData({
+      headers: [],
+      condition: "true",
+      value: "",
+    });
+    setError({});
+    setEditIndex(null);
+    setShowForm(false);
+  };
+
+  /* ===================== */
+  /* ADD CLICK */
+  /* ===================== */
+  const handleAdd = () => {
+    setShowForm(true);
+    setEditIndex(null);
+
+    setFormData({
+      headers: [],
+      condition: "true",
+      value: "",
+    });
+
+    setError({});
+  };
+
+  /* ===================== */
+  /* SAVE */
+  /* ===================== */
+  const handleSave = () => {
+    const err = validate();
+
+    if (Object.keys(err).length > 0) {
+      setError(err);
+      return;
+    }
+
+    const updated = [...savedList, formData];
+
+    setValue(subPath, updated);
+    onSaveList && onSaveList(updated);
+
+    setSuccessMsg("Sub dependency added successfully");
+
+    resetForm();
+  };
+
+  /* ===================== */
+  /* DELETE */
+  /* ===================== */
+  const handleDelete = (index) => {
+    if (window.confirm("Are you sure to selete this dependency?")) {
+      const updated = savedList.filter((_, i) => i !== index);
+
+      setValue(subPath, updated);
+      onSaveList && onSaveList(updated);
+
+      setSuccessMsg("Sub dependency deleted successfully");
+    }
+  };
+
+  /* ===================== */
+  /* EDIT */
+  /* ===================== */
+  const handleEdit = (item, index) => {
+    setShowForm(true);
+    setEditIndex(index);
+
+    setFormData({
+      headers: item.headers || [],
+      condition: item.condition || "true",
+      value: item.value || "",
+    });
+
+    setError({});
+  };
+
+  /* ===================== */
+  /* UPDATE */
+  /* ===================== */
+  const handleUpdate = () => {
+    if (editIndex === null) return;
+
+    const err = validate();
+
+    if (Object.keys(err).length > 0) {
+      setError(err);
+      return;
+    }
+
+    const updated = [...savedList];
+    updated[editIndex] = formData;
+
+    setValue(subPath, updated);
+    onSaveList && onSaveList(updated);
+
+    setSuccessMsg("Sub dependency updated successfully");
+
+    resetForm();
+  };
+  useEffect(() => {
+    if (successMsg) {
+      const timer = setTimeout(() => {
+        setSuccessMsg("");
+      }, 2500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [successMsg]);
   return (
-    <div className=" border border-gray-300 rounded-xl bg-white shadow-sm">
+    <div className="border rounded-xl bg-white shadow-md overflow-hidden  border-gray-300 ">
+      {/* ===================== */}
       {/* HEADER */}
-      <div className="px-4 py-3 border-b bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-xl">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-800 tracking-tight">
-            Sub Dependencies{" "}
-            <InfoTooltip
-              id="sub-dependency-multiselect-tooltip"
-              text={`Select the column(s) this field depends on.\nThe rule applies only when these conditions are met.`}
-              tooltip_type="listing"
-            />
+      {/* ===================== */}
+      <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-00 border-b flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Sub Dependencies
           </h3>
-          <button
-            type="button"
-            onClick={() => {
-              append({
-                headers: [],
-                condition: "true",
-                value: "",
-              });
-
-              // focus last input after render
-              setTimeout(() => {
-                const lastIndex = fields.length;
-                inputRefs.current[lastIndex]?.focus();
-              }, 0);
-            }}
-            className="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition shadow-sm"
-          >
-            <FiPlus size={18} />
-          </button>
+          <p className="text-xs text-gray-500">
+            Configure sub-level dependency rules
+          </p>
         </div>
-        <p className="text-sm text-gray-500 mt-0.5">
-          Add and configure sub-level dependencies
-        </p>
-      </div>
-      <div className="p-2 space-y-4">
-        {fields.map((field, index) => {
-          const subCondition = subDependencies?.[index]?.condition || "true";
-
-          return (
-            <div
-              key={field.id}
-              className="relative border rounded-lg p-4 bg-gray-200 space-y-3"
+        {/* ===================== */}
+        {/* ADD BUTTON */}
+        {/* ===================== */}
+        {!showForm && (
+          <div className="p-4 flex justify-end">
+            <button
+              onClick={handleAdd}
+              className="bg-blue-600 text-white px-4 py-2 rounded"
+              title="Add sub dependancy"
             >
-              {/* TITLE + DELETE */}
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-700 tracking-wide">
-                  Sub Dependency #{index + 1}
-                </p>
+              <FaPlus size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+      {successMsg && (
+        <div className="bg-green-100 text-green-700 px-3 py-2 rounded text-sm flex justify-center">
+          {successMsg}
+        </div>
+      )}
 
-                {fields.length > 1 && (
+      {/* ===================== */}
+      {/* FORM */}
+      {/* ===================== */}
+      {showForm && (
+        <div className="p-4 bg-gray-50 space-y-4 border-b">
+          {/* ROW: MULTISELECT + RADIO */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* MULTISELECT */}
+            <div>
+              <label className="font-semibold text-sm">Select Columns *</label>
+
+              <select
+                multiple
+                className={`${inputClass} border p-2 w-full mt-1`}
+                value={formData.headers}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions).map(
+                    (o) => o.value,
+                  );
+                  setFormData({ ...formData, headers: selected });
+                }}
+              >
+                {filteredHeaders.map((h, i) => (
+                  <option key={i} value={h}>
+                    {h}
+                  </option>
+                ))}
+              </select>
+              {error.headers && (
+                <p className="text-red-500 text-xs mt-1">{error.headers}</p>
+              )}
+            </div>
+
+            {/* CONDITION + TEXTBOX */}
+            <div>
+              <label className="font-semibold text-sm">Condition *</label>
+
+              {/* RADIO */}
+              <div className="flex gap-4 mt-1">
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    checked={formData.condition === "true"}
+                    onChange={() =>
+                      setFormData({
+                        ...formData,
+                        condition: "true",
+                        value: "",
+                      })
+                    }
+                  />
+                  Value Required
+                </label>
+
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    checked={formData.condition === "other"}
+                    onChange={() =>
+                      setFormData({
+                        ...formData,
+                        condition: "other",
+                        value: "",
+                      })
+                    }
+                  />
+                  Some Other Value
+                </label>
+              </div>
+
+              {/* TEXTBOX BELOW RADIO */}
+              <input
+                type="text"
+                placeholder="Enter value"
+                disabled={formData.condition !== "other"}
+                value={formData.value}
+                onChange={(e) =>
+                  setFormData({ ...formData, value: e.target.value })
+                }
+                className={`${inputClass} border p-2 w-full mt-3 ${
+                  formData.condition !== "other" ? "bg-gray-100" : ""
+                }`}
+              />
+              {error.value && (
+                <p className="text-red-500 text-xs mt-1">{error.value}</p>
+              )}
+            </div>
+          </div>
+
+          {/* ERROR */}
+          {/* {error && <p className="text-red-500 text-sm">{error}</p>} */}
+
+          {/* BUTTONS */}
+          <div className="flex justify-end gap-2">
+            {editIndex !== null ? (
+              <>
+                <button
+                  onClick={handleUpdate}
+                  className="bg-green-600 text-white px-4 py-2 rounded"
+                >
+                  Update
+                </button>
+
+                <button
+                  onClick={resetForm}
+                  className="bg-gray-400 text-white px-4 py-2 rounded"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={handleSave}
+                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Save
+                </button>
+
+                <button
+                  onClick={resetForm}
+                  className="bg-gray-400 text-white px-4 py-2 rounded"
+                >
+                  Reset
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== */}
+      {/* LIST */}
+      {/* ===================== */}
+      <div className="p-2 space-y-3">
+        {savedList.length === 0 ? (
+          <p className="text-black text-sm flex justify-center">
+            No sub dependencies found
+          </p>
+        ) : (
+          <div className="border border-gray-300 rounded-lg overflow-hidden">
+            {/* HEADER ROW */}
+            <div className="grid grid-cols-12 gap-3 px-3 py-2 bg-gray-300 text-sm font-semibold text-gray-700">
+              <div className="col-span-5 ">Header Columns</div>
+              <div className="col-span-3">Condition</div>
+              <div className="col-span-2">Value</div>
+              <div className="col-span-2 text-right">Actions</div>
+            </div>
+
+            {/* DATA ROWS */}
+            {savedList.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-12 gap-3 px-3 py-3 items-center bg-white hover:bg-gray-50 border-t border-gray-200"
+              >
+                {/* HEADERS */}
+                <div className="col-span-5 text-sm text-gray-800">
+                  {item.headers?.length ? item.headers.join(", ") : "-"}
+                </div>
+
+                {/* CONDITION */}
+                <div className="col-span-3 text-sm">
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      item.condition === "true"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
+                  >
+                    {item.condition === "true"
+                      ? "Value Required"
+                      : "Some Other Value"}
+                  </span>
+                </div>
+
+                {/* VALUE */}
+                <div className="col-span-2 text-sm text-gray-700">
+                  {item.value || "-"}
+                </div>
+
+                {/* ACTIONS */}
+                <div className="col-span-2 flex justify-end gap-3">
                   <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    className="text-blue-500 hover:text-blue-700 text-sm"
+                    onClick={() => handleEdit(item, index)}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    <FiEdit size={18} />
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(index)}
+                    className="text-blue-600 hover:text-blue-800"
                   >
                     <FiTrash2 size={18} />
                   </button>
-                )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* ✅ HEADERS MULTISELECT */}
-                <div>
-                  <label className="text-xs font-semibold text-gray-600  tracking-wide mb-1 block  pb-3">
-                    Select header coloms
-                  </label>
-
-                  <Controller
-                    control={control}
-                    name={`${subPath}.${index}.headers`}
-                    defaultValue={[]}
-                    rules={{
-                      validate: (val) =>
-                        val && val.length > 0
-                          ? true
-                          : "Please select at least one column",
-                    }}
-                    render={({ field, fieldState }) => (
-                      <>
-                        <div className="flex flex-col">
-                          <select
-                            multiple
-                            ref={(el) => (inputRefs.current[index] = el)}
-                            className={`${inputClass} border rounded-md p-2 text-sm`}
-                            value={field.value || []}
-                            onChange={(e) => {
-                              const selected = Array.from(
-                                e.target.selectedOptions,
-                              ).map((o) => o.value);
-                              field.onChange(selected);
-                            }}
-                            onBlur={field.onBlur}
-                          >
-                            {(filteredHeaders || []).map((h, i) => (
-                              <option
-                                key={`${h}-${i}`}
-                                value={h}
-                                className="px-2 py-1 hover:bg-blue-100"
-                              >
-                                {h}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        {fieldState.error && (
-                          <p className="text-red-500 text-xs mt-1">
-                            {fieldState.error.message}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  />
-                </div>
-
-                {/* ✅ CONDITION */}
-                <div>
-                  {/* LABEL */}
-                  <label className="text-xs font-semibold text-gray-600 tracking-wide mb-1 block pb-3">
-                    Sub dependancy value
-                  </label>
-
-                  {/* ROW: RADIO + TEXTBOX */}
-
-                  {/* RADIO */}
-                  <div className="flex gap-4 mb-2">
-                    <label className="flex items-center gap-1 text-sm">
-                      <input
-                        type="radio"
-                        value="true"
-                        {...register(`${subPath}.${index}.condition`, {
-                          onChange: () => {
-                            setValue(`${subPath}.${index}.value`, "");
-
-                            setTimeout(() => {
-                              trigger(`${subPath}.${index}.value`);
-                            }, 0);
-                          },
-                        })}
-                      />
-                      Required
-                    </label>
-
-                    <label className="flex items-center gap-1 text-sm">
-                      <input
-                        type="radio"
-                        value="other"
-                        {...register(`${subPath}.${index}.condition`, {
-                          onChange: () => {
-                            setValue(`${subPath}.${index}.value`, "");
-                          },
-                        })}
-                      />
-                      Other value
-                    </label>
-                  </div>
-
-                  {/* TEXTBOX */}
-                  <div className="flex flex-col ">
-                    <input
-                      type="text"
-                      placeholder="Enter value"
-                      disabled={subCondition !== "other"}
-                      className={`${inputClass} border px-2 py-1 rounded w-40 mt-5 disabled:bg-gray-100 ${
-                        subCondition === "other" &&
-                        formErrors?.[headerName]?.sub_dependencies?.[index]
-                          ?.value
-                          ? "border-red-500"
-                          : "border-gray-400"
-                      }`}
-                      {...register(`${subPath}.${index}.value`, {
-                        validate: (val) => {
-                          const currentCondition =
-                            subDependencies?.[index]?.condition;
-
-                          if (
-                            currentCondition === "other" &&
-                            (!val || !val.trim())
-                          ) {
-                            return "Value is required when 'Other Value' is selected";
-                          }
-
-                          return true;
-                        },
-                      })}
-                    />
-                    {/* ERROR BELOW */}
-                    <p className="text-red-500 text-xs mt-1 min-h-[16px]">
-                      {subCondition === "other" &&
-                        formErrors?.[headerName]?.sub_dependencies?.[index]
-                          ?.value?.message}
-                    </p>
-                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
-      {/* ADD BUTTON */}
-      <div className="flex justify-center mt-4">
-        <button
-          type="button"
-          onClick={() =>
-            append({
-              headers: [],
-              condition: "true",
-              value: "",
-            })
-          }
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
-        >
-          + Add Sub Dependency
-        </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

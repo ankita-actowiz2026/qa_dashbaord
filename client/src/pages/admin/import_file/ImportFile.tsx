@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
-
+import { FaFileCircleCheck } from "react-icons/fa6";
 import { FiUpload } from "react-icons/fi";
 
 import { InfoTooltip } from "../../../utils/ToolTips";
@@ -713,7 +713,7 @@ const ImportFile: React.FC = () => {
           {/* Upload Box */}
 
           <div
-            className="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-2 text-center cursor-pointer hover:border-blue-500 transition"
+            className="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-2 text-center cursor-pointer hover:border-black transition"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -755,7 +755,7 @@ const ImportFile: React.FC = () => {
           )}
 
           {fileName && (
-            <p className="text-center text-sm text-green-600 mt-3">
+            <p className="text-center text-sm text-blue-600 mt-3">
               Uploaded: {fileName}
             </p>
           )}
@@ -824,9 +824,16 @@ const ImportFile: React.FC = () => {
                 <button
                   disabled={loading}
                   type="submit"
-                  className="mt-6 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 block mx-auto"
+                  className="mt-6 bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 flex items-center gap-2 mx-auto"
                 >
-                  {loading ? "Processing..." : "Save"}
+                  {loading ? (
+                    "Processing..."
+                  ) : (
+                    <>
+                      <FaFileCircleCheck className="text-lg" />
+                      Validate File
+                    </>
+                  )}
                 </button>
               </div>
             </>
