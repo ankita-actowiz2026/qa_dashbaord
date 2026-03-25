@@ -51,16 +51,16 @@ const ValidationResult = ({ response }) => {
         {/* Header */}
         <div className="grid grid-cols-12 bg-gray-200 font-semibold border">
           <div className="p-3">Column</div>
-          <div className="p-3 text-center">#Records</div>
-          <div className="p-3 text-center">#Valid </div>
-          <div className="p-3 text-center">#Invalid</div>
-          <div className="p-3 text-center">#Empty</div>
-          <div className="p-3 text-center">#Datatype Error</div>
-          <div className="p-3 text-center">#Regex Error</div>
-          <div className="p-3 text-center">#Redundant Error</div>
-          <div className="p-3 text-center">#Fixed header Error</div>
-          <div className="p-3 text-center">#Length</div>
-          <div className="p-3 text-center">#Blocked</div>
+          <div className="p-3 text-center"># Records</div>
+          <div className="p-3 text-center"># Valid </div>
+          <div className="p-3 text-center"># Invalid</div>
+          <div className="p-3 text-center"># Empty</div>
+          <div className="p-3 text-center"># Datatype</div>
+          <div className="p-3 text-center"># Regex</div>
+          <div className="p-3 text-center"># Redundant</div>
+          <div className="p-3 text-center"># Fixed header</div>
+          <div className="p-3 text-center"># Length</div>
+          <div className="p-3 text-center"># Blocked</div>
           <div className="p-3 text-center">Action</div>
         </div>
 
