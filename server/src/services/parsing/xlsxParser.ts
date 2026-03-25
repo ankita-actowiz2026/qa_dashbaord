@@ -49,7 +49,7 @@ export const xlsxParser = async (
           if (!isHeaderRow) {
             headers = values
               .slice(1)
-              .map((h) => getCellValue(h)?.toString().trim());
+              .map((h) => getCellValue(h, "string")?.toString().trim());
             // CHECK INVALID HEADER
             if (headers.some((h) => h === "[object Object]")) {
               throw new Error(
@@ -75,7 +75,11 @@ export const xlsxParser = async (
           for (let i = 1; i <= headerLength; i++) {
             const columnName = headers[i - 1];
             const value = values[i];
-            rowData[columnName] = getCellValue(value);
+
+            const rule = ruleMap[columnName]; // ✅ get rule
+
+            //rowData[columnName] = getCellValue(value, rule?.data_type); // ✅ FIX
+            rowData[columnName] = value; // ✅ FIX
           }
 
           const rowValid = validateRow(

@@ -9,7 +9,6 @@ const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const stringRegex = /^.*$/s;
 const alphabeticsRegex = /^[a-zA-Z ]*$/;
 const integerRegex = /^-?\d+$/;
-const numberRegex = /^-?\d+(\.\d+)?$/;
 const validBooleanValues = new Set([
   "true",
   "yes",
@@ -102,9 +101,9 @@ export const getCellValue = (cell: any, dataType?: string): string => {
   if (cell === null || cell === undefined) return "";
 
   // ✅ Only convert to date if column expects date
-  // console.log(
-  //   "cell=>" + cell + "   type-->" + dataType + "   typeof " + typeof cell,
-  // );
+  console.log(
+    "cell=>" + cell + "   type-->" + dataType + "   typeof " + typeof cell,
+  );
   if (dataType === "date" && typeof cell === "number") {
     const jsDate = excelDateToJSDate(cell);
     return formatDate(jsDate);
@@ -256,8 +255,16 @@ export const buildDateRegex = (format: string): RegExp => {
 const normalizeValue = (value: any, dataType: string) => {
   if (value === null || value === undefined) return "";
 
-  if (typeof value === "string") {
-    return value.trim();
+  // Handle "Number stored as text"
+  if (
+    (dataType === "integer" || dataType === "float") &&
+    typeof value === "string"
+  ) {
+    const trimmed = value.trim();
+
+    if (trimmed !== "" && !isNaN(Number(trimmed))) {
+      return Number(trimmed); // ✅ simulate "Convert to Number"
+    }
   }
 
   return value;
@@ -273,7 +280,6 @@ export const validateRow = (
   let rowValid = true;
 
   for (let i = 0; i < headers.length; i++) {
-    let datatype_validation_checked = 0;
     const columnName = headers[i];
     const rule = ruleMap[columnName];
     if (!rule) continue;
@@ -284,20 +290,14 @@ export const validateRow = (
     let columnValid = true;
 
     let rawValue = rowData[columnName];
-    if (["Year", "Industry"].includes(columnName))
-      console.log(
-        "columnName-->" +
-          columnName +
-          "   my data type-->" +
-          dataType +
-          "==original type=>" +
-          typeof rawValue,
-      );
+    const normalized = normalizeValue(rawValue, rule.data_type);
 
-    const displayValue = getCellValue(rawValue, dataType);
-    const strValue = String(displayValue).trim();
+    const strValue =
+      normalized === null || normalized === undefined
+        ? ""
+        : String(normalized).trim();
+
     const normalizedValue = strValue;
-
     if (strValue !== "") {
       columnStat.total_records++;
     }
@@ -326,38 +326,8 @@ export const validateRow = (
 
       continue;
     }
-
-    // ✅ datatype check FIRST
-    if (
-      (dataType === "integer" || dataType === "float") &&
-      rawValue !== null &&
-      rawValue !== undefined &&
-      rawValue !== "" &&
-      typeof rawValue !== "number"
-    ) {
-      datatype_validation_checked = 1;
-      columnStat.datatype_error_count++;
-      if (columnValid) columnStat.invalid_records++;
-
-      columnValid = false;
-      rowValid = false;
-
-      errorBuffer.add([
-        rowNumber,
-        columnName,
-        "Datatype Error",
-        `${columnName} must be ${dataType}, but got string`,
-      ]);
-
-      if (debug == 1)
-        columnStat.error_msg.push({
-          row: rowNumber,
-          column: columnName,
-          error_type: "Datatype Error",
-          error_description: `${columnName} must be ${dataType}, but got string`,
-        });
+    if (columnName == "is_active") {
     }
-
     if (strValue === "") continue;
     // EMAIL
 
@@ -390,18 +360,8 @@ export const validateRow = (
         ]);
       }
     } else {
-      if (
-        dataType === "string" ||
-        dataType === "alphabetic" ||
-        dataType === "email"
-      ) {
-        const regexResult =
-          dataType === "string"
-            ? stringRegex.test(strValue)
-            : dataType === "alphabetic"
-              ? alphabeticsRegex.test(strValue)
-              : emailRegex.test(strValue);
-        if (!regexResult) {
+      if (dataType === "string") {
+        if (!stringRegex.test(strValue)) {
           columnStat.datatype_error_count++;
           if (columnValid) columnStat.invalid_records++;
 
@@ -411,7 +371,7 @@ export const validateRow = (
             rowNumber,
             columnName,
             "Datatype Error",
-            `${strValue} does not match ${dataType} format`,
+            `${strValue} does not match string format`,
           ]);
 
           if (debug == 1)
@@ -419,20 +379,59 @@ export const validateRow = (
               row: rowNumber,
               column: columnName,
               error_type: "Datatype Error",
-              error_description: `${strValue} does not match ${dataType} format`,
+              error_description: `${strValue} does not match string format`,
+            });
+        }
+      } else if (dataType === "alphabetic") {
+        if (!alphabeticsRegex.test(strValue)) {
+          columnStat.datatype_error_count++;
+          if (columnValid) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Datatype Error",
+            `${strValue} does not match alphabetic format`,
+          ]);
+
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${strValue} does not match alphabetic format`,
+            });
+        }
+      } else if (dataType === "email") {
+        if (!emailRegex.test(strValue)) {
+          columnStat.datatype_error_count++;
+          if (columnValid) columnStat.invalid_records++;
+
+          columnValid = false;
+          rowValid = false;
+          errorBuffer.add([
+            rowNumber,
+            columnName,
+            "Datatype Error",
+            `${strValue} does not match email format`,
+          ]);
+
+          if (debug == 1)
+            columnStat.error_msg.push({
+              row: rowNumber,
+              column: columnName,
+              error_type: "Datatype Error",
+              error_description: `${strValue} does not match email format`,
             });
         }
       } else if (
-        (dataType === "integer" || dataType === "float") &&
+        dataType === "integer" &&
         strValue !== null &&
-        strValue !== "" &&
-        datatype_validation_checked == 0
+        strValue !== ""
       ) {
-        const regexRes =
-          dataType === "integer"
-            ? integerRegex.test(String(strValue).trim())
-            : numberRegex.test(String(strValue).trim());
-        if (!regexRes) {
+        if (isNaN(Number(strValue)) || !Number.isInteger(Number(strValue))) {
           if (columnValid === true) columnStat.invalid_records++;
 
           columnValid = false;
@@ -444,7 +443,7 @@ export const validateRow = (
             rowNumber,
             columnName,
             "Datatype Error",
-            `${strValue} is not a valid ${dataType}`,
+            `${strValue} is not a valid integer`,
           ]);
 
           if (debug == 1)
@@ -452,7 +451,7 @@ export const validateRow = (
               row: rowNumber,
               column: columnName,
               error_type: "Datatype Error",
-              error_description: `${strValue} is not a valid ${dataType}`,
+              error_description: `${strValue} is not a valid integer`,
             });
         }
       } else if (dataType === "boolean") {
@@ -531,7 +530,6 @@ export const validateRow = (
         }
       } else if (rule.length_validation_type === "fixed") {
         const digitLength = strValue.toString().length;
-        //console.log(digitLength + "===" + rule.min_length);
         if (rule.min_length !== null && strValue !== rule.min_length) {
           if (columnValid) columnStat.invalid_records++;
           columnValid = false;
@@ -610,7 +608,6 @@ export const validateRow = (
 
       // FIXED LENGTH
       else if (rule.length_validation_type === "fixed") {
-        //if (columnName == "URL") console.log(strLen + "!==" + rule.min_length);
         if (rule.min_length !== null && strLen !== Number(rule.min_length)) {
           if (columnValid === true) columnStat.invalid_records++;
 
