@@ -89,6 +89,7 @@ export const xlsxParser = async (
             ruleMap,
             columnStats,
             errorBuffer,
+            "xlsx",
           );
 
           if (rowValid) {

@@ -77,6 +77,7 @@ export const csvParser = async (
             ruleMap,
             columnStats,
             errorBuffer,
+            "csv",
           );
 
           if (rowValid) valid_rows++;

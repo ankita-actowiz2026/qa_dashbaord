@@ -132,12 +132,12 @@ const ValidationResult = ({ response }) => {
                   </div>
 
                   <div className="text-sm">
-                    <span className="font-semibold">Invalid Types:</span>{" "}
+                    <span className="font-semibold  mb-1">Invalid Types:</span>{" "}
                     {errors_for_coloms[colName]?.length > 0
                       ? errors_for_coloms[colName].join(", ")
                       : "No errors"}
                   </div>
-                  <div>
+                  {/* <div>
                     <div className="font-semibold mb-1">Error Messages:</div>
                     <div className="max-h-40 overflow-y-auto text-sm space-y-1">
                       {stats.error_msg.map((err, idx) => (
@@ -147,7 +147,7 @@ const ValidationResult = ({ response }) => {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </div>

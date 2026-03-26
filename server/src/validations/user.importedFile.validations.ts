@@ -4,7 +4,7 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 1;
+const debug = 0;
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const stringRegex = /^.*$/s;
 const alphabeticsRegex = /^[a-zA-Z ]*$/;
@@ -269,6 +269,7 @@ export const validateRow = (
   ruleMap: Record<string, any>,
   columnStats: any,
   errorBuffer: ErrorBuffer,
+  fileType: string = "",
 ) => {
   let rowValid = true;
 
@@ -284,15 +285,15 @@ export const validateRow = (
     let columnValid = true;
 
     let rawValue = rowData[columnName];
-    if (["Year", "Industry"].includes(columnName))
-      console.log(
-        "columnName-->" +
-          columnName +
-          "   my data type-->" +
-          dataType +
-          "==original type=>" +
-          typeof rawValue,
-      );
+    // if (["Restaurant_Id"].includes(columnName))
+    //   console.log(
+    //     "columnName-->" +
+    //       columnName +
+    //       "   my data type-->" +
+    //       dataType +
+    //       "==original type=>" +
+    //       typeof rawValue,
+    //   );
 
     const displayValue = getCellValue(rawValue, dataType);
     const strValue = String(displayValue).trim();
@@ -329,6 +330,7 @@ export const validateRow = (
 
     // ✅ datatype check FIRST
     if (
+      ["csv", "xls", "xlsx"].includes(fileType) &&
       (dataType === "integer" || dataType === "float") &&
       rawValue !== null &&
       rawValue !== undefined &&

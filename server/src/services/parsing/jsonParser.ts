@@ -70,6 +70,7 @@ export const jsonParser = async (
             ruleMap,
             columnStats,
             errorBuffer,
+            "json",
           );
 
           if (rowValid) valid_rows++;
