@@ -574,21 +574,6 @@ const ImportFile: React.FC = () => {
       for (const header of headers) {
         const row = data[header.name];
 
-        // 🔒 your existing validations
-        // if (row.length_validation_type === "variable") {
-        //   if (!row.min_length || !row.max_length) {
-        //     alert(`Min and Max values required for ${header.name}`);
-        //     return;
-        //   }
-        // }
-
-        // if (row.length_validation_type === "fixed") {
-        //   if (!row.min_length) {
-        //     alert(`Fixed value required for ${header.name}`);
-        //     return;
-        //   }
-        // }
-
         payload[header.name] = {
           data_type: row?.data_type || "string",
           has_empty: !row?.has_empty,

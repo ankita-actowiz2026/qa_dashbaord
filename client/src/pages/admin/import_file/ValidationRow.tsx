@@ -533,7 +533,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                   <input
                     type={dataType === "date" ? "date" : "number"}
-                    className={`${inputClass} w-[110px]`}
+                    className={`${inputClass} w-[90px]`}
                     {...register(`${header.name}.min_length`, {
                       required: "Min length is required",
                       validate: (value) => {
@@ -568,7 +568,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                   <input
                     type={dataType === "date" ? "date" : "number"}
-                    className={`${inputClass} w-[110px]`}
+                    className={`${inputClass} w-[90px]`}
                     {...register(`${header.name}.max_length`, {
                       required: "Max length is required",
                     })}
@@ -594,7 +594,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                 <input
                   type={dataType === "date" ? "date" : "number"}
-                  className={`${inputClass} w-[110px]`}
+                  className={`${inputClass} w-[90px]`}
                   {...register(`${header.name}.min_length`, {
                     required: ["integer", "boolean", "float", "date"].includes(
                       dataType,
