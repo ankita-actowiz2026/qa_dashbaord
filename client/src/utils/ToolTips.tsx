@@ -17,16 +17,20 @@ export const InfoTooltip = ({
       <span
         data-tooltip-id={id}
         data-tooltip-content={text}
-        className={`cursor-pointer text-gray-400 flex items-center ${
-          tooltip_type === "heading"
-            ? "hover:text-gray-300"
-            : "hover:text-gray-700"
-        }`}
+        className="relative z-50 cursor-pointer text-gray-400 flex items-center"
       >
         <FiInfo size={14} />
       </span>
-
-      <Tooltip id={id} />
+      <Tooltip
+        id={id}
+        place="top"
+        positionStrategy="fixed"
+        style={{
+          zIndex: 9999,
+          maxWidth: "220px",
+          whiteSpace: "normal",
+        }}
+      />{" "}
     </>
   );
 };

@@ -208,207 +208,8 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     setShowDependencyModal(false);
   };
   return (
-    <div className="border-b border-gray-300 transition">
-      {/* mobiel view start */}
-      <div className="md:hidden bg-white rounded-xl p-4 mb-3 shadow-sm">
-        {/* Header */}
-        <div className="font-semibold text-gray-800 mb-3">
-          Filed Name : {header.name}
-        </div>
-
-        {/* Data Type */}
-        <div className="mb-3">
-          <label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-            Data Type
-            <InfoTooltip
-              id="data-type-tooltip-mobile"
-              text="Select the type of data expected in this column (e.g., string, integer, date)."
-              tooltip_type="listing"
-            />
-          </label>
-          <select
-            className={`${inputClass} w-full`}
-            {...register(`${header.name}.data_type`)}
-          >
-            {dataTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Required */}
-        <div className="flex items-center gap-2 mb-3">
-          <input
-            type="checkbox"
-            {...register(`${header.name}.has_empty`)}
-            className={checkboxClass}
-          />
-          <label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-            Required
-            <InfoTooltip
-              id="allow-empty-tooltip"
-              text="Enable this if the field can be left blank. Disable it to make the field mandatory."
-              tooltip_type="heading"
-            />
-          </label>
-        </div>
-        <div className="mb-3">
-          <div className="flex items-center gap-2 mb-2">
-            <input
-              type="checkbox"
-              {...register(`${header.name}.cell_contains`)}
-              className={checkboxClass}
-            />
-            <label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-              Enable Regex
-              <InfoTooltip
-                id="cell-contains-tooltip"
-                text="Define a pattern that the cell value must match using regular expressions (advanced validation)."
-                tooltip_type="heading"
-              />
-            </label>
-          </div>
-
-          {cellContains && (
-            <div className="flex flex-col">
-              <input
-                type="text"
-                placeholder="Enter regex"
-                className={`${textboxClass} w-full`}
-                {...register(`${header.name}.cell_contains_value`, {
-                  required: "Regex pattern is required",
-                })}
-              />
-
-              {errors?.[header.name]?.cell_contains_value && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors[header.name].cell_contains_value.message}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Length */}
-        <div className="mb-3">
-          <label className="text-xs text-gray-500 flex items-center gap-1 mb-1">
-            Length
-            <InfoTooltip
-              id="data-length-tooltip"
-              text="Choose whether the value length can vary within a range or must be exactly a fixed number of characters."
-              tooltip_type="heading"
-            />
-          </label>
-
-          {/* Radios */}
-          <div className="flex gap-4 mb-2">
-            <label className="flex items-center gap-1 text-sm">
-              <input
-                type="radio"
-                value="variable"
-                defaultChecked
-                {...register(`${header.name}.length_validation_type`, {
-                  onChange: () => {
-                    setValue(`${header.name}.min_length`, "");
-                    setValue(`${header.name}.max_length`, "");
-                  },
-                })}
-              />
-              Variable
-            </label>
-
-            <label className="flex items-center gap-1 text-sm">
-              <input
-                type="radio"
-                value="fixed"
-                {...register(`${header.name}.length_validation_type`, {
-                  onChange: () => {
-                    setValue(`${header.name}.min_length`, "");
-                    setValue(`${header.name}.max_length`, "");
-
-                    setTimeout(() => {
-                      trigger(`${header.name}.min_length`);
-                      trigger(`${header.name}.max_length`);
-                    }, 0);
-                  },
-                })}
-              />
-              Fixed
-            </label>
-          </div>
-
-          {/* VARIABLE */}
-          {validationType === "variable" && (
-            <div className="flex gap-2">
-              <div className="w-full">
-                <input
-                  type={dataType === "date" ? "date" : "number"}
-                  placeholder="Min"
-                  className={`${inputClass} w-full`}
-                  {...register(`${header.name}.min_length`, {
-                    required: "Min length is required",
-                  })}
-                />
-                {errors?.[header.name]?.min_length && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors[header.name].min_length.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="w-full">
-                <input
-                  type={dataType === "date" ? "date" : "number"}
-                  placeholder="Max"
-                  className={`${inputClass} w-full`}
-                  {...register(`${header.name}.max_length`, {
-                    required: "Max length is required",
-                  })}
-                />
-                {errors?.[header.name]?.max_length && (
-                  <p className="text-red-500 text-xs mt-1">
-                    {errors[header.name].max_length.message}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* FIXED */}
-          {validationType === "fixed" && (
-            <div>
-              <input
-                type={dataType === "date" ? "date" : "number"}
-                placeholder="Value"
-                className={`${inputClass} w-full`}
-                {...register(`${header.name}.min_length`, {
-                  required: "Value is required",
-                })}
-              />
-              {errors?.[header.name]?.min_length && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors[header.name].min_length.message}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-        {/* Expand button */}
-        <div
-          className="flex justify-end cursor-pointer"
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          {isExpanded ? "▲" : "▼"}
-        </div>
-      </div>
-
-      {/* mobiel view end */}
-      {/* desktop view start*/}
-      <div
-        className={`${gridClass} min-h-[56px] hidden md:grid hover:bg-gray-200`}
-      >
+    <div className="border-b border-gray-300 group hover:bg-gray-200 transition">
+      <div className={`${gridClass} min-h-[56px]`}>
         <div className="min-w-0">
           <span className="block text-xs text-gray-500 lg:hidden">Header</span>
           <div className="font-medium text-gray-800 truncate">
@@ -619,7 +420,6 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
           )}
         </div>
       </div>
-      {/* desktop view end*/}
       {isExpanded && (
         <div className="px-5 py-4">
           {/* DataRedundantSection start */}
@@ -628,7 +428,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
             {dataType === "date" && (
               <div className="w-full">
                 <label className="text-sm font-semibold flex items-center gap-2 mb-2">
-                  Date Format
+                  Date Format{" "}
                   <InfoTooltip
                     id="date-format-tooltip"
                     text="Select the format in which dates should appear. Example: YYYY-MM-DD → 2025-12-25"

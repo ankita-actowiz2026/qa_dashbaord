@@ -9,12 +9,22 @@ import {
 } from "react-icons/fi";
 import Header from "../../layouts/admin/Header";
 import { TbFileReport } from "react-icons/tb";
-
+const isMobile = window.innerWidth < 640;
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true); // default open
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setSidebarOpen(false);
+      }
+    };
 
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     if (location.pathname.startsWith("/admin/user")) {
       setUserMenuOpen(true);
@@ -22,7 +32,9 @@ const AdminLayout = () => {
   }, [location.pathname]);
 
   const navItemClass = (isActive: boolean) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg transition ${
+    `flex items-center ${
+      sidebarOpen ? "justify-start" : "justify-center"
+    } gap-3 px-3 py-2 rounded-lg transition ${
       isActive
         ? "bg-gray-800 text-white"
         : "text-gray-300 hover:bg-gray-800 hover:text-white"
@@ -33,7 +45,7 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside
         className={`bg-gray-900 text-gray-200 h-full transition-all duration-300
-        ${sidebarOpen ? "w-64" : "w-0 md:w-20"} overflow-hidden`}
+  ${isMobile ? "w-20" : sidebarOpen ? "w-64" : "w-20"} overflow-hidden`}
       >
         {/* Logo */}
         <div className="p-5 border-b border-gray-800">

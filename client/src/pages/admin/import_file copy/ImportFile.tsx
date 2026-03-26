@@ -4,7 +4,7 @@ import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
 import { FaFileCircleCheck } from "react-icons/fa6";
 import { FiUpload } from "react-icons/fi";
-//import { createPortal } from "react-dom";
+
 import { InfoTooltip } from "../../../utils/ToolTips";
 import axios from "axios";
 import { useForm } from "react-hook-form";
@@ -776,7 +776,7 @@ const ImportFile: React.FC = () => {
                 Please add validation rules for headers.
               </h2>
 
-              <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto md:overflow-visible">
+              <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto md:overflow-visible scrollbar-thin">
                 {/* <div
                   className="hidden md:grid  md:grid-cols-[1.5fr_1fr_80px_1.5fr_3fr_80px]
   lg:grid-cols-[2fr_1.2fr_100px_1.8fr_3fr_100px] items-center px-4 md:px-5 h-12 md:h-14 gap-2 md:gap-4 bg-gray-700 border-b border-gray-400 text-xs md:text-sm lg:text-[15px] font-semibold text-gray-100 rounded-t-lg tracking-wide shadow-sm"
@@ -789,6 +789,7 @@ const ImportFile: React.FC = () => {
                   <div className="min-w-0 flex items-center gap-1">
                     Data Type
                     <span className="hidden md:inline-flex">
+                      [1
                       <InfoTooltip
                         id="data-type-tooltip"
                         text="Select the type of data expected in this column (e.g., string, integer, date ). This helps validate the input format."
@@ -797,8 +798,9 @@ const ImportFile: React.FC = () => {
                     </span>
                   </div>
                   <div className="min-w-0 flex items-center justify-center gap-1">
-                    Required
+                    Required{" "}
                     <span className="hidden md:inline-flex">
+                      [2
                       <InfoTooltip
                         id="allow-empty-tooltip"
                         text="Enable this if the field can be left blank. Disable it to make the field mandatory."
@@ -809,6 +811,7 @@ const ImportFile: React.FC = () => {
                   <div className="min-w-0 flex items-center justify-center  gap-1">
                     Regex{" "}
                     <span className="hidden md:inline-flex">
+                      [3
                       <InfoTooltip
                         id="cell-contains-tooltip"
                         text="Define a pattern that the cell value must match using regular expressions (advanced validation)."
@@ -819,6 +822,7 @@ const ImportFile: React.FC = () => {
                   <div className="min-w-0 flex items-center gap-1">
                     Length
                     <span className="hidden md:inline-flex">
+                      [4
                       <InfoTooltip
                         id="data-length-tooltip"
                         text="Choose whether the value length can vary within a range or must be exactly a fixed number of characters."
