@@ -697,8 +697,8 @@ const ImportFile: React.FC = () => {
     clearErrors,
   };
   return (
-    <div className="w-full min-h-screen flex justify-center bg-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
+    <div className="bg-gray-50">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 pb-6">
         {msg && (
           <div
             ref={msgRef}

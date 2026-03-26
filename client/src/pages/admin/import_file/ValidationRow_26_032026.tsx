@@ -487,9 +487,9 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         {/* LengthValidation start  */}
         <div className="min-w-0 flex flex-col">
           {/* ROW */}
-          <div className="flex items-center gap-2 flex-wrap relative">
+          <div className="flex items-center gap-3 flex-wrap relative">
             {/* Radios */}
-            <div className="flex items-center gap-2 min-w-[110px]">
+            <div className="flex items-center gap-3 min-w-[120px]">
               <label className="flex items-center gap-1 text-sm font-semibold">
                 <input
                   type="radio"
@@ -526,7 +526,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
             {/* VARIABLE */}
             {validationType === "variable" && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {/* MIN */}
                 <div className="relative flex items-center gap-2">
                   <span className="text-sm font-semibold">Min</span>
@@ -609,7 +609,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
       </div>
       {/* desktop view end*/}
       {isExpanded && (
-        <div className="px-3 sm:px-4 md:px-5 lg:px-8 py-4">
+        <div className="px-5 py-4">
           {/* DataRedundantSection start */}
           <div className="flex flex-col gap-4 mb-1">
             {/* Redundant Value */}
