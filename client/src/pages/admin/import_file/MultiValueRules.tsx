@@ -110,6 +110,7 @@ export default function MultiValueRules({
 
         <button
           type="button"
+          title="Add "
           onClick={() => {
             addMultiValueRules(
               headerName,
@@ -127,14 +128,16 @@ export default function MultiValueRules({
         >
           <FaPlus className="w-4 h-4" />
         </button>
-
-        <button
-          type="button"
-          onClick={() => cancelMultiValueRules(headerName, inputType)}
-          className="p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-        >
-          <MdClear size={14}></MdClear>
-        </button>
+        {multiValueRulesInputs[headerName]?.trim() && (
+          <button
+            type="button"
+            title="Clear"
+            onClick={() => cancelMultiValueRules(headerName, inputType)}
+            className="p-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+          >
+            <MdClear size={14} />
+          </button>
+        )}
       </div>
 
       {(errors as any)?.[headerName]?.[`${inputType}_input`] && (

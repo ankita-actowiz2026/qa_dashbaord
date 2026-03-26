@@ -1,14 +1,9 @@
 import { useState, useEffect } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
-import {
-  FiUsers,
-  FiUserPlus,
-  FiHome,
-  FiChevronDown,
-  FiUpload,
-} from "react-icons/fi";
+import { FiHome, FiUpload } from "react-icons/fi";
 import Header from "../../layouts/admin/Header";
-import { TbFileReport } from "react-icons/tb";
+import logo from "../../assets/actowizLogo.svg";
+
 const isMobile = window.innerWidth < 640;
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true); // default open
@@ -31,119 +26,106 @@ const AdminLayout = () => {
     }
   }, [location.pathname]);
 
-  const navItemClass = (isActive: boolean) =>
-    `flex items-center ${
-      sidebarOpen ? "justify-start" : "justify-center"
-    } gap-3 px-3 py-2 rounded-lg transition ${
-      isActive
-        ? "bg-gray-800 text-white"
-        : "text-gray-300 hover:bg-gray-800 hover:text-white"
-    }`;
-
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden">
+    <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <aside
-        className={`bg-gray-900 text-gray-200 h-full transition-all duration-300
-  ${isMobile ? "w-20" : sidebarOpen ? "w-64" : "w-20"} overflow-hidden`}
+        className={`
+        bg-gray-900 text-gray-200 flex flex-col
+        transition-transform duration-300 ease-in-out
+        ${
+          isMobile
+            ? `fixed top-0 left-0 h-full z-50 w-64 transform ${
+                sidebarOpen ? "translate-x-0" : "-translate-x-full"
+              }`
+            : sidebarOpen
+              ? "w-64"
+              : "w-20"
+        }
+      `}
       >
         {/* Logo */}
-        <div className="p-5 border-b border-gray-800">
-          {sidebarOpen && (
-            <h2 className="text-xl font-bold text-white">Admin Panel</h2>
-          )}
+        <div className="h-24 flex items-center px-3 border-b border-gray-800">
+          <div className="flex items-center gap-3">
+            <div className="rounded-full overflow-hidden bg-white flex items-center justify-center">
+              <img
+                src={logo}
+                alt="App logo"
+                className="h-15 w-15 object-contain scale-110"
+              />
+            </div>
+
+            {(sidebarOpen || isMobile) && (
+              <span className="text-white text-lg font-bold whitespace-nowrap">
+                QA Dashboard
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-2">
           <NavLink
             to="/admin/dashboard"
-            className={({ isActive }) => navItemClass(isActive)}
+            className={({ isActive }) =>
+              `flex items-center ${
+                sidebarOpen || isMobile ? "justify-start" : "justify-center"
+              } gap-3 px-3 py-2 rounded-lg transition
+            ${
+              isActive
+                ? "bg-gray-800 text-white"
+                : "text-gray-400 hover:bg-gray-800 hover:text-white"
+            }`
+            }
           >
             <FiHome size={18} />
-            {sidebarOpen && "Dashboard"}
+            {(sidebarOpen || isMobile) && <span>Dashboard</span>}
           </NavLink>
 
           <NavLink
             to="/admin/import_file"
-            className={({ isActive }) => navItemClass(isActive)}
+            className={({ isActive }) =>
+              `flex items-center ${
+                sidebarOpen || isMobile ? "justify-start" : "justify-center"
+              } gap-3 px-3 py-2 rounded-lg transition
+            ${
+              isActive
+                ? "bg-gray-800 text-white"
+                : "text-gray-400 hover:bg-gray-800 hover:text-white"
+            }`
+            }
           >
             <FiUpload size={18} />
-            {sidebarOpen && "Import"}
+            {(sidebarOpen || isMobile) && <span>Import</span>}
           </NavLink>
-
-          {/* User Menu */}
-          {/* <div>
-            <button
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center justify-between w-full px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white"
-            >
-              <div className="flex items-center gap-3">
-                <FiUsers size={18} />
-                {sidebarOpen && "User"}
-              </div>
-              {sidebarOpen && (
-                <FiChevronDown
-                  size={16}
-                  className={`transition-transform ${
-                    userMenuOpen ? "rotate-180" : ""
-                  }`}
-                />
-              )}
-            </button>
-
-            {userMenuOpen && sidebarOpen && (
-              <div className="ml-8 mt-2 space-y-1 text-sm">
-                <NavLink
-                  to="/admin/user"
-                  className={({ isActive }) =>
-                    `block px-3 py-2 rounded ${
-                      isActive
-                        ? "bg-gray-800 text-white"
-                        : "text-gray-400 hover:bg-gray-800 hover:text-white"
-                    }`
-                  }
-                >
-                  User List
-                </NavLink>
-
-                <NavLink
-                  to="/admin/user/add"
-                  className={({ isActive }) =>
-                    `block px-3 py-2 rounded ${
-                      isActive
-                        ? "bg-gray-800 text-white"
-                        : "text-gray-400 hover:bg-gray-800 hover:text-white"
-                    }`
-                  }
-                >
-                  Add User
-                </NavLink>
-              </div>
-            )}
-          </div>
-
-          <NavLink
-            to="/admin/report"
-            className={({ isActive }) => navItemClass(isActive)}
-          >
-            <TbFileReport size={18} />
-            {sidebarOpen && "Report"}
-          </NavLink> */}
         </nav>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-800 text-xs text-gray-500">
+          {(sidebarOpen || isMobile) && "© 2026 Company"}
+        </div>
       </aside>
 
-      {/* Main Section */}
-      <div className="flex-1 flex flex-col">
+      {/* Overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0">
         <Header
-          title="Admin"
-          userName="Admin"
+          title=""
+          userName="Super Admin"
           onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-          onLogout={() => console.log("logout")}
         />
 
-        <main className="flex-1 overflow-auto bg-slate-200">
-          <Outlet />
+        <main className="flex-1 overflow-y-auto bg-gray-100 p-4 md:p-6">
+          <div className="w-full">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

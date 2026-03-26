@@ -167,36 +167,41 @@ const SubDependencyLatest = ({
     }
   }, [successMsg]);
   return (
-    <div className="border rounded-xl bg-white shadow-md overflow-hidden  border-gray-300 ">
+    <div className="max-w-6xl mx-auto border rounded-xl bg-white shadow-md overflow-hidden border-gray-300">
       {/* ===================== */}
       {/* HEADER */}
       {/* ===================== */}
-      <div className="px-4 py-3 flex flex-wrap items-center justify-between gap-2 bg-gradient-to-r from-gray-50 to-gray-00 border-b">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800">
-            Sub Dependencies
-          </h3>
-          <p className="text-xs text-gray-500">
-            Configure sub-level dependency rules
-          </p>
-        </div>
-        {/* ===================== */}
-        {/* ADD BUTTON */}
-        {/* ===================== */}
-        {!showForm && (
-          <div className="flex items-center">
-            <button
-              onClick={handleAdd}
-              className="bg-blue-600 text-white px-3 py-2 rounded flex items-center gap-1"
-              title="Add sub dependancy"
-            >
-              <FaPlus size={14} />
-            </button>
+      <div className="px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-gray-50 to-white border-b">
+        {/* LEFT */}
+        <div className="flex items-center gap-3">
+          {/* LOGO (optional) */}
+          {/* <img src={logo} alt="logo" className="h-8" /> */}
+
+          <div>
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800">
+              Sub Dependencies
+            </h3>
+            <p className="text-xs text-gray-500">
+              Configure sub-level dependency rules
+            </p>
           </div>
+        </div>
+
+        {/* RIGHT */}
+        {!showForm && (
+          <button
+            onClick={handleAdd}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded flex items-center justify-center gap-1 w-full sm:w-auto transition"
+          >
+            <FaPlus size={14} />
+            <span className="sm:hidden">Add</span>
+          </button>
         )}
       </div>
+
+      {/* SUCCESS MESSAGE */}
       {successMsg && (
-        <div className="bg-green-100 text-green-700 px-3 py-2 rounded text-sm flex justify-center">
+        <div className="bg-green-100 text-green-700 px-3 py-2 text-sm flex justify-center">
           {successMsg}
         </div>
       )}
@@ -206,8 +211,7 @@ const SubDependencyLatest = ({
       {/* ===================== */}
       {showForm && (
         <div className="p-4 bg-gray-50 space-y-4 border-b">
-          {/* ROW: MULTISELECT + RADIO */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* MULTISELECT */}
             <div>
               <label className="font-semibold text-sm">Select Columns *</label>
@@ -229,25 +233,19 @@ const SubDependencyLatest = ({
                   </option>
                 ))}
               </select>
+
               {error.headers && (
                 <p className="text-red-500 text-xs mt-1">{error.headers}</p>
               )}
             </div>
 
-            {/* CONDITION + TEXTBOX */}
+            {/* CONDITION */}
             <div>
               <label className="font-semibold text-sm">Condition *</label>
 
               {/* RADIO */}
-              <div className="flex flex-wrap gap-3 mt-1">
-                {" "}
-                <span className="block md:hidden text-xs text-gray-500">
-                  Condition
-                </span>
+              <div className="flex flex-col sm:flex-row gap-3 mt-2">
                 <label className="flex items-center gap-1">
-                  <span className="block md:hidden text-xs text-gray-500">
-                    Value
-                  </span>
                   <input
                     type="radio"
                     checked={formData.condition === "true"}
@@ -261,6 +259,7 @@ const SubDependencyLatest = ({
                   />
                   Value Required
                 </label>
+
                 <label className="flex items-center gap-1">
                   <input
                     type="radio"
@@ -277,7 +276,7 @@ const SubDependencyLatest = ({
                 </label>
               </div>
 
-              {/* TEXTBOX BELOW RADIO */}
+              {/* INPUT */}
               <input
                 type="text"
                 placeholder="Enter value"
@@ -290,14 +289,12 @@ const SubDependencyLatest = ({
                   formData.condition !== "other" ? "bg-gray-100" : ""
                 }`}
               />
+
               {error.value && (
                 <p className="text-red-500 text-xs mt-1">{error.value}</p>
               )}
             </div>
           </div>
-
-          {/* ERROR */}
-          {/* {error && <p className="text-red-500 text-sm">{error}</p>} */}
 
           {/* BUTTONS */}
           <div className="flex flex-col sm:flex-row justify-end gap-2">
@@ -348,34 +345,33 @@ const SubDependencyLatest = ({
           </p>
         ) : (
           <div className="border border-gray-300 rounded-lg overflow-hidden">
-            {/* HEADER ROW */}
-            <div className="hidden md:grid grid-cols-12 gap-3 px-3 py-2 bg-gray-300 text-sm font-semibold text-gray-700">
-              <div className="col-span-5 ">Header Columns</div>
+            {/* DESKTOP HEADER */}
+            <div className="hidden md:grid grid-cols-12 gap-3 px-3 py-2 bg-gray-200 text-sm font-semibold text-gray-700">
+              <div className="col-span-5">Header Columns</div>
               <div className="col-span-3">Condition</div>
               <div className="col-span-2">Value</div>
               <div className="col-span-2 text-right">Actions</div>
             </div>
 
-            {/* DATA ROWS */}
+            {/* ROWS */}
             {savedList.map((item, index) => (
               <div
                 key={index}
-                className="flex flex-col md:grid md:grid-cols-12 gap-2 md:gap-3 px-3 py-3 bg-white hover:bg-gray-50 border-t border-gray-200"
+                className="border-t border-gray-200 p-3 md:grid md:grid-cols-12 md:gap-3 bg-white hover:bg-gray-50 transition"
               >
-                {/* HEADERS */}
-                <div className="md:col-span-5 text-sm text-gray-800">
-                  <span className="block md:hidden text-xs text-gray-500">
-                    Headers
-                  </span>
-                  <span className="break-words">
+                {/* Headers */}
+                <div className="md:col-span-5">
+                  <p className="text-xs text-gray-500 md:hidden">Headers</p>
+                  <p className="text-sm text-gray-800 break-words">
                     {item.headers?.length ? item.headers.join(", ") : "-"}
-                  </span>
+                  </p>
                 </div>
 
-                {/* CONDITION */}
-                <div className="col-span-3 text-sm">
+                {/* Condition */}
+                <div className="md:col-span-3 mt-2 md:mt-0">
+                  <p className="text-xs text-gray-500 md:hidden">Condition</p>
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
+                    className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                       item.condition === "true"
                         ? "bg-green-100 text-green-700"
                         : "bg-yellow-100 text-yellow-700"
@@ -387,13 +383,14 @@ const SubDependencyLatest = ({
                   </span>
                 </div>
 
-                {/* VALUE */}
-                <div className="col-span-2 text-sm text-gray-700">
-                  {item.value || "-"}
+                {/* Value */}
+                <div className="md:col-span-2 mt-2 md:mt-0">
+                  <p className="text-xs text-gray-500 md:hidden">Value</p>
+                  <p className="text-sm text-gray-700">{item.value || "-"}</p>
                 </div>
 
-                {/* ACTIONS */}
-                <div className="md:col-span-2 flex justify-start md:justify-end gap-3 mt-2 md:mt-0">
+                {/* Actions */}
+                <div className="md:col-span-2 flex justify-end gap-3 mt-3 md:mt-0">
                   <button
                     onClick={() => handleEdit(item, index)}
                     className="text-blue-600 hover:text-blue-800"
@@ -403,7 +400,7 @@ const SubDependencyLatest = ({
 
                   <button
                     onClick={() => handleDelete(index)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-red-600 hover:text-red-800"
                   >
                     <FiTrash2 size={18} />
                   </button>

@@ -1,9 +1,10 @@
 To do
 
-2)add interceptor 3) authentication set for report 4) error message showin toaster 5) better design
+1. read json file and reaf first 50 records for headers
+   2)when user login set context api and username show from database
 
-1. npm install
-2. npm run seed:admin
+1) npm install
+2) npm run seed:admin
 
 🔹 Frontend Axios
 axios.post("http://localhost:5000/login", data, {

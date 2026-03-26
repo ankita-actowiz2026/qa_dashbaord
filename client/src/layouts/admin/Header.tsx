@@ -7,10 +7,9 @@ interface HeaderProps {
   title: string;
   userName: string;
   onMenuClick: () => void;
-  onLogout: () => void;
 }
 
-const Header = ({ title, onMenuClick, onLogout }: HeaderProps) => {
+const Header = ({ title, onMenuClick }: HeaderProps) => {
   const navigate = useNavigate();
   const handleLogout = async () => {
     try {

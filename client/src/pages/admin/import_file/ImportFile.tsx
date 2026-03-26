@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
-import { FaFileCircleCheck } from "react-icons/fa6";
+import { FaPlay } from "react-icons/fa";
 import { FiUpload } from "react-icons/fi";
 //import { createPortal } from "react-dom";
 import { InfoTooltip } from "../../../utils/ToolTips";
@@ -698,7 +698,7 @@ const ImportFile: React.FC = () => {
   };
   return (
     <div className="w-full min-h-screen flex justify-center bg-gray-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 pb-6">
         {msg && (
           <div
             ref={msgRef}
@@ -724,7 +724,7 @@ const ImportFile: React.FC = () => {
           {/* Upload Box */}
 
           <div
-            className="border-2 border-dashed border-gray-300 rounded-xl p-4 sm:p-6 md:p-8 text-center cursor-pointer hover:border-black transition"
+            className="border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 text-center cursor-pointer hover:border-black transition"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -783,7 +783,7 @@ const ImportFile: React.FC = () => {
                 > */}
 
                 <div
-                  className={`${gridClass} h-12 md:h-14 bg-gray-700 text-gray-100 font-semibold`}
+                  className={`${gridClass} h-12 md:h-14 bg-gray-700 text-gray-100 font-semibold rounded-t-xl`}
                 >
                   <div className="min-w-0 flex items-center ">Header Name</div>
                   <div className="min-w-0 flex items-center gap-1">
@@ -849,6 +849,7 @@ const ImportFile: React.FC = () => {
 
               <div className="flex justify-center mt-6">
                 <button
+                  title="Run Validate"
                   disabled={loading}
                   type="submit"
                   className="mt-6 w-full sm:w-auto bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 flex items-center gap-2 mx-auto"
@@ -857,8 +858,8 @@ const ImportFile: React.FC = () => {
                     "Processing..."
                   ) : (
                     <>
-                      <FaFileCircleCheck className="text-lg" />
-                      Validate File
+                      <FaPlay className="text-lg" />
+                      Run Validation
                     </>
                   )}
                 </button>
