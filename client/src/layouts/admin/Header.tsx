@@ -2,6 +2,7 @@ import axios from "axios";
 import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -16,13 +17,17 @@ const Header = () => {
         {},
         { withCredentials: true },
       );
+
+      toast.success("Logout successfully"); // ✅ toaster here
     } catch (err) {
       console.error("Server logout failed", err);
+      toast.error("Logout failed"); // optional error toast
     }
+
     logout();
+
     navigate("/admin/login", {
       replace: true,
-      state: { msg: "Logout successfully", type: "success" },
     });
   };
 

@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import { FiTrash2, FiEdit } from "react-icons/fi";
 import { FaPlus } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const SubDependencyLatest = ({
   headerName,
@@ -22,7 +23,7 @@ const SubDependencyLatest = ({
   const [showForm, setShowForm] = useState(false);
   const [editIndex, setEditIndex] = useState(null);
   const [error, setError] = useState({});
-  const [successMsg, setSuccessMsg] = useState("");
+
   const [formData, setFormData] = useState({
     headers: [],
     condition: "true",
@@ -99,7 +100,7 @@ const SubDependencyLatest = ({
     setValue(subPath, updated);
     onSaveList && onSaveList(updated);
 
-    setSuccessMsg("Sub dependency added successfully");
+    toast.success("Sub dependency added successfully");
 
     resetForm();
   };
@@ -114,7 +115,7 @@ const SubDependencyLatest = ({
       setValue(subPath, updated);
       onSaveList && onSaveList(updated);
 
-      setSuccessMsg("Sub dependency deleted successfully");
+      toast.success("Sub dependency deleted successfully");
     }
   };
 
@@ -153,19 +154,11 @@ const SubDependencyLatest = ({
     setValue(subPath, updated);
     onSaveList && onSaveList(updated);
 
-    setSuccessMsg("Sub dependency updated successfully");
+    toast.success("Sub dependency updated successfully");
 
     resetForm();
   };
-  useEffect(() => {
-    if (successMsg) {
-      const timer = setTimeout(() => {
-        setSuccessMsg("");
-      }, 2500);
 
-      return () => clearTimeout(timer);
-    }
-  }, [successMsg]);
   return (
     <div className="max-w-6xl mx-auto border rounded-xl bg-white shadow-md overflow-hidden border-gray-300">
       {/* ===================== */}
@@ -198,13 +191,6 @@ const SubDependencyLatest = ({
           </button>
         )}
       </div>
-
-      {/* SUCCESS MESSAGE */}
-      {successMsg && (
-        <div className="bg-green-100 text-green-700 px-3 py-2 text-sm flex justify-center">
-          {successMsg}
-        </div>
-      )}
 
       {/* ===================== */}
       {/* FORM */}

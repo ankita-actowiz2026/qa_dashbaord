@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import type { loginInterface } from "../../interface/login.interface";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import toast from "react-hot-toast";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -23,8 +24,7 @@ const Login = () => {
   const { login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [msg, setMsg] = useState("");
-  const [msgType, setMsgType] = useState<"success" | "danger" | "">("");
+
   const {
     register,
     handleSubmit,
@@ -32,21 +32,7 @@ const Login = () => {
   } = useForm<LoginFormData>({
     resolver: yupResolver(schema),
   });
-  useEffect(() => {
-    if (location.state?.msg) {
-      setMsg(location.state.msg);
 
-      navigate(location.pathname, { replace: true }); //every tie refresh will not show msg
-    }
-  }, [location.state, navigate, location.pathname]);
-  useEffect(() => {
-    if (msg) {
-      const timer = setTimeout(() => {
-        setMsg("");
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [msg]);
   const onSubmit = async (data: loginInterface) => {
     try {
       const userData = {
@@ -71,10 +57,11 @@ const Login = () => {
         },
       };
       login(user_data.accessToken, user_data.user);
+      toast.success("Logged in successfully!"); // ✅ success toast
+
       navigate("/admin/dashboard");
     } catch (error: any) {
-      setMsg(error.response?.data?.message || "Login failed");
-      setMsgType("danger");
+      toast.error(error.response?.data?.message || "Login failed"); // ✅ error toast
     }
   };
 
@@ -86,13 +73,6 @@ const Login = () => {
         <div className="text-center mb-6">
           <h2 className="text-3xl font-bold text-gray-800">Login</h2>
         </div>
-
-        {/* Error Message */}
-        {msg && (
-          <div className="mb-4 px-4 py-3 text-red-700 bg-red-100 border border-red-300 rounded-lg text-center">
-            {msg}
-          </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">

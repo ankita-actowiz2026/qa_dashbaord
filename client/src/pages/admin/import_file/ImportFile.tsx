@@ -8,6 +8,8 @@ import { FiUpload } from "react-icons/fi";
 import { InfoTooltip } from "../../../utils/ToolTips";
 import axios from "axios";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+
 const buildDependencyPayload = (data: any) => {
   const result: Record<string, any> = {};
 
@@ -103,8 +105,7 @@ const ImportFile: React.FC = () => {
   const [cellStartWithInputs, setCellStartWithInputs] = useState<any>({});
   const [cellEndWithInputs, setCellEndWithInputs] = useState<any>({});
   const [notMatchFoundInputs, setNotMatchFoundInputs] = useState<any>({});
-  const [msg, setMsg] = useState("");
-  const [msgType, setMsgType] = useState<"success" | "danger" | "">("");
+
   const [responseData, setResponseData] = useState(null);
   const [requestData, setRequestData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -140,14 +141,6 @@ const ImportFile: React.FC = () => {
     ],
   );
 
-  useEffect(() => {
-    if (msg) {
-      const timer = setTimeout(() => {
-        setMsg("");
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [msg]);
   const formatLabel = (str: string) =>
     str
       .replace(/_/g, " ") // replace all underscores
@@ -479,11 +472,11 @@ const ImportFile: React.FC = () => {
       reset();
       setHeaders([]);
       if (error?.response?.data?.message || error?.message) {
-        setMsg(error?.response?.data?.message || error?.message);
+        toast.error(error?.response?.data?.message || error?.message);
       } else if (error.message?.includes("ERR_UPLOAD_FILE_CHANGED")) {
-        setMsg("File was changed. Please re-select and upload again.");
+        toast.error("File was changed. Please re-select and upload again.");
       } else if (error.request) {
-        setMsg("Something get wrong. Please upload file again");
+        toast.error("Something get wrong. Please upload file again");
       }
     } finally {
       setLoading(false);
@@ -494,12 +487,9 @@ const ImportFile: React.FC = () => {
     if (!selectedFile) return;
 
     setHeaders([]);
-    setMsg("");
-    setMsgType("");
 
     if (!validateFile(selectedFile)) {
-      setMsg("Invalid file type");
-      setMsgType("danger");
+      toast.error("Invalid file type");
       setResponseData(null);
       setRequestData(null);
       setFile(null);
@@ -518,8 +508,7 @@ const ImportFile: React.FC = () => {
       await readHeaderFromServer(selectedFile);
     } catch {
       setHeaders([]);
-      setMsg("Failed to read file");
-      setMsgType("danger");
+      toast.error("Failed to read file");
     }
 
     // ✅ VERY IMPORTANT: clear after success too
@@ -636,17 +625,18 @@ const ImportFile: React.FC = () => {
           },
         },
       );
+      toast.success("File validated successfully");
 
       setResponseData(response.data);
     } catch (error: any) {
       if (error?.response?.data?.message || error?.message) {
-        setMsg(error?.response?.data?.message || error?.message);
+        toast.error(error?.response?.data?.message || error?.message);
       } else if (error.message?.includes("ERR_UPLOAD_FILE_CHANGED")) {
-        setMsg("File was changed. Please re-select and upload again.");
+        toast.error("File was changed. Please re-select and upload again.");
       } else if (error.request) {
-        setMsg("Something get wrong. Please upload file again");
+        toast.error("Something get wrong. Please upload file again");
       }
-      setMsgType("danger");
+
       setResponseData(null);
       setRequestData(null);
       setHeaders([]);
@@ -667,16 +657,7 @@ const ImportFile: React.FC = () => {
     addMultiValueRules,
     cancelMultiValueRules,
   };
-  useEffect(() => {
-    if (msg && msgType !== "success") {
-      msgRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
 
-      msgRef.current?.focus();
-    }
-  }, [msg, msgType]);
   const formHelpers = {
     register,
     watch,
@@ -691,18 +672,6 @@ const ImportFile: React.FC = () => {
   return (
     <div className="bg-gray-50">
       <div className=" mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        {msg && (
-          <div
-            ref={msgRef}
-            className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
-              msgType === "success"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-            }`}
-          >
-            {msg}
-          </div>
-        )}
         {/* Title */}
         <div className="text-center mb-6">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">
