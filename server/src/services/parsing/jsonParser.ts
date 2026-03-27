@@ -17,8 +17,8 @@ export const jsonParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
   errorSheet: ExcelJS.Worksheet,
-): Promise => {
-  const ruleMap: Record<string, ColumnRule> = columnConfig;
+): Promise<ParserResult> => {
+  const ruleMap = columnConfig;
   prepareColumnRules(ruleMap);
 
   let total_rows = 0;
@@ -31,78 +31,142 @@ export const jsonParser = async (
   const columnStats: Record<string, any> = {};
   const errorBuffer = new ErrorBuffer(errorSheet, 500);
 
+  let previewRows: any[] = [];
+  let detectedHeaders = new Set<string>();
+
   return new Promise((resolve, reject) => {
-    try {
-      const fileStream = fs.createReadStream(filePath);
-      const jsonParser = parser();
-      const arrayStream = streamArray();
+    const fileStream = fs.createReadStream(filePath);
+    const jsonParserStream = parser();
+    const arrayStream = streamArray();
 
-      fileStream.pipe(jsonParser).pipe(arrayStream);
+    let isSettled = false;
 
-      // HANDLE STREAM ERRORS
-      fileStream.on("error", reject);
-      jsonParser.on("error", (err) => {
-        reject(new Error("Invalid or corrupted JSON file"));
+    const safeReject = (err: Error) => {
+      if (!isSettled) {
+        isSettled = true;
+        reject(err);
+        fileStream.destroy();
+        jsonParserStream.destroy();
+        arrayStream.destroy();
+      }
+    };
+
+    const safeResolve = (data: ParserResult) => {
+      if (!isSettled) {
+        isSettled = true;
+        resolve(data);
+      }
+    };
+
+    fileStream.on("error", () =>
+      safeReject(new Error("JSON file could not be read")),
+    );
+    jsonParserStream.on("error", () => safeReject(new Error("Invalid JSON")));
+    arrayStream.on("error", safeReject);
+
+    fileStream.pipe(jsonParserStream).pipe(arrayStream);
+
+    const processRow = (rowData: any) => {
+      total_rows++;
+      const rowNumber = total_rows;
+
+      const formattedRow: any = {};
+
+      headers.forEach((header) => {
+        formattedRow[header] = rowData?.[header];
       });
-      arrayStream.on("error", reject);
 
-      arrayStream.on("data", ({ key, value }) => {
-        try {
-          const rowData = value;
+      const rowValid = validateRow(
+        formattedRow,
+        rowNumber,
+        headers,
+        ruleMap,
+        columnStats,
+        errorBuffer,
+        "json",
+      );
 
-          if (!headerInitialized) {
-            headers = Object.keys(rowData);
+      if (rowValid) valid_rows++;
+      else invalid_rows++;
+    };
 
-            headers.forEach((header) => {
-              columnStats[header] = createColumnStats();
-            });
+    const handleRowError = (err: any) => {
+      invalid_rows++;
 
-            headerInitialized = true;
-          }
+      errorBuffer.add([
+        total_rows + 1,
+        "Row Error",
+        "Parsing Error",
+        err?.message || "Unknown error",
+      ]);
+    };
 
-          total_rows++;
-          const rowNumber = total_rows;
+    arrayStream.on("data", ({ value }) => {
+      try {
+        const rowData = value;
 
-          const rowValid = validateRow(
-            rowData,
-            rowNumber,
-            headers,
-            ruleMap,
-            columnStats,
-            errorBuffer,
-            "json",
-          );
-
-          if (rowValid) valid_rows++;
-          else invalid_rows++;
-        } catch (rowError) {
-          invalid_rows++;
-
-          errorBuffer.add([
-            total_rows + 1,
-            "Row Error",
-            "Parsing Error",
-            (rowError as Error).message,
-          ]);
+        // ✅ Validate row type first
+        if (typeof rowData !== "object" || rowData === null) {
+          handleRowError(new Error("Invalid row format"));
+          return;
         }
-      });
 
-      arrayStream.on("end", () => {
-        try {
-          errorBuffer.flush();
+        // ✅ Collect first 50 rows
+        if (previewRows.length < 50) {
+          previewRows.push(rowData);
 
-          resolve({
-            total_rows,
-            valid_rows,
-            invalid_rows,
-            column_wise_stats: columnStats,
+          Object.keys(rowData).forEach((key) => {
+            detectedHeaders.add(key);
           });
-        } catch (err) {
-          reject(err);
+
+          return;
         }
-      });
-    } catch (err) {
-      reject(err);
-    }
+
+        // ✅ Initialize headers once
+        if (!headerInitialized) {
+          headers = Array.from(detectedHeaders);
+
+          headers.forEach((header) => {
+            columnStats[header] = createColumnStats();
+          });
+
+          headerInitialized = true;
+
+          // Process buffered rows
+          previewRows.forEach((row) => processRow(row));
+          previewRows = [];
+        }
+
+        // ✅ Process current row
+        processRow(rowData);
+      } catch (err) {
+        handleRowError(err);
+      }
+    });
+
+    arrayStream.on("end", () => {
+      try {
+        if (!headerInitialized) {
+          headers = Array.from(detectedHeaders);
+
+          headers.forEach((header) => {
+            columnStats[header] = createColumnStats();
+          });
+
+          previewRows.forEach((row) => processRow(row));
+        }
+
+        errorBuffer.flush();
+
+        safeResolve({
+          total_rows,
+          valid_rows,
+          invalid_rows,
+          column_wise_stats: columnStats,
+        });
+      } catch (err) {
+        safeReject(err as Error);
+      }
+    });
   });
 };

@@ -1,52 +1,31 @@
 import axios from "axios";
-import { FiMenu, FiLogOut } from "react-icons/fi";
-import { useNavigate, NavLink } from "react-router-dom";
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-import { useState, useEffect } from "react";
-interface HeaderProps {
-  title: string;
-  userName: string;
-  onMenuClick: () => void;
-}
+import { FiLogOut } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
-const Header = ({ title, onMenuClick }: HeaderProps) => {
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+const Header = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const handleLogout = async () => {
     try {
       await axios.post(
         BACKEND_URL + "/admin/auth/logout",
         {},
-        {
-          withCredentials: true,
-        },
+        { withCredentials: true },
       );
-      localStorage.removeItem("admin_data");
     } catch (err) {
       console.error("Server logout failed", err);
     }
+    logout();
     navigate("/admin/login", {
       replace: true,
       state: { msg: "Logout successfully", type: "success" },
     });
   };
 
-  const [user, setUser] = useState<any>(null);
-
-  const fetchMe = async () => {
-    try {
-      const res = await axios.get(BACKEND_URL + "/admin/auth/profile", {
-        withCredentials: true,
-      });
-
-      setUser(res.data.data);
-    } catch (error) {
-      console.log("Not logged in");
-    }
-  };
-
-  useEffect(() => {
-    fetchMe();
-  }, []);
   return (
     <header className="relative flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 shadow-sm sticky top-0 z-10">
       {/* Left Section */}

@@ -11,21 +11,21 @@ const Header = () => {
   //const { logout, user, accessToken } = useAuth();
   const [user, setUser] = useState<any>(null);
 
-  const fetchMe = async () => {
-    try {
-      const res = await axios.get(BACKEND_URL + "/api/auth/profile", {
-        withCredentials: true,
-      });
-      sessionStorage.setItem("auth_user", JSON.stringify(res.data.data));
-      setUser(res.data.data);
-    } catch (error) {
-      console.log("Not logged in");
-    }
-  };
+  // const fetchMe = async () => {
+  //   try {
+  //     const res = await axios.get(BACKEND_URL + "/api/auth/profile", {
+  //       withCredentials: true,
+  //     });
+  //     sessionStorage.setItem("auth_user", JSON.stringify(res.data.data));
+  //     setUser(res.data.data);
+  //   } catch (error) {
+  //     console.log("Not logged in");
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchMe();
-  }, []);
+  // useEffect(() => {
+  //   fetchMe();
+  // }, []);
 
   const handleLogout = async () => {
     try {

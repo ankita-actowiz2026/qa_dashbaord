@@ -276,6 +276,7 @@ export const validateRow = (
   for (let i = 0; i < headers.length; i++) {
     let datatype_validation_checked = 0;
     const columnName = headers[i];
+    //console.log(columnName);
     const rule = ruleMap[columnName];
     if (!rule) continue;
     const dataType = rule.data_type;

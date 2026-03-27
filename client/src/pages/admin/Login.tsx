@@ -65,7 +65,7 @@ const Login = () => {
       const user_data = {
         accessToken: result.data.data.accessToken,
         user: {
-          username: result.data.data.user.name,
+          name: result.data.data.user.name,
           id: result.data.data.user._id,
           role: result.data.data.user.role,
         },

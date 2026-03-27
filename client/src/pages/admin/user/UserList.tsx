@@ -40,21 +40,18 @@ function UserList() {
     setLoading(true);
 
     try {
-      const tokenData = JSON.parse(localStorage.getItem("admin_data") || "{}"); 
-      const { data } = await axios.get(
-        BACKEND_URL + "/admin/user",
-        {
-          signal: controller.signal,
-          params: {
-            page,
-            limit,
-            search,
-            sortField,
-            sortOrder,
-          },          
-          withCredentials: true,
+      //const tokenData = JSON.parse(localStorage.getItem("admin_data") || "{}");
+      const { data } = await axios.get(BACKEND_URL + "/admin/user", {
+        signal: controller.signal,
+        params: {
+          page,
+          limit,
+          search,
+          sortField,
+          sortOrder,
         },
-      );
+        withCredentials: true,
+      });
 
       setUserData(data.data);
       setTotal(data.total);
@@ -160,7 +157,7 @@ function UserList() {
                   {[
                     { label: "Name", field: "name" },
                     { label: "Email", field: "email" },
-                    { label: "Status", field: "status" },                    
+                    { label: "Status", field: "status" },
                     { label: "Created", field: "createdAt" },
                   ].map((col) => (
                     <th
@@ -179,8 +176,6 @@ function UserList() {
                     </th>
                   ))}
 
-                
-                
                   <th className="px-4 py-3 text-center">Actions</th>
                 </tr>
               </thead>

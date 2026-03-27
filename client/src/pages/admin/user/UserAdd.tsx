@@ -10,7 +10,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const schema = yup.object().shape({
   name: yup.string().required("Name is required"),
   email: yup.string().email("Enter valid email").required("Email required"),
-  password: yup.string().required("Password is required"),  
+  password: yup.string().required("Password is required"),
   status: yup.string().required("Status is required"),
 });
 
@@ -38,13 +38,13 @@ function UserAdd() {
     const fetchUser = async () => {
       setLoading(true);
       try {
-        const tokenData = JSON.parse(localStorage.getItem("admin_data") || "{}");
+        //const tokenData = JSON.parse(localStorage.getItem("admin_data") || "{}");
         const { data } = await axios.get(BACKEND_URL + `/admin/user/${id}`, {
           withCredentials: true,
-        },);
+        });
         Object.entries(data.data).forEach(([k, v]) =>
           setValue(k as keyof IUser, v),
-        );        
+        );
         //setValue("status", data.data.status.toString());
       } catch (error: any) {
         setMsg(
@@ -68,8 +68,8 @@ function UserAdd() {
     formState: { errors },
   } = useForm<IUser>({
     resolver: yupResolver(schema),
-    defaultValues: {      
-        status: "active",      
+    defaultValues: {
+      status: "active",
     },
   });
   // const formValues = watch();
@@ -89,24 +89,19 @@ function UserAdd() {
       const send_data = {
         name: data.name,
         email: data.email,
-        password: data.password,        
+        password: data.password,
         status: data.status,
       };
       let res: any;
-      const tokenData = JSON.parse(localStorage.getItem("admin_data") || "{}"); 
+      //const tokenData = JSON.parse(localStorage.getItem("admin_data") || "{}");
       if (mode == "add") {
-        res = await axios.post(
-          BACKEND_URL + "/admin/user",
-          send_data,
-          {
+        res = await axios.post(BACKEND_URL + "/admin/user", send_data, {
           withCredentials: true,
-        },
-        );
+        });
       } else {
-        res = await axios.put( BACKEND_URL + "/admin/user/" + id, send_data,
-          {
-            withCredentials: true,
-          });
+        res = await axios.put(BACKEND_URL + "/admin/user/" + id, send_data, {
+          withCredentials: true,
+        });
       }
 
       navigate("/admin/user/list", {
@@ -166,9 +161,7 @@ function UserAdd() {
               }`}
             />
             {errors.name && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.name.message}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
             )}
           </div>
 
@@ -192,24 +185,22 @@ function UserAdd() {
             )}
           </div>
 
-         
-         {mode === "add" ? (
-         
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-             <input
-              type="password"
-              placeholder="Password"
-              {...register("password")}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-          ): null}
+          {mode === "add" ? (
+            <div>
+              <label className="block text-sm font-medium mb-1">Password</label>
+              <input
+                type="password"
+                placeholder="Password"
+                {...register("password")}
+                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+          ) : null}
           <div>
             <label className="block text-sm font-medium mb-2">Status</label>
             <div className="flex gap-6">
@@ -239,7 +230,7 @@ function UserAdd() {
               </p>
             )}
           </div>
-         
+
           {/* Buttons */}
           <div className="flex gap-4 justify-center pt-4">
             <button
