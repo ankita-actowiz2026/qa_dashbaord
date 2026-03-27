@@ -43,121 +43,171 @@ const ValidationResult = ({ response }) => {
       </div>
 
       {/* Column-wise stats table */}
-      <div className="overflow-x-auto">
-        <h2 className="text-2xl font-bold mb-4 text-gray-800 flex align">
+      {/* Column-wise stats table */}
+      <div>
+        <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 text-center md:text-left">
           Column-wise Errors
         </h2>
 
-        {/* Header */}
-        <div className="grid grid-cols-12 bg-gray-200 font-semibold border">
-          <div className="p-3">Column</div>
-          <div className="p-3 text-center"># Records</div>
-          <div className="p-3 text-center"># Valid </div>
-          <div className="p-3 text-center"># Invalid</div>
-          <div className="p-3 text-center"># Datatype</div>
-          <div className="p-3 text-center"># Empty</div>
-          <div className="p-3 text-center"># Regex</div>
-          <div className="p-3 text-center"># Length</div>
-          <div className="p-3 text-center"># Redundant</div>
-          <div className="p-3 text-center"># Fixed header</div>
-          <div className="p-3 text-center"># Start/End with</div>
-          <div className="p-3 text-center">Action</div>
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <div className="min-w-[1000px]">
+            {/* Header */}
+            <div className="grid grid-cols-12 bg-gray-200 font-semibold border text-sm">
+              <div className="p-3">Column</div>
+              <div className="p-3 text-center">Records</div>
+              <div className="p-3 text-center">Valid</div>
+              <div className="p-3 text-center">Invalid</div>
+              <div className="p-3 text-center">Datatype</div>
+              <div className="p-3 text-center">Empty</div>
+              <div className="p-3 text-center">Regex</div>
+              <div className="p-3 text-center">Length</div>
+              <div className="p-3 text-center">Redundant</div>
+              <div className="p-3 text-center">Header</div>
+              <div className="p-3 text-center">Start/End</div>
+              <div className="p-3 text-center">Action</div>
+            </div>
+
+            {/* Rows */}
+            {Object.entries(data.column_wise_stats).map(
+              ([colName, stats], index) => (
+                <div key={colName} className="border-t">
+                  <div
+                    className={`grid grid-cols-12 items-center text-sm ${
+                      index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    }`}
+                  >
+                    <div className="p-3 font-medium">
+                      {colName
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </div>
+
+                    <div className="p-3 text-center">{stats.total_records}</div>
+                    <div className="p-3 text-center text-green-600">
+                      {stats.valid_records}
+                    </div>
+                    <div className="p-3 text-center text-red-600">
+                      {stats.invalid_records}
+                    </div>
+
+                    <div className="p-3 text-center">
+                      {stats.datatype_error_count}
+                    </div>
+                    <div className="p-3 text-center">{stats.empty_count}</div>
+                    <div className="p-3 text-center">
+                      {stats.regex_pattern_error_count}
+                    </div>
+                    <div className="p-3 text-center">
+                      {stats.length_validation_error_count}
+                    </div>
+                    <div className="p-3 text-center">
+                      {stats.redundant_error_count}
+                    </div>
+                    <div className="p-3 text-center">
+                      {stats.fixed_header_error_count}
+                    </div>
+                    <div className="p-3 text-center">
+                      {stats.cell_start_with_end_with_error_count}
+                    </div>
+
+                    <div className="p-3 text-center">
+                      <button onClick={() => toggleRow(colName)}>
+                        {expandedRow === colName ? "▲" : "▼"}
+                      </button>
+                    </div>
+                  </div>
+                  {expandedRow === colName && (
+                    <div className="bg-gray-50 border-t p-3 md:p-4 space-y-3 md:pl-16">
+                      {/* Grid instead of plain divs */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="font-semibold">
+                            Dependency Error:
+                          </span>{" "}
+                          {stats.dependancy_error_count}
+                        </div>
+
+                        <div className="sm:col-span-2 break-words">
+                          <span className="font-semibold">Invalid Types:</span>{" "}
+                          {errors_for_coloms[colName]?.length > 0
+                            ? errors_for_coloms[colName].join(", ")
+                            : "No errors"}
+                        </div>
+                      </div>
+
+                      {/* Optional Scrollable Error Messages */}
+                      {stats.error_msg?.length > 0 && (
+                        <div>
+                          <div className="font-semibold mb-1 text-sm">
+                            Error Messages:
+                          </div>
+                          <div className="max-h-40 overflow-y-auto text-xs md:text-sm space-y-1 bg-white p-2 rounded border">
+                            {stats.error_msg.map((err, idx) => (
+                              <div key={idx} className="break-words">
+                                Row {err.row}: {err.error_type} -{" "}
+                                {err.error_description}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
+          </div>
         </div>
 
-        {/* Rows */}
-        {Object.entries(data.column_wise_stats).map(
-          ([colName, stats], index) => (
-            <div key={colName} className="border-t">
-              {/* Main Row */}
-              <div
-                className={`grid grid-cols-12 items-center text-sm ${
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                } hover:bg-gray-100 transition`}
-              >
-                <div className="p-3 font-medium break-words">
-                  {colName
-                    ?.replace(/_/g, " ")
-                    .replace(/\b\w/g, (char) => char.toUpperCase())}
-                </div>
-
-                <div className="p-3 text-center">{stats.total_records}</div>
-                <div className="p-3 text-center text-green-600 font-semibold">
-                  {stats.valid_records}
-                </div>
-                <div className="p-3 text-center text-red-600 font-semibold">
-                  {stats.invalid_records}
-                </div>
-
-                <div className="p-3 text-center">
-                  {stats.datatype_error_count}
-                </div>
-                <div className="p-3 text-center">{stats.empty_count}</div>
-                <div className="p-3 text-center">
-                  {stats.regex_pattern_error_count}
-                </div>
-                <div className="p-3 text-center">
-                  {stats.length_validation_error_count}
-                </div>
-                <div className="p-3 text-center">
-                  {stats.redundant_error_count}
-                </div>
-                <div className="p-3 text-center">
-                  {stats.fixed_header_error_count}
-                </div>
-                <div className="p-3 text-center">
-                  {stats.cell_start_with_end_with_error_count}
-                </div>
-
-                {/* Expand Button */}
-                <div className="p-3 text-center">
-                  <button
-                    onClick={() => toggleRow(colName)}
-                    className="text-blue-600 hover:text-blue-800 text-lg"
-                  >
-                    {expandedRow === colName ? (
-                      <FiChevronUp className="w-5 h-5 text-gray-600" />
-                    ) : (
-                      <FiChevronDown className="w-5 h-5 text-gray-600" />
-                    )}
-                  </button>
-                </div>
+        {/* 📱 Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {Object.entries(data.column_wise_stats).map(([colName, stats]) => (
+            <div key={colName} className="bg-white shadow rounded-lg p-4">
+              <div className="font-bold text-lg mb-2">
+                {colName
+                  .replace(/_/g, " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
               </div>
 
-              {/* Expanded Section */}
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>Total: {stats.total_records}</div>
+                <div className="text-green-600">
+                  Valid: {stats.valid_records}
+                </div>
+                <div className="text-red-600">
+                  Invalid: {stats.invalid_records}
+                </div>
+                <div>Empty: {stats.empty_count}</div>
+                <div>Datatype: {stats.datatype_error_count}</div>
+                <div>Regex: {stats.regex_pattern_error_count}</div>
+                <div>Length: {stats.length_validation_error_count}</div>
+                <div>Redundant: {stats.redundant_error_count}</div>
+              </div>
+
+              {/* Expand */}
+              <button
+                onClick={() => toggleRow(colName)}
+                className="mt-3 text-blue-600 text-sm"
+              >
+                {expandedRow === colName ? "Hide Details ▲" : "View Details ▼"}
+              </button>
+
               {expandedRow === colName && (
-                <div className="bg-gray-50 p-4 border-t space-y-3 pl-16">
-                  <div className="text-sm">
-                    <span className="font-semibold"># Blocked:</span>{" "}
-                    {stats.blocked_word_error_count}
-                  </div>
-
-                  <div className="text-sm">
-                    <span className="font-semibold">#Dependency Error:</span>{" "}
-                    {stats.dependancy_error_count}
-                  </div>
-
-                  <div className="text-sm">
-                    <span className="font-semibold  mb-1">Invalid Types:</span>{" "}
+                <div className="mt-2 text-sm text-gray-700 space-y-1">
+                  <div>Blocked: {stats.blocked_word_error_count}</div>
+                  <div>Dependency: {stats.dependancy_error_count}</div>
+                  <div>
+                    Errors:{" "}
                     {errors_for_coloms[colName]?.length > 0
                       ? errors_for_coloms[colName].join(", ")
                       : "No errors"}
                   </div>
-                  {/* <div>
-                    <div className="font-semibold mb-1">Error Messages:</div>
-                    <div className="max-h-40 overflow-y-auto text-sm space-y-1">
-                      {stats.error_msg.map((err, idx) => (
-                        <div key={idx}>
-                          Row {err.row}: {err.error_type} -{" "}
-                          {err.error_description}
-                        </div>
-                      ))}
-                    </div>
-                  </div> */}
                 </div>
               )}
             </div>
-          ),
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );

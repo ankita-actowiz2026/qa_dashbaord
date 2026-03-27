@@ -871,7 +871,7 @@ const ImportFile: React.FC = () => {
         </form>
 
         {responseData && <ValidationResult response={responseData} />}
-        {requestData}
+        {/* {requestData} */}
       </div>
     </div>
   );
