@@ -854,7 +854,7 @@ const ImportFile: React.FC = () => {
                   title="Run Validate"
                   disabled={loading}
                   type="submit"
-                  className="mt-6 w-full sm:w-auto bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 flex items-center gap-2 mx-auto"
+                  className="mt-6 w-full sm:w-auto bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 mx-auto"
                 >
                   {loading ? (
                     "Processing..."

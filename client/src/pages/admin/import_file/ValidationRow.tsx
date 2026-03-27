@@ -221,11 +221,9 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
       {/* mobiel view end */}
       {/* desktop view start*/}
-      <div
-        className={`${gridClass} min-h-[56px] hidden md:grid hover:bg-gray-200`}
-      >
+      <div className={`${gridClass} min-h-[56px] hover:bg-gray-200 p-3`}>
         <div className="min-w-0">
-          <span className="block text-xs text-gray-500 lg:hidden">Header</span>
+          <span className="block text-xs text-gray-500 md:hidden">Header</span>
           <div className="font-medium text-gray-800 truncate">
             {" "}
             {header.name
@@ -236,11 +234,11 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
         {/*DataTypeSection start  */}
         <div className="min-w-0 w-full">
-          <label className="block text-xs text-gray-500 mb-1 lg:hidden">
+          <label className="block text-xs text-gray-500 mb-1 md:hidden">
             Data Type
           </label>
           <select
-            className={`${inputClass} w-full md:w-28`}
+            className={`${inputClass} w-full`}
             {...register(`${header.name}.data_type`)}
           >
             {" "}
@@ -282,8 +280,8 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               <input
                 type="text"
                 defaultValue={defaultValue}
-                placeholder="Enter regex value"
-                className={`${textboxClass} w-full max-w-[140px]`}
+                placeholder="Enter regex "
+                className={`${textboxClass} w-full md:w-[130px] lg:w-[80px]`}
                 {...register(`${header.name}.cell_contains_value`, {
                   required: "Regex pattern is required",
                   validate: (value: string) => {
@@ -294,7 +292,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
               />
 
               {/* ERROR (NO LAYOUT SHIFT) */}
-              <p className="absolute left-0 top-full text-red-500 text-xs whitespace-nowrap">
+              <p className="absolute left-0 top-full mt-[2px] text-red-500 text-xs whitespace-nowrap">
                 {errors?.[header.name]?.cell_contains_value?.message || ""}
               </p>
             </div>
@@ -323,7 +321,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                 <input
                   type={dataType === "date" ? "date" : "number"}
-                  className={`${inputClass} w-[90px]`}
+                  className={`${inputClass} w-full md:w-[90px]`}
                   {...register(`${header.name}.min_length`, {
                     required: "Min length is required",
                     validate: (value) => {
@@ -356,7 +354,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                 <input
                   type={dataType === "date" ? "date" : "number"}
-                  className={`${inputClass} w-[90px]`}
+                  className={`${inputClass} w-full md:w-[90px]`}
                   {...register(`${header.name}.max_length`, {
                     required: "Max length is required",
                   })}
@@ -381,7 +379,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
               <input
                 type={dataType === "date" ? "date" : "number"}
-                className={`${inputClass} w-[90px]`}
+                className={`${inputClass} w-full md:w-[90px]`}
                 {...register(`${header.name}.min_length`, {
                   required: ["integer", "boolean", "float", "date"].includes(
                     dataType,
@@ -405,7 +403,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
         {/* Lenght validation end */}
         <div
-          className="min-w-0 text-right cursor-pointer"
+          className="min-w-0 text-right md:text-center cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
         >
           {isExpanded ? (
