@@ -60,6 +60,7 @@ export const DEFAULTS = {
   def_fixed_length_str: 500,
   def_fixed_length_num: 500,
   def_cell_contains_value: 1,
+  def_apply_length_validation: 0,
   def_str_regex: "^.*$",
   def_alphabetic_regex: "^[a-zA-Z ]+$",
   def_boolean_regex: "^(True|Yes|Enabled|1|False|No|Disabled|0)$",

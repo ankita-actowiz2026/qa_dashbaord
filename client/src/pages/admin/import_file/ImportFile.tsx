@@ -62,10 +62,11 @@ type HeaderType = {
   name: string;
 };
 const gridClass = `
-grid grid-cols-1 gap-3   /* 📱 Mobile: stacked */
+grid grid-cols-1 gap-3
 
-md:grid-cols-[1fr_1fr_80px_1fr]   /* 📲 Tablet: simplified */
-lg:grid-cols-[2fr_1.2fr_100px_1fr_4fr_80px] /* 💻 Desktop */
+md:grid-cols-[1fr_1fr_80px_1fr]
+
+lg:grid-cols-[2fr_1.2fr_100px_1fr_140px_4fr_80px]
 
 items-start md:items-center
 px-4 md:px-5 py-2
@@ -575,11 +576,17 @@ const ImportFile: React.FC = () => {
         const row = data[header.name];
 
         payload[header.name] = {
-          data_type: row?.data_type || "string",
+          data_type: row?.data_type || "",
           has_empty: !row?.has_empty,
-          length_validation_type: row?.length_validation_type || "variable",
-          min_length: row?.min_length || null,
-          max_length: row?.max_length || null,
+          length_validation_type: row?.length_validation_type || "",
+          min_length:
+            row?.length_validation_type === ""
+              ? null
+              : (row?.min_length ?? null),
+          max_length:
+            row?.length_validation_type === ""
+              ? null
+              : (row?.max_length ?? null),
           cell_contains: row?.cell_contains,
           cell_contains_value: row?.cell_contains
             ? row?.cell_contains_value
@@ -802,11 +809,21 @@ const ImportFile: React.FC = () => {
                     </span>
                   </div>
                   <div className="min-w-0 flex items-center gap-1">
-                    Length
+                    Length validations
                     <span className="hidden md:inline-flex">
                       <InfoTooltip
                         id="data-length-tooltip"
                         text="Choose whether the value length can vary within a range or must be exactly a fixed number of characters."
+                        tooltip_type="heading"
+                      />
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex items-center gap-1">
+                    Length
+                    <span className="hidden md:inline-flex">
+                      <InfoTooltip
+                        id="data-length-tooltip"
+                        text="Select how to validate the value length: allow any size, set a range, or require an exact value.."
                         tooltip_type="heading"
                       />
                     </span>
@@ -854,7 +871,7 @@ const ImportFile: React.FC = () => {
         </form>
 
         {responseData && <ValidationResult response={responseData} />}
-        {/* {requestData} */}
+        {requestData}
       </div>
     </div>
   );

@@ -20,7 +20,15 @@ const ProtectedRoute = ({ children }: Props) => {
     checkAuth();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white text-sm">Loading...</p>
+        </div>
+      </div>
+    );
 
   if (!auth) {
     return <Navigate to="/admin/login" replace />;

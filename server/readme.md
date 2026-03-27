@@ -1,11 +1,14 @@
 To do
 
 1. read json file and reaf first 50 records for headers
-   2)when user login set context api and username show from database
-   3)in resoponsive date is not coming for length
+2. when user login set context api and username show from database
+3. in resoponsive date is not coming for length
+4. optimize code in node + react
 
-1) npm install
-2) npm run seed:admin
+---
+
+5. npm install
+6. npm run seed:admin
 
 🔹 Frontend Axios
 axios.post("http://localhost:5000/login", data, {

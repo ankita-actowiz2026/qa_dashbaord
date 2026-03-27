@@ -66,7 +66,7 @@ export const parseXlsFile = async (
       data_empty_count: 0,
       datatype_error_count: 0,
       fixed_header_error_count: 0,
-      date_format_error_count: 0,
+      // date_format_error_count: 0,
       cell_start_with_end_with_error_count: 0,
       data_length_error_count: 0,
       blocked_word_error_count: 0,

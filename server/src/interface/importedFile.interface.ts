@@ -93,7 +93,7 @@ export interface ColumnStats {
   regex_pattern_error_count: number;
   redundant_error_count: number;
   fixed_header_error_count: number;
-  date_format_error_count: number;
+  //date_format_error_count: number;
   cell_start_with_end_with_error_count: number;
   length_validation_error_count: number;
   blocked_word_error_count: number;

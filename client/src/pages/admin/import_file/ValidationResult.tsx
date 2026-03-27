@@ -54,13 +54,13 @@ const ValidationResult = ({ response }) => {
           <div className="p-3 text-center"># Records</div>
           <div className="p-3 text-center"># Valid </div>
           <div className="p-3 text-center"># Invalid</div>
-          <div className="p-3 text-center"># Empty</div>
           <div className="p-3 text-center"># Datatype</div>
+          <div className="p-3 text-center"># Empty</div>
           <div className="p-3 text-center"># Regex</div>
+          <div className="p-3 text-center"># Length</div>
           <div className="p-3 text-center"># Redundant</div>
           <div className="p-3 text-center"># Fixed header</div>
-          <div className="p-3 text-center"># Length</div>
-          <div className="p-3 text-center"># Blocked</div>
+          <div className="p-3 text-center"># Start/End with</div>
           <div className="p-3 text-center">Action</div>
         </div>
 
@@ -87,13 +87,16 @@ const ValidationResult = ({ response }) => {
                 <div className="p-3 text-center text-red-600 font-semibold">
                   {stats.invalid_records}
                 </div>
-                <div className="p-3 text-center">{stats.empty_count}</div>
 
                 <div className="p-3 text-center">
                   {stats.datatype_error_count}
                 </div>
+                <div className="p-3 text-center">{stats.empty_count}</div>
                 <div className="p-3 text-center">
                   {stats.regex_pattern_error_count}
+                </div>
+                <div className="p-3 text-center">
+                  {stats.length_validation_error_count}
                 </div>
                 <div className="p-3 text-center">
                   {stats.redundant_error_count}
@@ -102,10 +105,7 @@ const ValidationResult = ({ response }) => {
                   {stats.fixed_header_error_count}
                 </div>
                 <div className="p-3 text-center">
-                  {stats.length_validation_error_count}
-                </div>
-                <div className="p-3 text-center">
-                  {stats.blocked_word_error_count}
+                  {stats.cell_start_with_end_with_error_count}
                 </div>
 
                 {/* Expand Button */}
@@ -126,6 +126,11 @@ const ValidationResult = ({ response }) => {
               {/* Expanded Section */}
               {expandedRow === colName && (
                 <div className="bg-gray-50 p-4 border-t space-y-3 pl-16">
+                  <div className="text-sm">
+                    <span className="font-semibold"># Blocked:</span>{" "}
+                    {stats.blocked_word_error_count}
+                  </div>
+
                   <div className="text-sm">
                     <span className="font-semibold">#Dependency Error:</span>{" "}
                     {stats.dependancy_error_count}
