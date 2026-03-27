@@ -4,11 +4,9 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { loginInterface } from "../../interface/login.interface";
-import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import apiClient from "../../services/apiClient";
 
 interface LoginFormData {
   email: string;
@@ -40,13 +38,7 @@ const Login = () => {
         password: data.password,
       };
 
-      const result = await axios.post(
-        BACKEND_URL + "/admin/auth/login",
-        userData,
-        {
-          withCredentials: true,
-        },
-      );
+      const result = await apiClient.post("/admin/auth/login", userData);
 
       const user_data = {
         accessToken: result.data.data.accessToken,

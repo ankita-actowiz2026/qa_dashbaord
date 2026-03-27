@@ -15,8 +15,8 @@ import adminAuthRouter from "./routes/admin.auth.route";
 import adminUserRouter from "./routes/admin.user.route";
 
 import importedFileRouter from "./routes/user.importedFile.route";
-import authRouter from "./routes/user.auth.route";
-import reportRouter from "./routes/user.report.route";
+// import authRouter from "./routes/user.auth.route";
+// import reportRouter from "./routes/user.report.route";
 import errorHandler from "./middleware/error.handler";
 import ApiError from "./utils/api.error";
 //import uploadRoutes from "./routes/upload.route";
@@ -36,9 +36,9 @@ app.use(express.urlencoded({ limit: "500mb", extended: true }));
 app.use("/admin/auth", adminAuthRouter);
 app.use("/admin/user", adminUserRouter);
 
-app.use("/api/qa_file", importedFileRouter);
-app.use("/api/auth", authRouter);
-app.use("/api/report", reportRouter);
+app.use("/admin/api/qa_file", importedFileRouter);
+// app.use("/api/auth", authRouter);
+// app.use("/api/report", reportRouter);
 //app.use("/api", uploadRoutes);
 
 app.use(

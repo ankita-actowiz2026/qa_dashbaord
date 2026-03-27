@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { DEFAULTS } from "./defaultValues"; // adjust path
 import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
 import { FaPlay } from "react-icons/fa";
 import { FiUpload } from "react-icons/fi";
-//import { createPortal } from "react-dom";
+
 import { InfoTooltip } from "../../../utils/ToolTips";
-import axios from "axios";
+
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import apiClient from "../../../services/apiClient";
 
 const buildDependencyPayload = (data: any) => {
   const result: Record<string, any> = {};
@@ -59,7 +60,6 @@ const {
   def_date_regex,
 } = DEFAULTS;
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 type HeaderType = {
   name: string;
 };
@@ -450,8 +450,8 @@ const ImportFile: React.FC = () => {
       const formData = new FormData();
       formData.append("file", file);
       setLoading(true);
-      const response = await axios.post(
-        `${BACKEND_URL}/api/qa_file/read_header`,
+      const response = await apiClient.post(
+        `admin/api/qa_file/read_header`,
         formData,
         {
           headers: {
@@ -615,16 +615,12 @@ const ImportFile: React.FC = () => {
       setRequestData(result);
       ///
       setLoading(true);
-      const response = await axios.post(
-        `${BACKEND_URL}/api/qa_file`,
-        formData,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      const response = await apiClient.post(`admin/api/qa_file`, formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
       toast.success("File validated successfully");
 
       setResponseData(response.data);
