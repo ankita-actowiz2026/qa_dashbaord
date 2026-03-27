@@ -47,7 +47,7 @@ const Header = () => {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link to="/" className="text-xl font-bold text-blue-600">
-          QA Dashboard
+          QA Tool
         </Link>
 
         {/* Hamburger Menu Button */}

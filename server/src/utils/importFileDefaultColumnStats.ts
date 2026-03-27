@@ -1,7 +1,7 @@
 import { ColumnStats } from "../interface/importedFile.interface";
 export const errorMessageMap: Record<string, string> = {
   empty_count: "Value cannot be empty",
-  datatype_error_count: "Datatype validation fail",
+  datatype_error_count: "Datatype validation failed",
   regex_pattern_error_count: "Regex Pattern validation failed",
   redundant_error_count: "Duplicate value found",
   fixed_header_error_count: "Invalid header value",

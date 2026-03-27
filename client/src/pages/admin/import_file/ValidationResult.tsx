@@ -13,7 +13,7 @@ const ValidationResult = ({ response }) => {
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold text-gray-800 flex justify-center">
-        Validations Result
+        Validation Summary
       </h1>
       {/* Download button */}
       <div className="flex justify-end">
@@ -21,7 +21,7 @@ const ValidationResult = ({ response }) => {
           href={result_file}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700  rounded-xl "
         >
           Download Report
         </a>
@@ -29,16 +29,16 @@ const ValidationResult = ({ response }) => {
 
       {/* Summary counts */}
       <div className="flex flex-wrap gap-3 justify-center">
-        <div className="px-4 py-3 bg-gray-700 text-white font-bold rounded text-center min-w-[140px]">
-          Total Rows: {data.total_rows}
+        <div className="px-4 py-3 bg-gray-700 text-white font-bold rounded-xl text-center min-w-[140px] shadow-sm">
+          Total Rows : {data.total_rows}
         </div>
 
-        <div className="px-4 py-3 bg-gray-700 text-white font-bold rounded text-center min-w-[140px]">
-          Valid Rows: {data.valid_rows}
+        <div className="px-4 py-3 bg-gray-700 text-white font-bold rounded-xl text-center min-w-[140px] shadow-sm">
+          Valid Rows : {data.valid_rows}
         </div>
 
-        <div className="px-4 py-3 bg-gray-700 text-white font-bold rounded text-center min-w-[140px]">
-          Invalid Rows: {data.invalid_rows}
+        <div className="px-4 py-3 bg-gray-700 text-white font-bold rounded-xl text-center min-w-[140px] shadow-sm">
+          Invalid Rows : {data.invalid_rows}
         </div>
       </div>
 
@@ -46,14 +46,14 @@ const ValidationResult = ({ response }) => {
       {/* Column-wise stats table */}
       <div>
         <h2 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 text-center md:text-left">
-          Column-wise Errors
+          Column Error Details{" "}
         </h2>
 
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <div className="min-w-[1000px]">
             {/* Header */}
-            <div className="grid grid-cols-12 bg-gray-200 font-semibold border text-sm">
+            <div className="grid grid-cols-1 md:grid-cols-12 bg-gray-200 font-semibold border text-sm rounded-lg overflow-hidden">
               <div className="p-3">Column</div>
               <div className="p-3 text-center">Records</div>
               <div className="p-3 text-center">Valid</div>

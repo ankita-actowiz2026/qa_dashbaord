@@ -48,23 +48,18 @@ const Header = ({ title, onMenuClick }: HeaderProps) => {
     fetchMe();
   }, []);
   return (
-    <header className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 shadow-sm sticky top-0 z-10">
+    <header className="relative flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4 shadow-sm sticky top-0 z-10">
       {/* Left Section */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={onMenuClick}
-          className="p-2 rounded-lg hover:bg-gray-100 transition"
-        >
-          <FiMenu size={22} className="text-gray-700" />
-        </button>
-        <h1 className="text-lg md:text-xl font-semibold text-gray-800">
-          {title}
-        </h1>
-      </div>
+      <div>{/* keep empty or add logo */}</div>
+
+      {/* Center Title */}
+      <h1 className="absolute left-1/2 -translate-x-1/2 text-lg md:text-xl font-semibold text-gray-800">
+        QA Tool
+      </h1>
 
       {/* Right Section */}
       <div className="flex items-center gap-4">
-        <span className="hidden sm:block text-gray-600">
+        <span className="hidden sm:block text-gray-600 font-semibold">
           Hi, {user?.name || ""}
         </span>
 

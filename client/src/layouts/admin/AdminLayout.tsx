@@ -28,7 +28,7 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
+      {/* Sidebar */}-
       <aside
         className={`
         bg-gray-900 text-gray-200 flex flex-col
@@ -57,7 +57,7 @@ const AdminLayout = () => {
 
             {(sidebarOpen || isMobile) && (
               <span className="text-white text-lg font-bold whitespace-nowrap">
-                QA Dashboard
+                QA Tool
               </span>
             )}
           </div>
@@ -105,7 +105,6 @@ const AdminLayout = () => {
           {(sidebarOpen || isMobile) && "© 2026 Company"}
         </div>
       </aside>
-
       {/* Overlay */}
       {isMobile && sidebarOpen && (
         <div
@@ -113,7 +112,6 @@ const AdminLayout = () => {
           onClick={() => setSidebarOpen(false)}
         />
       )}
-
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header

@@ -562,7 +562,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
 
                             return (
                               Number(value) < Number(max) ||
-                              "Min must be less than Max"
+                              "Min1 must be less than Max"
                             );
                           },
                         })}

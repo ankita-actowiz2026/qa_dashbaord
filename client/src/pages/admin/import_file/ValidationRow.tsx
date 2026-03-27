@@ -315,6 +315,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         </div>
         <div className="flex items-center gap-3 min-w-0 ">
           {/* VARIABLE */}
+
           {lengthType === "variable" && (
             <>
               {/* MIN */}
@@ -328,6 +329,10 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                     required: "Min length is required",
                     validate: (value) => {
                       const max = getValues(`${header.name}.max_length`);
+                      const currentLengthType = getValues(
+                        `${header.name}.length_validation_type`,
+                      );
+
                       if (!value || !max) return true;
 
                       if (dataType === "date") {
@@ -337,10 +342,14 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                         );
                       }
 
-                      return (
-                        Number(value) < Number(max) ||
-                        "Min must be less than Max"
-                      );
+                      if (currentLengthType === "variable") {
+                        return (
+                          Number(value) < Number(max) ||
+                          "Min must be less than Max"
+                        );
+                      }
+
+                      return true;
                     },
                   })}
                 />
