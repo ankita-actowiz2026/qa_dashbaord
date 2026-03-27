@@ -214,7 +214,7 @@ const SubDependencyLatest = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* MULTISELECT */}
             <div>
-              <label className="font-semibold text-sm">Select Columns *</label>
+              <label className="font-semibold text-sm">Dependant Columns</label>
 
               <select
                 multiple
@@ -241,7 +241,7 @@ const SubDependencyLatest = ({
 
             {/* CONDITION */}
             <div>
-              <label className="font-semibold text-sm">Condition *</label>
+              <label className="font-semibold text-sm">Dependant Value</label>
 
               {/* RADIO */}
               <div className="flex flex-col sm:flex-row gap-3 mt-2">

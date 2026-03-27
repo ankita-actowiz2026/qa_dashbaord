@@ -21,6 +21,7 @@ export default function MultiValueRules({
   rule,
   inputClass,
   textboxClass,
+  clearErrors,
 }) {
   //console.log("MultiValueRules");
   const { fields, append, remove, update } = useFieldArray({
@@ -47,6 +48,8 @@ export default function MultiValueRules({
   const handleDelete = (index: number) => {
     if (window.confirm("Are you sure you want to delete?")) {
       remove(index);
+      console.log(`${headerName}.${inputType}`);
+      clearErrors(`${headerName}.${inputType}_input`);
     }
   };
   const startEdit = (index: number) => {
@@ -72,6 +75,7 @@ export default function MultiValueRules({
     }
 
     update(editIndex!, { value: editValue });
+    clearErrors(`${headerName}.${inputType}_input`);
 
     setEditIndex(null);
     setEditValue("");

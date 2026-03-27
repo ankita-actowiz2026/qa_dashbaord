@@ -174,6 +174,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
         inputType={rule.inputType}
         rule={rule}
         inputClass={inputClass}
+        clearErrors={clearErrors}
       />
     ));
   }, [
@@ -185,6 +186,7 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
     handleMultiValueRulesInputChange,
     addMultiValueRules,
     cancelMultiValueRules,
+    clearErrors,
   ]);
 
   useEffect(() => {
@@ -621,7 +623,9 @@ const ValidationRow: React.FC<ValidationRowProps> = ({
                             type="text"
                             placeholder="Enter value"
                             disabled={condition !== "no"}
-                            className={`${inputClass} border px-2 py-1 rounded`}
+                            className={`${inputClass} border p-2 w-full ${
+                              condition !== "other" ? "bg-gray-100" : ""
+                            }`}
                             {...register(`${header.name}.dependency_value`, {
                               validate: (val) => {
                                 if (condition === "no" && !val?.trim()) {

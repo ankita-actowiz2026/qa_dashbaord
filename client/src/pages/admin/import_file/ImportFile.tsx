@@ -66,7 +66,7 @@ grid grid-cols-1 gap-3
 
 md:grid-cols-[1fr_1fr_80px_1fr]
 
-lg:grid-cols-[2fr_1.2fr_100px_1fr_140px_4fr_80px]
+lg:grid-cols-[2fr_1.2fr_100px_1fr_140px_2.5fr_80px]
 
 items-start md:items-center
 px-4 md:px-5 py-2
@@ -809,11 +809,11 @@ const ImportFile: React.FC = () => {
                     </span>
                   </div>
                   <div className="min-w-0 flex items-center gap-1">
-                    Length validations
+                    Length Type
                     <span className="hidden md:inline-flex">
                       <InfoTooltip
                         id="data-length-tooltip"
-                        text="Choose whether the value length can vary within a range or must be exactly a fixed number of characters."
+                        text="Select how the value length should be handled: any length, within a range (variable), or fixed."
                         tooltip_type="heading"
                       />
                     </span>
