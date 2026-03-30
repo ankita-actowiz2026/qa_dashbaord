@@ -1,80 +1,20 @@
 import React, { useState, useRef } from "react";
-import { DEFAULTS } from "./defaultValues"; // adjust path
-import ValidationRow from "./ValidationRow";
 import ValidationResult from "./ValidationResult";
-import { FaPlay } from "react-icons/fa";
 import { FiUpload } from "react-icons/fi";
+import { FaUpload, FaPlay } from "react-icons/fa";
 
-import { InfoTooltip } from "../../../utils/ToolTips";
+import ShowValidationRules from "./ShowValidationRules";
 
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import apiClient from "../../../services/apiClient";
 
-const buildDependencyPayload = (data: any) => {
-  const result: Record<string, any> = {};
-
-  Object.keys(data).forEach((header) => {
-    const field = data[header];
-    const hasDependency = field?.has_dependency;
-    if (!hasDependency) return; // ✅ KEY FIX
-    const parentCondition = field?.dependency_condition;
-    const parentValue = field?.dependency_value;
-    const subDeps = field?.sub_dependencies || [];
-
-    if (!parentCondition) return;
-
-    if (parentCondition === "yes") {
-      result[header] = true;
-    } else if (parentCondition === "no" && parentValue) {
-      result[header] = parentValue.trim();
-    }
-
-    subDeps.forEach((sub: any) => {
-      if (!sub.headers || sub.headers.length === 0) return;
-
-      const key = sub.headers.join(",");
-
-      if (sub.condition === "true") {
-        result[key] = true;
-      } else if (sub.condition === "other" && sub.value) {
-        result[key] = sub.value.trim();
-      }
-    });
-  });
-
-  return result;
-};
-
-const {
-  allowedExtensions,
-  dataTypes,
-  date_format_options,
-  default_length_validation_value,
-  def_str_regex,
-  def_alphabetic_regex,
-  def_boolean_regex,
-  def_int_regex,
-  def_float_regex,
-  def_email_regex,
-  def_date_regex,
-} = DEFAULTS;
-
 type HeaderType = {
   name: string;
 };
-const gridClass = `
-grid grid-cols-1 gap-3
-
-md:grid-cols-[1fr_1fr_80px_1fr]
-
-lg:grid-cols-[2fr_1.2fr_100px_1fr_140px_2.5fr_80px]
-
-items-start md:items-center
-px-4 md:px-5 py-2
-w-full
-`;
 const ImportFile: React.FC = () => {
+  const [validating, setValidating] = useState(false);
+  const [rulesData, setRulesData] = useState<Record<string, any>>({});
   const {
     register,
     control,
@@ -96,397 +36,76 @@ const ImportFile: React.FC = () => {
       def_dep: "true",
     },
   });
+
+  const handleReset = () => {
+    setHeaders([]);
+    setRulesData({});
+    setFile(null);
+    setFileName("");
+    setResponseData(null); // 👈 IMPORTANT
+    reset(); // react-hook-form reset
+  };
   const msgRef = useRef(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [headers, setHeaders] = useState<HeaderType[]>([]);
   const [fileName, setFileName] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
-  const [fixedHeaderInputs, setFixedHeaderInputs] = useState<any>({});
-  const [cellStartWithInputs, setCellStartWithInputs] = useState<any>({});
-  const [cellEndWithInputs, setCellEndWithInputs] = useState<any>({});
-  const [notMatchFoundInputs, setNotMatchFoundInputs] = useState<any>({});
 
   const [responseData, setResponseData] = useState(null);
   const [requestData, setRequestData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const getRegexByType = React.useCallback(
-    (type: string) => {
-      switch (type) {
-        case "string":
-          return def_str_regex;
-        case "alphabetic":
-          return def_alphabetic_regex;
-        case "boolean":
-          return def_boolean_regex;
-        case "int":
-          return def_int_regex;
-        case "float":
-          return def_float_regex;
-        case "email":
-          return def_email_regex;
-        case "date":
-          return def_date_regex;
-        default:
-          return def_str_regex;
-      }
-    },
-    [
-      def_str_regex,
-      def_alphabetic_regex,
-      def_boolean_regex,
-      def_int_regex,
-      def_float_regex,
-      def_email_regex,
-      def_date_regex,
-    ],
-  );
 
-  const formatLabel = (str: string) =>
-    str
-      .replace(/_/g, " ") // replace all underscores
-      .toLowerCase() // make everything lowercase
-      .replace(/^./, (c) => c.toUpperCase()); // capitalize first letter
-  const multiValueInputs = {
-    fixed_header: [
-      fixedHeaderInputs,
-      setFixedHeaderInputs,
-      "fixed_header_input",
-    ],
-    cell_start_with: [
-      cellStartWithInputs,
-      setCellStartWithInputs,
-      "cell_start_with_input",
-    ],
-    cell_end_with: [
-      cellEndWithInputs,
-      setCellEndWithInputs,
-      "cell_end_with_input",
-    ],
-    not_match_found: [
-      notMatchFoundInputs,
-      setNotMatchFoundInputs,
-      "not_match_found_input",
-    ],
-  };
-
-  // handle change
-  const handleMultiValueRulesInputChange = (
-    headerName: string,
-    value: string,
-    inputType: string,
-  ) => {
-    const [state, setState] = multiValueInputs[inputType];
-    setState({ ...state, [headerName]: value });
-  };
-  const [multiValueErrors, setMultiValueErrors] = useState<{
-    [key: string]: { [headerName: string]: string };
-  }>({});
-  // cancel
-  // const cancelMultiValueRules = (headerName: string, inputType: string) => {
-  //   // Clear the input
-  //   const [, setState] = multiValueInputs[inputType];
-  //   setState((prev) => ({ ...prev, [headerName]: "" }));
-
-  //   // Clear the error for this header
-  //   setMultiValueErrors((prev) => ({
-  //     ...prev,
-  //     [inputType]: { ...prev[inputType], [headerName]: "" },
-  //   }));
-  // };
-
-  // add
-  const addMultiValueRules = (
-    headerName: string,
-    fields: any[],
-    append: any,
-    inputType: string,
-    errorMsgLabel: string,
-  ) => {
-    const [state, setState, errorField] = multiValueInputs[inputType];
-    const value = state[headerName]?.trim();
-
-    if (!value) {
-      setError(`${headerName}.${errorField}`, {
-        message: `${errorMsgLabel} is required`,
-      });
-      return;
-    }
-
-    const exists = fields.some(
-      (f) => f.value?.toLowerCase() === value.toLowerCase(),
-    );
-    if (exists) {
-      setError(`${headerName}.${errorField}`, {
-        message: `${errorMsgLabel}  already exists`,
-      });
-      return;
-    }
-
-    clearErrors(`${headerName}.${errorField}`);
-    append({ value });
-    setState((prev) => ({ ...prev, [headerName]: "" }));
-  };
-
-  ///////////////////////start multi value select
-  // const handleMultiValueRulesInputChange = (
-  //   headerName: string,
-  //   value: string,
-  //   inputType: string,
-  // ) => {
-  //   if (inputType == "fixed_header") {
-  //     setFixedHeaderInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   } else if (inputType == "cell_start_with") {
-  //     setCellStartWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   } else if (inputType == "cell_end_with") {
-  //     setCellEndWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   } else if (inputType == "not_match_found") {
-  //     setNotMatchFoundInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: value,
-  //     }));
-  //   }
-  // };
-
-  // const addMultiValueRules = (
-  //   headerName: string,
-  //   fields: any[],
-  //   append: any,
-  //   inputType: string,
-  // ) => {
-  //   if (inputType == "fixed_header") {
-  //     const value = fixedHeaderInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.fixed_header_input`, {
-  //         message: "Fixed header is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.fixed_header_input`, {
-  //         message: "Fixed header is already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.fixed_header_input`);
-
-  //     append({ value });
-
-  //     setFixedHeaderInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   } else if (inputType == "cell_start_with") {
-  //     const value = cellStartWithInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.cell_start_with_input`, {
-  //         message: "Cell start with is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.cell_start_with_input`, {
-  //         message: "Cell start with is already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.cell_start_with_input`);
-
-  //     append({ value });
-
-  //     setCellStartWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   } else if (inputType == "cell_end_with") {
-  //     const value = cellEndWithInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.cell_end_with_input`, {
-  //         message: "Cell end with is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.cell_end_with_input`, {
-  //         message: "Cell end with already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.cell_end_with_input`);
-
-  //     append({ value });
-
-  //     setCellEndWithInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   } else if (inputType == "not_match_found") {
-  //     const value = notMatchFoundInputs[headerName]?.trim();
-
-  //     if (!value) {
-  //       setError(`${headerName}.not_match_found_input`, {
-  //         message: "Blocked is required",
-  //       });
-  //       return;
-  //     }
-
-  //     const exists = fields.some(
-  //       (f) => f.value?.toLowerCase() === value.toLowerCase(),
-  //     );
-
-  //     if (exists) {
-  //       setError(`${headerName}.not_match_found_input`, {
-  //         message: "Blocked already exists",
-  //       });
-  //       return;
-  //     }
-
-  //     clearErrors(`${headerName}.not_match_found_input`);
-
-  //     append({ value });
-
-  //     setNotMatchFoundInputs((prev: any) => ({
-  //       ...prev,
-  //       [headerName]: "",
-  //     }));
-  //   }
-  // };
-  const cancelMultiValueRules = (headerName: string, inputType: string) => {
-    if (inputType == "fixed_header") {
-      setFixedHeaderInputs((prev) => ({
-        ...prev,
-        [headerName]: "",
-      }));
-      clearErrors(`${headerName}.fixed_header_input`);
-    } else if (inputType == "cell_start_with") {
-      setCellStartWithInputs((prev) => ({
-        ...prev,
-        [headerName]: "",
-      }));
-      clearErrors(`${headerName}.cell_start_with_input`);
-    } else if (inputType == "cell_end_with") {
-      setCellEndWithInputs((prev) => ({
-        ...prev,
-        [headerName]: "",
-      }));
-      clearErrors(`${headerName}.cell_end_with_input`);
-    } else if (inputType == "not_match_found") {
-      setNotMatchFoundInputs((prev) => ({
-        ...prev,
-        [headerName]: "",
-      }));
-      clearErrors(`${headerName}.not_match_found_input`);
-    }
-  };
-  ///////////////////////end multi value select
   const validateFile = (file: File) => {
-    const ext = "." + file.name.split(".").pop()?.toLowerCase();
-    return allowedExtensions.includes(ext);
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    return ["xlsx", "csv", "xls", "json"].includes(ext || "");
   };
 
-  // const readHeaders = async (file: File) => {
-  //   try {
-  //     const ext = file.name.split(".").pop()?.toLowerCase();
-
-  //     if (ext === "json") {
-  //       const json = JSON.parse(await file.text());
-  //       if (Array.isArray(json) && json.length > 0) {
-  //         setHeaders(Object.keys(json[0]).map((name) => ({ name })));
-  //       } else {
-  //         setHeaders([]);
-  //       }
-  //       return;
-  //     }
-
-  //     const buffer = await file.arrayBuffer();
-  //     const workbook = XLSX.read(buffer, { type: "array" });
-
-  //     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  //     const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-  //     setHeaders((json[0] || []).map((h: string) => ({ name: h })));
-  //   } catch (err) {
-  //     setHeaders([]);
-  //     setMsg("Invalid file format");
-  //     setMsgType("danger");
-  //   }
-  // };
   const readHeaderFromServer = async (file: File) => {
     const formData = new FormData();
+    if (!file) {
+      toast.error("No file selected");
+      return;
+    }
+
     formData.append("file", file);
 
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      setLoading(true);
       const response = await apiClient.post(
         `admin/api/qa_file/read_header`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         },
       );
 
-      // Example: if API returns headers array
-      const newHeaders = response.data.data.map((h) => ({ name: h }));
-
       reset();
-      setHeaders(newHeaders);
-
+      setHeaders(response.data.data);
       setResponseData(null);
       setRequestData(null);
     } catch (error: any) {
       reset();
       setHeaders([]);
-      if (error?.response?.data?.message || error?.message) {
-        toast.error(error?.response?.data?.message || error?.message);
-      } else if (error.message?.includes("ERR_UPLOAD_FILE_CHANGED")) {
-        toast.error("File was changed. Please re-select and upload again.");
-      } else if (error.request) {
-        toast.error("Something get wrong. Please upload file again");
-      }
+      setRulesData({});
+      toast.error(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Error reading file",
+      );
     } finally {
       setLoading(false);
     }
   };
-  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (!selectedFile) return;
 
+  const onError = (errors: any) => {
+    setResponseData(null);
+    setRequestData(null);
+  };
+  const onSubmit = async (data: any) => {};
+  const handleFile = async (selectedFile: File) => {
     setHeaders([]);
+    setRulesData({});
 
     if (!validateFile(selectedFile)) {
       toast.error("Invalid file type");
@@ -494,10 +113,6 @@ const ImportFile: React.FC = () => {
       setRequestData(null);
       setFile(null);
       setFileName("");
-      // ✅ Clear so same file can be selected again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
       return;
     }
 
@@ -508,335 +123,185 @@ const ImportFile: React.FC = () => {
       await readHeaderFromServer(selectedFile);
     } catch {
       setHeaders([]);
+      setRulesData({});
       toast.error("Failed to read file");
     }
 
-    // ✅ VERY IMPORTANT: clear after success too
+    // clear input so same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   };
-  // const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   console.log("change");
-  //   const selectedFile = e.target.files?.[0];
-  //   if (!selectedFile) return;
-  //   setHeaders([]);
-  //   setMsg("");
-  //   setMsgType("");
-  //   if (!validateFile(selectedFile)) {
-  //     setMsg("Invalid file type");
-  //     setMsgType("danger");
-  //     return;
-  //   }
-
-  //   setFile(selectedFile);
-  //   setFileName(selectedFile.name);
-
-  //   try {
-  //     await readHeaderFromServer(selectedFile);
-  //   } catch {
-  //     setHeaders([]); // extra safety
-
-  //     setMsg("Failed to read file");
-  //     setMsgType("danger");
-  //   }
-  // };
-  const onError = (errors: any) => {
-    setResponseData(null);
-    setRequestData(null);
-  };
-  const onSubmit = async (data: any) => {
+  const hasRules = Object.keys(rulesData).length > 0;
+  const handleRunValidation = async () => {
     try {
-      // ✅ STEP 1: trigger validation FIRST
-      const isValid = await trigger();
-
-      if (!isValid) {
+      const formData = new FormData();
+      if (!file) {
+        toast.error("No file selected");
         return;
       }
+      setValidating(true);
 
-      // ✅ STEP 2: now safe to process data
-      const payload: any = {};
+      formData.append("file", file);
 
-      // ✅ build dependency ONLY ONCE (not inside loop)
-      const dependency = buildDependencyPayload(data);
-      const firstDependencyKey = Object.keys(dependency)[0];
+      // attach rules JSON
+      formData.append("columnConfig", JSON.stringify(rulesData));
 
-      for (const header of headers) {
-        const row = data[header.name];
-
-        payload[header.name] = {
-          data_type: row?.data_type || "",
-          has_empty: !row?.has_empty,
-          length_validation_type: row?.length_validation_type || "",
-          min_length:
-            row?.length_validation_type === ""
-              ? null
-              : (row?.min_length ?? null),
-          max_length:
-            row?.length_validation_type === ""
-              ? null
-              : (row?.max_length ?? null),
-          cell_contains: row?.cell_contains,
-          cell_contains_value: row?.cell_contains
-            ? row?.cell_contains_value
-            : null,
-          data_redundant_threshold: row?.data_redundant_threshold,
-          data_redundant_value: row?.data_redundant_threshold
-            ? row?.data_redundant_value
-            : null,
-
-          fixed_header: row?.fixed_header?.map((v: any) => v.value) || [],
-          cell_start_with: row?.cell_start_with?.map((v: any) => v.value) || [],
-          cell_end_with: row?.cell_end_with?.map((v: any) => v.value) || [],
-          not_match_found: row?.not_match_found?.map((v: any) => v.value) || [],
-
-          date_format:
-            row?.data_type === "date"
-              ? row?.def_date_format || "YYYY-MM-DD HH:mm:ss"
-              : null,
-
-          ...(header.name === firstDependencyKey && { dependency }),
-        };
-      }
-
-      const formData = new FormData();
-
-      if (file) {
-        formData.append("file", file);
-      }
-
-      formData.append("columnConfig", JSON.stringify(payload));
-
-      /////
-      let result = "";
-      for (let [key, value] of formData.entries()) {
-        result += `${key}: ${value}\n`;
-      }
-      setRequestData(result);
-      ///
-      setLoading(true);
       const response = await apiClient.post(`admin/api/qa_file`, formData, {
         withCredentials: true,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
       });
-      toast.success("File validated successfully");
-
+      toast.success("Validation completed successfully.");
+      setRequestData(rulesData);
       setResponseData(response.data);
+      console.log("Validation Response:", response.data);
     } catch (error: any) {
-      if (error?.response?.data?.message || error?.message) {
-        toast.error(error?.response?.data?.message || error?.message);
-      } else if (error.message?.includes("ERR_UPLOAD_FILE_CHANGED")) {
-        toast.error("File was changed. Please re-select and upload again.");
-      } else if (error.request) {
-        toast.error("Something get wrong. Please upload file again");
-      }
+      console.error("Validation Error:", error);
 
-      setResponseData(null);
-      setRequestData(null);
-      setHeaders([]);
+      const message = error?.response?.data?.message || "Validation failed";
+
+      toast.error(message);
     } finally {
-      setLoading(false);
+      setValidating(false);
     }
-  };
-  const headersList = React.useMemo(
-    () => headers.map((h) => h.name),
-    [headers],
-  );
-  const multiValueProps = {
-    fixedHeaderInputs,
-    cellStartWithInputs,
-    cellEndWithInputs,
-    notMatchFoundInputs,
-    handleMultiValueRulesInputChange,
-    addMultiValueRules,
-    cancelMultiValueRules,
-  };
-
-  const formHelpers = {
-    register,
-    watch,
-    errors,
-    control,
-    trigger,
-    setValue,
-    getValues,
-    setError,
-    clearErrors,
   };
   return (
     <div className="bg-gray-50">
-      <div className=" mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+      <div className="px-4 pb-6 mx-auto sm:px-6 lg:px-8">
         {/* Title */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">
-            Import File
-          </h1>
-          <p className="text-gray-500">
-            Upload a file and map column data types
-          </p>
-        </div>
-        <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
-          {/* Upload Box */}
-
-          <div
-            className="border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 text-center cursor-pointer hover:border-black transition"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault();
-              const file = e.dataTransfer.files[0];
-              if (file) {
-                onFileChange({ target: { files: [file] } });
-              }
-            }}
-            onClick={() => fileInputRef.current.click()}
-          >
-            <div className="flex flex-col items-center  text-gray-600">
-              <FiUpload className="text-2xl sm:text-3xl md:text-4xl" />
-
-              <p className="font-medium">Drag & drop file here</p>
-
-              <p className="text-sm text-gray-400">
-                or click to upload (.xlsx, .xls, .csv, .json)
-              </p>
-            </div>
-
-            {/* Hidden input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx,.xls,.csv,.json"
-              className="hidden"
-              onChange={onFileChange}
-            />
-          </div>
-
-          {/* Loader OUTSIDE */}
-          {loading && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-white text-sm">Processing file...</p>
-              </div>
-            </div>
-          )}
-
-          {fileName && (
-            <p className="text-center text-sm text-blue-600 mt-3 break-all px-2">
-              Uploaded: {fileName}
-            </p>
-          )}
-          {headers.length > 0 && (
-            <>
-              <h2 className="text-lg font-semibold text-gray-700 mb-4">
-                Please add validation rules for headers.
-              </h2>
-
-              <div className="bg-white border border-gray-300 rounded-xl overflow-x-auto md:overflow-visible">
-                {/* <div
-                  className="hidden md:grid  md:grid-cols-[1.5fr_1fr_80px_1.5fr_3fr_80px]
-  lg:grid-cols-[2fr_1.2fr_100px_1.8fr_3fr_100px] items-center px-4 md:px-5 h-12 md:h-14 gap-2 md:gap-4 bg-gray-700 border-b border-gray-400 text-xs md:text-sm lg:text-[15px] font-semibold text-gray-100 rounded-t-lg tracking-wide shadow-sm"
-                > */}
-
-                <div
-                  className={`${gridClass} h-12 md:h-14 bg-gray-700 text-gray-100 font-semibold rounded-t-xl`}
-                >
-                  <div className="min-w-0 flex items-center ">Header Name</div>
-                  <div className="min-w-0 flex items-center gap-1">
-                    Data Type
-                    <span className="hidden md:inline-flex">
-                      <InfoTooltip
-                        id="data-type-tooltip"
-                        text="Select the type of data expected in this column (e.g., string, integer, date ). This helps validate the input format."
-                        tooltip_type="heading"
-                      />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex items-center justify-center gap-1">
-                    Required
-                    <span className="hidden md:inline-flex">
-                      <InfoTooltip
-                        id="allow-empty-tooltip"
-                        text="Enable this if the field can be left blank. Disable it to make the field mandatory."
-                        tooltip_type="heading"
-                      />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex items-center justify-center  gap-1">
-                    Regex{" "}
-                    <span className="hidden md:inline-flex">
-                      <InfoTooltip
-                        id="cell-contains-tooltip"
-                        text="Define a pattern that the cell value must match using regular expressions (advanced validation)."
-                        tooltip_type="heading"
-                      />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex items-center gap-1">
-                    Length Type
-                    <span className="hidden md:inline-flex">
-                      <InfoTooltip
-                        id="data-length-tooltip"
-                        text="Select how the value length should be handled: any length, within a range (variable), or fixed."
-                        tooltip_type="heading"
-                      />
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex items-center gap-1">
-                    Length
-                    <span className="hidden md:inline-flex">
-                      <InfoTooltip
-                        id="data-length-tooltip"
-                        text="Select how to validate the value length: allow any size, set a range, or require an exact value.."
-                        tooltip_type="heading"
-                      />
-                    </span>
-                  </div>
-                  <div></div>
+        {!responseData ? (
+          <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
+            {/* Upload Box */}
+            {headers.length === 0 ? (
+              <div>
+                <div className="mb-6 text-center">
+                  <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl md:text-4xl">
+                    Import File
+                  </h1>
+                  <p className="text-gray-500">
+                    Upload a file and map column data types
+                  </p>
                 </div>
-                {headers.map((header, index) => (
-                  <ValidationRow
-                    key={header.name}
-                    header={header}
-                    index={index}
-                    {...multiValueProps}
-                    {...formHelpers}
-                    dataTypes={dataTypes}
-                    date_format_options={date_format_options}
-                    getRegexByType={getRegexByType}
-                    default_length_validation_value={
-                      default_length_validation_value
-                    }
-                    headersList={headersList}
-                    gridClass={gridClass}
-                  />
-                ))}
-              </div>
-
-              <div className="flex justify-center mt-6">
-                <button
-                  title="Run Validate"
-                  disabled={loading}
-                  type="submit"
-                  className="mt-6 w-full sm:w-auto bg-blue-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 mx-auto"
+                <div
+                  className="px-4 py-3 text-center transition border-2 border-gray-300 border-dashed cursor-pointer rounded-xl sm:px-6 sm:py-4 md:px-8 md:py-5 hover:border-black"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const file = e.dataTransfer.files[0];
+                    if (file) handleFile(file);
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  {loading ? (
-                    "Processing..."
-                  ) : (
-                    <>
-                      <FaPlay className="text-lg" />
-                      Run Validation
-                    </>
-                  )}
-                </button>
-              </div>
-            </>
-          )}
-        </form>
+                  <div className="flex flex-col items-center text-gray-600">
+                    <FiUpload className="text-2xl sm:text-3xl md:text-4xl" />
 
-        {responseData && <ValidationResult response={responseData} />}
-        {/* {requestData} */}
+                    <p className="font-medium">Drag & drop file here</p>
+
+                    <p className="text-sm text-gray-400">
+                      or click to upload (.xlsx, .xls, .csv, .json)
+                    </p>
+                  </div>
+
+                  {/* Hidden input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls,.csv,.json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFile(file);
+                    }}
+                  />
+                </div>
+
+                {/* Loader OUTSIDE */}
+                {loading && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-10 h-10 border-4 border-white rounded-full sm:w-12 sm:h-12 border-t-transparent animate-spin"></div>
+                      <p className="text-sm text-white">Processing file...</p>
+                    </div>
+                  </div>
+                )}
+
+                {fileName && (
+                  <p className="px-2 mt-3 text-sm text-center text-blue-600 break-all">
+                    Uploaded: {fileName}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-4 px-5 py-4 mt-6 border border-gray-200 shadow-sm md:flex-row md:items-center md:justify-between bg-white/80 backdrop-blur rounded-2xl">
+                  {/* LEFT SIDE → File Info */}
+                  <div className="flex items-center min-w-0 gap-4">
+                    {/* File Icon */}
+                    <div className="p-3 text-blue-600 bg-blue-100 rounded-xl">
+                      <FaUpload className="text-xl text-black" />
+                    </div>
+
+                    {/* File Details */}
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-500">Uploaded File</p>
+
+                      <p className="text-gray-800 font-semibold truncate max-w-[220px] sm:max-w-sm">
+                        {fileName}
+                      </p>
+
+                      {/* Header Count Badge */}
+                      <div className="mt-1">
+                        <span className="inline-block px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded-full">
+                          {headers.length} Headers Detected
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* RIGHT SIDE → Buttons */}
+                  <div className="flex flex-wrap justify-end gap-3">
+                    {/* Upload New File */}
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="flex items-center gap-2 bg-black border border-gray-300 text-white py-2.5 px-5 rounded-xl font-medium hover:bg-gray-700 hover:shadow-sm transition-all duration-200"
+                    >
+                      <FaUpload className="text-sm" />
+                      Upload New file
+                    </button>
+
+                    {/* Run Validation */}
+                    <button
+                      onClick={handleRunValidation}
+                      type="button"
+                      disabled={!hasRules || validating}
+                      className={`flex items-center gap-2 py-2.5 px-6 rounded-xl font-semibold shadow-sm transition-all duration-200
+        ${
+          hasRules && !validating
+            ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 hover:scale-105"
+            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+        }`}
+                    >
+                      <FaPlay className="text-sm" />
+                      {validating ? "Validating..." : "Run Validation"}
+                    </button>
+                  </div>
+                </div>
+                <ShowValidationRules
+                  headers={headers}
+                  onRulesChange={setRulesData}
+                ></ShowValidationRules>
+              </>
+            )}
+          </form>
+        ) : (
+          <>
+            <ValidationResult
+              responseData={responseData}
+              onUploadNew={handleReset}
+            />
+            {/* {requestData} */}
+          </>
+        )}
       </div>
     </div>
   );

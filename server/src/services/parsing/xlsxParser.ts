@@ -3,13 +3,14 @@ import { ErrorBuffer } from "../../utils/errorBuffer";
 import {
   ColumnRule,
   ColumnStats,
+  
 } from "../../interface/importedFile.interface";
 import {
   validateRow,
   getCellValue,
   prepareColumnRules,
+  createColumnStatsFromRules
 } from "../../validations/user.importedFile.validations";
-import { createColumnStats } from "../../utils/importFileDefaultColumnStats";
 
 export const xlsxParser = async (
   filePath: string,
@@ -60,7 +61,8 @@ export const xlsxParser = async (
 
             headers.forEach((header) => {
               if (!header || typeof header !== "string") return;
-              columnStats[header] = createColumnStats();
+              const ruleConfig = columnConfig[header] || {};
+              columnStats[header] = createColumnStatsFromRules(ruleConfig);
             });
 
             continue;

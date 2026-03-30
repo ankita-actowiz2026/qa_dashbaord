@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
+import {RULE_TO_STATS_MAP } from "../utils/importFileDefaultColumnStats";
+
 import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
@@ -20,6 +22,27 @@ const validBooleanValues = new Set([
   "disabled",
   "0",
 ]);
+
+export const createColumnStatsFromRules = (rules: any): ColumnStats => {
+  const baseStats: any = {
+    total_records: 0,
+    valid_records: 0,
+    invalid_records: 0,
+    error_msg: [],
+  };
+
+  Object.keys(rules).forEach((ruleKey) => {
+    const statKeys = RULE_TO_STATS_MAP[ruleKey];
+
+    if (statKeys) {
+      statKeys.forEach((key) => {
+        baseStats[key] = 0;
+      });
+    }
+  });
+
+  return baseStats;
+};
 export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
 export const validateEdit = [];
@@ -82,6 +105,9 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
     }
     if (rule.cell_end_with) {
       rule.cellEndWithMessage = rule.cell_end_with.join(", ");
+    }
+    if (rule.fixed_header) {
+      rule.fixedHeaderMessage = rule.fixed_header.join(", ");
     }
   }
 };
@@ -280,21 +306,13 @@ export const validateRow = (
     const rule = ruleMap[columnName];
     if (!rule) continue;
     const dataType = rule.data_type;
+   
 
     const columnStat = columnStats[columnName];
     if (!columnStat) continue;
     let columnValid = true;
 
-    let rawValue = rowData[columnName];
-    // if (["Restaurant_Id"].includes(columnName))
-    //   console.log(
-    //     "columnName-->" +
-    //       columnName +
-    //       "   my data type-->" +
-    //       dataType +
-    //       "==original type=>" +
-    //       typeof rawValue,
-    //   );
+    let rawValue = rowData[columnName];    
 
     const displayValue = getCellValue(rawValue, dataType);
     const strValue = String(displayValue).trim();
@@ -304,8 +322,8 @@ export const validateRow = (
       columnStat.total_records++;
     }
     //has_empty
-
-    if (!rule.has_empty && strValue === "") {
+   
+    if (rule.has_empty && strValue === "") {
       columnStat.empty_count++;
       if (columnValid) columnStat.invalid_records++; //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
 
@@ -328,7 +346,10 @@ export const validateRow = (
 
       continue;
     }
-
+    if(columnName==="sss")
+    {
+     // console.log(rule)
+    }
     // ✅ datatype check FIRST
     if (
       ["csv", "xls", "xlsx"].includes(fileType) &&
@@ -361,7 +382,7 @@ export const validateRow = (
         });
     }
 
-    if (strValue === "") continue;
+   // if (strValue === "") continue;
     // EMAIL
 
     if (rule.cellContainsRegex) {
@@ -806,9 +827,12 @@ export const validateRow = (
       }
     }
 
-    //if (dataType  === "date" && rule.dateRegex && !strValue) {
+    
 
-    // if (rule.fixed_header_set &&!rule.fixed_header_set.has(strValue.toLowerCase())) {
+     if(columnName=="sss")
+    {
+      //console.log(rule.fixed_header_set)
+    }
     if (rule.fixed_header_set && !rule.fixed_header_set.has(strValue)) {
       if (columnValid) columnStat.invalid_records++;
       columnValid = false;
@@ -826,14 +850,10 @@ export const validateRow = (
           row: rowNumber,
           column: columnName,
           error_type: "Fixed Header Value Error",
-          error_description: `${strValue} not allowed`,
+          error_description: `${strValue} is not valid fiexd headers. only ${rule.fixedHeaderMessage} are allowed`,
         });
     }
-    // START WITH
-    // const normalizedValue = String(strValue ?? "")
-    //   .trim()
-    //   .toLowerCase();
-
+   
     if (
       rule.cell_start_with_normalized?.length &&
       !rule.cell_start_with_normalized.some((prefix) =>
@@ -843,7 +863,7 @@ export const validateRow = (
       if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
-      columnStat.cell_start_with_end_with_error_count++;
+      columnStat.cell_start_with_error_count++;
       errorBuffer.add([
         rowNumber,
         columnName,
@@ -869,7 +889,7 @@ export const validateRow = (
       if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
-      columnStat.cell_start_with_end_with_error_count++;
+      columnStat.cell_end_with_error_count++;
 
       errorBuffer.add([
         rowNumber,

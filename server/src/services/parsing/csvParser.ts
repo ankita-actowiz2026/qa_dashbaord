@@ -11,6 +11,7 @@ import {
   validateRow,
   getCellValue,
   prepareColumnRules,
+  createColumnStatsFromRules
 } from "../../validations/user.importedFile.validations";
 
 export const csvParser = async (
@@ -55,7 +56,8 @@ export const csvParser = async (
             headers = Object.keys(row);
 
             headers.forEach((header) => {
-              columnStats[header] = createColumnStats();
+              const ruleConfig = columnConfig[header] || {};
+              columnStats[header] = createColumnStatsFromRules(ruleConfig);
             });
 
             headerInitialized = true;

@@ -1,3 +1,5 @@
+1. if type date and dateformat is not set then?
+
 To do
 
 1. read json file and reaf first 50 records for headers

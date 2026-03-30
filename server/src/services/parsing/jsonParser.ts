@@ -11,6 +11,7 @@ import {
 import {
   validateRow,
   prepareColumnRules,
+  createColumnStatsFromRules
 } from "../../validations/user.importedFile.validations";
 
 export const jsonParser = async (
@@ -127,7 +128,8 @@ export const jsonParser = async (
           headers = Array.from(detectedHeaders);
 
           headers.forEach((header) => {
-            columnStats[header] = createColumnStats();
+             const ruleConfig = columnConfig[header] || {};
+                          columnStats[header] = createColumnStatsFromRules(ruleConfig);
           });
 
           headerInitialized = true;
@@ -150,7 +152,8 @@ export const jsonParser = async (
           headers = Array.from(detectedHeaders);
 
           headers.forEach((header) => {
-            columnStats[header] = createColumnStats();
+             const ruleConfig = columnConfig[header] || {};
+                          columnStats[header] = createColumnStatsFromRules(ruleConfig);
           });
 
           previewRows.forEach((row) => processRow(row));

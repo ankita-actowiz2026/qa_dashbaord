@@ -102,39 +102,81 @@ class ImportFileController {
           );
       }
 
-      //start storing in excel first sheet
-      const column_wise_stats = result.column_wise_stats;
-      const columns = Object.keys(column_wise_stats);
+     // start storing in excel first sheet
 
-      if (!columns.length) {
-        throw new Error("No column stats generated or File is empty");
+// 1. Get stats first
+const column_wise_stats = result.column_wise_stats;
+const columns = Object.keys(column_wise_stats);
+
+if (!columns.length) {
+  throw new Error("No column stats generated or File is empty");
+}
+
+// 2. Ignore default keys
+const IGNORE_KEYS = [
+  "total_records",
+  "valid_records",
+  "invalid_records",
+  "error_msg",
+];
+
+// 3. Filter columns with meaningful data
+const filteredColumns = columns.filter((col) => {
+  const stats = column_wise_stats[col];
+
+  return Object.keys(stats).some((key) => {
+    return (
+      !IGNORE_KEYS.includes(key) &&
+      stats[key] !== null &&
+      stats[key] !== 0 &&
+      stats[key] !== undefined
+    );
+  });
+});
+
+// 👉 4. Use filteredColumns OR fallback to all columns
+const finalColumns = filteredColumns.length ? filteredColumns : columns;
+
+// 5. Metrics (based on available columns safely)
+const metrics = Object.keys(column_wise_stats[finalColumns[0]]).filter(
+  (m) => m !== "error_msg"
+);
+
+// 6. Header Row
+const totalHeaderRow = totalsSheet.addRow([
+  "Validation Type",
+  ...finalColumns,
+]);
+
+totalHeaderRow.eachCell((cell) => {
+  cell.font = { bold: true };
+});
+
+totalHeaderRow.commit();
+
+// 7. Loop metrics
+for (const metric of metrics) {
+  const row = totalsSheet.addRow([
+    metric
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase()),
+
+    ...finalColumns.map((c) => {
+      const val = column_wise_stats[c]?.[metric];
+
+      if (val === null || val === undefined || Number.isNaN(val)) {
+        return "-";
       }
-      const metrics = Object.keys(column_wise_stats[columns[0]]).filter(
-        (m) => m !== "error_msg",
-      );
-      // Header Row
-      const totalHeaderRow = totalsSheet.addRow([
-        "Validation Type",
-        ...columns,
-      ]);
 
-      totalHeaderRow.eachCell((cell) => {
-        cell.font = { bold: true };
-      });
+      return val;
+    }),
+  ]);
 
-      totalHeaderRow.commit();
+  row.getCell(1).font = { bold: true };
+  row.commit();
+}
 
-      // Loop metrics
-      for (const metric of metrics) {
-        const row = totalsSheet.addRow([
-          metric.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-          ...columns.map((c) => column_wise_stats[c][metric]),
-        ]);
-        // make metric name bold
-        row.getCell(1).font = { bold: true };
-        row.commit();
-      }
-      //end first sheet
+// end first sheet
 
       //show colom wise errors
       const errors_for_coloms: Record<string, string[]> = {};

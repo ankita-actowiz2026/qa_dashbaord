@@ -838,7 +838,7 @@ export const validateRow = (
       if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
-      columnStat.cell_start_with_end_with_error_count++;
+      columnStat.cell_start_with_error_count++;
       errorBuffer.add([
         rowNumber,
         columnName,
@@ -864,7 +864,7 @@ export const validateRow = (
       if (columnValid) columnStat.invalid_records++;
       columnValid = false;
       rowValid = false;
-      columnStat.cell_start_with_end_with_error_count++;
+      columnStat.cell_end_with_error_count++;
 
       errorBuffer.add([
         rowNumber,
