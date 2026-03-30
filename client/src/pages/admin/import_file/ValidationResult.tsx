@@ -1,30 +1,33 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
 import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 const getFilteredColumns = (columnStats: any) => {
-  return Object.entries(columnStats).filter(([_, stats]: any) => {
-    const keys = Object.keys(stats);
-
-    return keys.some(
-      (key) =>
+  return Object.entries(columnStats).filter(([_, stats]: any) =>
+    Object.entries(stats).some(
+      ([key, value]) =>
         ![
           "total_records",
           "valid_records",
           "invalid_records",
           "error_msg",
         ].includes(key) &&
-        stats[key] !== 0 &&
-        stats[key] !== null,
-    );
-  });
+        value !== 0 &&
+        value !== null,
+    ),
+  );
 };
-const ValidationResult = ({ responseData, onUploadNew }: any) => {
+const ValidationResult = () => {
+  const location = useLocation();
   const navigate = useNavigate();
+
+  const responseData = location.state?.responseData;
+  const requestData = location.state?.requestData;
+  console.log(requestData);
   const [expandedColumn, setExpandedColumn] = useState(null);
-  const [selectedColumn, setSelectedColumn] = useState<any>(null);
 
   if (!responseData) return null;
 
@@ -32,17 +35,23 @@ const ValidationResult = ({ responseData, onUploadNew }: any) => {
     responseData.data;
   const { result_file, errors_for_coloms } = responseData;
 
-  const filteredColumns = getFilteredColumns(column_wise_stats);
-
+  const filteredColumns = useMemo(
+    () => getFilteredColumns(column_wise_stats),
+    [column_wise_stats],
+  );
   return (
     <div className="mt-6 space-y-6">
+      <h1 className="text-3xl font-semibold text-gray-800">
+        Validation Results
+      </h1>
+      <p className="text-sm text-gray-500"></p>
       <div className="mt-6 text-right">
         <button
-          onClick={onUploadNew}
+          onClick={() => navigate("/admin/import_file")}
           className="flex items-center gap-2 bg-black border border-gray-300 text-white py-2.5 px-5 rounded-xl font-medium hover:bg-gray-700 hover:shadow-sm transition-all duration-200"
         >
           <FaUpload className="text-sm" />
-          Upload Another File
+          Upload New File
         </button>
       </div>
       {/* 🔹 TOP SUMMARY */}
@@ -66,7 +75,7 @@ const ValidationResult = ({ responseData, onUploadNew }: any) => {
         {/* HEADER */}
         <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50 rounded-t-2xl">
           <h2 className="text-sm font-semibold text-gray-700">
-            Column Results
+            Column Results ({filteredColumns.length})
           </h2>
         </div>
 
@@ -92,9 +101,7 @@ const ValidationResult = ({ responseData, onUploadNew }: any) => {
                     "valid_records",
                     "invalid_records",
                     "error_msg",
-                  ].includes(key) &&
-                  val !== 0 &&
-                  val !== null,
+                  ].includes(key) && val !== null,
               );
 
               return (
@@ -157,11 +164,11 @@ const ValidationResult = ({ responseData, onUploadNew }: any) => {
                       {/* 🔹 SUMMARY BLOCK */}
                       <div className="p-4 bg-white border border-gray-200 shadow-sm rounded-xl">
                         <p className="mb-2 text-sm font-semibold text-gray-700">
-                          Invalid Types
+                          Column Errors
                         </p>
 
                         <div className="flex flex-wrap gap-2">
-                          {errors_for_coloms[col]?.length > 0 ? (
+                          {errors_for_coloms?.[col]?.length > 0 ? (
                             errors_for_coloms[col].map((err, i) => (
                               <span
                                 key={i}
@@ -179,7 +186,7 @@ const ValidationResult = ({ responseData, onUploadNew }: any) => {
                       </div>
 
                       {/* 🔹 ERROR DETAILS */}
-                      {(stats.error_msg && stats.error_msg.length > 0) ?? (
+                      {stats.error_msg && stats.error_msg.length > 0 && (
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
                           {/* Header */}
                           <div className="sticky top-0 z-10 px-4 py-3 bg-white border-b rounded-t-xl">
@@ -194,20 +201,23 @@ const ValidationResult = ({ responseData, onUploadNew }: any) => {
                               {stats.error_msg.map((err, index) => (
                                 <div
                                   key={index}
-                                  className="flex items-center gap-3 px-4 py-2 text-xs transition hover:bg-gray-50"
+                                  className="grid grid-cols-[80px_120px_1fr] items-center gap-3 px-4 py-2 text-xs hover:bg-gray-50"
                                 >
                                   {/* Row */}
-                                  <span className="font-semibold text-gray-600 whitespace-nowrap">
+                                  <span className="font-semibold text-gray-600">
                                     Row {err.row}
                                   </span>
 
                                   {/* Type Badge */}
-                                  <span className="px-2 py-0.5 text-[11px] font-medium text-red-600 bg-red-100 rounded whitespace-nowrap">
+                                  <span className="px-2 py-0.5 text-[11px] font-medium text-red-600 bg-red-100 rounded w-fit">
                                     {err.error_type}
                                   </span>
 
                                   {/* Description */}
-                                  <span className="text-gray-700 truncate">
+                                  <span
+                                    className="text-gray-700 truncate"
+                                    title={err.error_description}
+                                  >
                                     {err.error_description}
                                   </span>
                                 </div>

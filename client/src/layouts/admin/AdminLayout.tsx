@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { FiHome, FiUpload } from "react-icons/fi";
 import Header from "../../layouts/admin/Header";
 import logo from "../../assets/actowizLogo.svg";
-
+import Breadcrumb from "../../components/Breadcrumb";
 const isMobile = window.innerWidth < 640;
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true); // default open
@@ -84,15 +84,19 @@ const AdminLayout = () => {
 
           <NavLink
             to="/admin/import_file"
+            onClick={(e) => {
+              // 👇 force reset even if already on same page
+              window.dispatchEvent(new Event("resetImport"));
+            }}
             className={({ isActive }) =>
               `flex items-center ${
                 sidebarOpen || isMobile ? "justify-start" : "justify-center"
               } gap-3 px-3 py-2 rounded-lg transition
-            ${
-              isActive
-                ? "bg-gray-800 text-white"
-                : "text-gray-400 hover:bg-gray-800 hover:text-white"
-            }`
+    ${
+      isActive
+        ? "bg-gray-800 text-white"
+        : "text-gray-400 hover:bg-gray-800 hover:text-white"
+    }`
             }
           >
             <FiUpload size={18} />
@@ -118,6 +122,7 @@ const AdminLayout = () => {
 
         <main className="flex-1 overflow-y-auto bg-white p-4 md:p-6">
           <div className="w-full">
+            <Breadcrumb />
             <Outlet />
           </div>
         </main>

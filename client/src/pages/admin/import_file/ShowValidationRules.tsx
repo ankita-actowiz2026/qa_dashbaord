@@ -534,16 +534,23 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         }
 
         if (rule.type === "dependency") {
-          obj.dependency = {
-            main: {
-              header: currentHeader.name,
-              value:
-                rule?.value?.mode === "required"
-                  ? true
-                  : rule?.value?.main_value,
-            },
-            sub_dependencies: rule?.value?.sub_dependencies,
-          };
+          const dep: any = {};
+
+          const main = rule.value;
+
+          // ✅ MAIN
+          dep[item.name] = main.mode === "required" ? true : main.main_value;
+
+          // ✅ SUB DEPENDENCIES
+          main.sub_dependencies?.forEach((sub: any) => {
+            const key = sub.headers.join(","); // comma separated headers
+
+            dep[key] = sub.mode === "required" ? true : (sub.value ?? true); // fallback safety
+          });
+
+          obj.dependency = dep;
+
+          console.log("Dependency Output:", dep);
         }
       });
 
@@ -801,6 +808,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
+              [[{JSON.stringify(current.rules)}]]
               {current.rules.map((rule, idx) => (
                 <div
                   key={idx}

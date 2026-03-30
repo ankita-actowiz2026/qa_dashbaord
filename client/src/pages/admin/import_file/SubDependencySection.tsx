@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-
+import { FaPlus } from "react-icons/fa";
+import { FiEdit, FiTrash2, FiSave } from "react-icons/fi";
+import { MdClear } from "react-icons/md";
 const SubDependencySection = ({
   tempRule,
   setTempRule,
@@ -137,9 +139,9 @@ const SubDependencySection = ({
               sub_value: "",
             });
           }}
-          className="text-sm text-gray-500 underline"
+          className="ml-2 px-4 py-2 border rounded-lg"
         >
-          Cancel Edit
+          Cancel
         </button>
       )}
 
@@ -168,7 +170,7 @@ const SubDependencySection = ({
               }}
               className="text-blue-600 text-xs"
             >
-              Edit
+              <FiEdit size={18} />
             </button>
 
             {/* DELETE */}
@@ -187,7 +189,7 @@ const SubDependencySection = ({
               }}
               className="text-red-500 text-xs"
             >
-              Delete
+              <FiTrash2 size={18} />
             </button>
           </div>
         </div>

@@ -9,6 +9,7 @@ import PublicRoute from "./PublicRoute";
 import Report from "../../pages/report/Report";
 import ImportFile from "../../pages/admin/import_file/ImportFile";
 import PageNotFound from "../../pages/admin/PageNotFound";
+import ValidationResult from "../../pages/admin/import_file/ValidationResult";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -29,6 +30,10 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
+        <Route
+          path="import_file/validation_result"
+          element={<ValidationResult />}
+        />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="user" element={<UserList />} />
         <Route path="user/list" element={<UserList />} />

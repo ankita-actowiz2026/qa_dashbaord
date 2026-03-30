@@ -23,7 +23,10 @@ const validBooleanValues = new Set([
   "0",
 ]);
 
-export const createColumnStatsFromRules = (rules: any): ColumnStats => {
+export const createColumnStatsFromRules = (
+  rules: any,
+  dependency_option = "add_dependency",
+): ColumnStats => {
   const baseStats: any = {
     total_records: 0,
     valid_records: 0,
@@ -32,6 +35,13 @@ export const createColumnStatsFromRules = (rules: any): ColumnStats => {
   };
 
   Object.keys(rules).forEach((ruleKey) => {
+    if (dependency_option == "not_add_dependency" && ruleKey == "dependency") {
+      return;
+    }
+    // console.log("+++++++");
+    // console.log(ruleKey);
+    // console.log(RULE_TO_STATS_MAP);
+    // console.log("+++++++");
     const statKeys = RULE_TO_STATS_MAP[ruleKey];
 
     if (statKeys) {
