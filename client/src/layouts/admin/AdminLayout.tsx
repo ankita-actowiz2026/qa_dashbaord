@@ -110,9 +110,9 @@ const AdminLayout = () => {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-800 text-xs text-gray-500">
+        {/* <div className="p-4 border-t border-gray-800 text-xs text-gray-500">
           {(sidebarOpen || isMobile) && "© 2026 Company"}
-        </div>
+        </div> */}
       </aside>
       {/* Overlay */}
       {isMobile && sidebarOpen && (
