@@ -232,7 +232,7 @@ const ImportFile: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="flex flex-col gap-4 px-5 py-4 mt-6 border border-gray-200 shadow-sm md:flex-row md:items-center md:justify-between bg-white/80 backdrop-blur rounded-2xl">
+                <div className="flex flex-col gap-4 px-5 py-4 mt-6 border border-gray-800 shadow-md md:flex-row md:items-center md:justify-between bg-gray-900 text-white rounded-2xl">
                   {/* LEFT SIDE → File Info */}
                   <div className="flex items-center min-w-0 gap-4">
                     {/* File Icon */}
@@ -242,9 +242,9 @@ const ImportFile: React.FC = () => {
 
                     {/* File Details */}
                     <div className="min-w-0">
-                      <p className="text-sm text-gray-500">Uploaded File</p>
+                      <p className="text-sm text-gray-400">Uploaded File</p>
 
-                      <p className="text-gray-800 font-semibold truncate max-w-[220px] sm:max-w-sm">
+                      <p className="text-white font-semibold truncate">
                         {fileName}
                       </p>
 
@@ -263,7 +263,7 @@ const ImportFile: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="flex items-center gap-2 bg-black border border-gray-300 text-white py-2.5 px-5 rounded-xl font-medium hover:bg-gray-700 hover:shadow-sm transition-all duration-200"
+                      className="flex items-center gap-2 py-2.5 px-6 rounded-xl font-semibold shadow-sm transition-all duration-200 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 hover:scale-105"
                     >
                       <FaUpload className="text-sm" />
                       Upload New file

@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
-import {RULE_TO_STATS_MAP } from "../utils/importFileDefaultColumnStats";
+import { RULE_TO_STATS_MAP } from "../utils/importFileDefaultColumnStats";
 
 import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 0;
+const debug = 1;
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const stringRegex = /^.*$/s;
 const alphabeticsRegex = /^[a-zA-Z ]*$/;
@@ -306,13 +306,12 @@ export const validateRow = (
     const rule = ruleMap[columnName];
     if (!rule) continue;
     const dataType = rule.data_type;
-   
 
     const columnStat = columnStats[columnName];
     if (!columnStat) continue;
     let columnValid = true;
 
-    let rawValue = rowData[columnName];    
+    let rawValue = rowData[columnName];
 
     const displayValue = getCellValue(rawValue, dataType);
     const strValue = String(displayValue).trim();
@@ -322,7 +321,7 @@ export const validateRow = (
       columnStat.total_records++;
     }
     //has_empty
-   
+
     if (rule.has_empty && strValue === "") {
       columnStat.empty_count++;
       if (columnValid) columnStat.invalid_records++; //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
@@ -346,10 +345,7 @@ export const validateRow = (
 
       continue;
     }
-    if(columnName==="sss")
-    {
-     // console.log(rule)
-    }
+
     // ✅ datatype check FIRST
     if (
       ["csv", "xls", "xlsx"].includes(fileType) &&
@@ -382,13 +378,15 @@ export const validateRow = (
         });
     }
 
-   // if (strValue === "") continue;
+    // if (strValue === "") continue;
     // EMAIL
 
     if (rule.cellContainsRegex) {
       const value = String(strValue).trim();
 
-      if (rule.cellContainsRegex && !rule.cellContainsRegex.test(value)) {
+      rule.cellContainsRegex.lastIndex = 0; // 🔥 fix
+
+      if (!rule.cellContainsRegex.test(value)) {
         columnStat.pattern_error_count++;
         if (columnValid) columnStat.invalid_records++;
         columnValid = false;
@@ -398,7 +396,7 @@ export const validateRow = (
             row: rowNumber,
             column: columnName,
             error_type: "Regex Pattern Error",
-            error_description: `${strValue} does not match required format`,
+            error_description: `${strValue} does not match required format ${columnStat.pattern_error_count}`,
           });
         errorBuffer.add([
           rowNumber,
@@ -827,10 +825,7 @@ export const validateRow = (
       }
     }
 
-    
-
-     if(columnName=="sss")
-    {
+    if (columnName == "sss") {
       //console.log(rule.fixed_header_set)
     }
     if (rule.fixed_header_set && !rule.fixed_header_set.has(strValue)) {
@@ -853,7 +848,7 @@ export const validateRow = (
           error_description: `${strValue} is not valid fiexd headers. only ${rule.fixedHeaderMessage} are allowed`,
         });
     }
-   
+
     if (
       rule.cell_start_with_normalized?.length &&
       !rule.cell_start_with_normalized.some((prefix) =>

@@ -3,13 +3,12 @@ import { ErrorBuffer } from "../../utils/errorBuffer";
 import {
   ColumnRule,
   ColumnStats,
-  
 } from "../../interface/importedFile.interface";
 import {
   validateRow,
   getCellValue,
   prepareColumnRules,
-  createColumnStatsFromRules
+  createColumnStatsFromRules,
 } from "../../validations/user.importedFile.validations";
 
 export const xlsxParser = async (
