@@ -82,12 +82,11 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     data_redundant_value?: string;
     data_redundant_threshold?: string;
     cell_contains_value?: string;
-
     fixed_header?: string[];
     not_match_found?: string[];
     cell_end_with?: string[];
-    cell_start_with?: string[];
-
+    cell_start_with?: string;
+    custom_date_format?: string;
     // ✅ DEPENDENCY
     dependency_mode?: "required" | "other";
     other_value_main_dependency?: string;
@@ -218,18 +217,19 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             return;
           }
 
-          if (isNaN(minVal)) {
-            toast.error("Minimum must be a number");
+          if (isNaN(minVal) || minVal < 0) {
+            toast.error("Minimum value must be a number and >= 0");
             return;
           }
 
-          if (isNaN(maxVal)) {
-            toast.error("Maximum must be a number");
+          if (isNaN(maxVal) || maxVal < 0) {
+            toast.error("Maximum value must be a number and >= 0");
             return;
           }
-
-          if (minVal > maxVal) {
-            toast.error("Minimum value cannot be greater than maximum value");
+          if (minVal >= maxVal) {
+            toast.error(
+              "Minimum value cannot be same or greater than maximum value",
+            );
             return;
           }
         }
@@ -241,7 +241,24 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       toast.error("Please select date format");
       return;
     }
+    ///
+    if (tempRule.type === "data_type" && tempRule.date_format === "custom") {
+      // ✅ CUSTOM VALIDATION
 
+      if (!tempRule.custom_date_format) {
+        toast.error("Please enter custom date format");
+        return;
+      }
+
+      // basic format validation (production safe)
+      const validPattern = /^[YMDHhms:\-/\sA]+$/;
+
+      if (!validPattern.test(tempRule.custom_date_format)) {
+        toast.error("Invalid custom date format");
+        return;
+      }
+    }
+    ///
     if (tempRule.type === "data_redundant") {
       if (!tempRule.data_redundant_value) {
         toast.error("Please enter redundant value");
@@ -287,7 +304,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       }
     }
     if (tempRule.type === "cell_start_with") {
-      if (!tempRule.cell_start_with || tempRule.cell_start_with.length === 0) {
+      if (!tempRule.cell_start_with) {
         toast.error("Please add at least one cell start with");
         return;
       }
@@ -320,14 +337,22 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
     // ✅ If editing → remove OLD rule (regardless of type)
     if (editingIndex !== null) {
-      currentHeader.rules.splice(editingIndex, 1);
+      const removingType = currentHeader.rules[editingIndex]?.type;
+
+      // ✅ If editing data_type → also remove date_format
+      if (removingType === "data_type") {
+        currentHeader.rules = currentHeader.rules.filter(
+          (r, i) => i !== editingIndex && r.type !== "date_format",
+        );
+      } else {
+        currentHeader.rules.splice(editingIndex, 1);
+      }
     }
 
     // ======================
     // REQUIRED
     // ======================
     if (tempRule.type === "required") {
-      //     (r) => r.type !== "required",
       currentHeader.rules.push({
         type: "required",
         value: true,
@@ -346,7 +371,10 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       if (tempRule.data_type == "date") {
         currentHeader.rules.push({
           type: "date_format",
-          value: tempRule.date_format || "YYYY-MM-DD", // ✅ safety fallback
+          value:
+            tempRule.date_format === "custom"
+              ? tempRule.custom_date_format
+              : tempRule.date_format || "YYYY-MM-DD", // ✅ safety fallback
         });
       }
     }
@@ -577,9 +605,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     (appliedRuleDataType?.[0]?.value as string) || "string";
 
   return (
-    <div className="flex h-[600px] border rounded-2xl bg-white shadow-sm mt-2">
+    <div className="flex min-h-[600px] overflow-hidden border rounded-2xl bg-white shadow-sm mt-2">
       {/* LEFT PANEL */}
-      <div className="flex flex-col w-1/4 min-h-0 border-r bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="flex flex-col w-1/4 border-r bg-gradient-to-b from-gray-50 to-gray-100">
         {/* HEADER */}
         <div className="p-4 font-semibold text-white border-b bg-gray-800 rounded-t-lg ">
           Headers({filteredData.length})
@@ -597,7 +625,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         </div>
 
         {/* LIST */}
-        <div className="flex-1 min-h-0 overflow-y-auto bg-gray-100">
+        <div className="flex-1 overflow-y-auto bg-gray-100">
           {filteredData.length === 0 ? (
             <div className="p-6 text-sm text-center text-gray-400">
               <div className="mb-2 text-3xl"></div>
@@ -644,7 +672,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="relative flex flex-col flex-1 min-h-0">
+      <div className="relative flex flex-col flex-1">
         {/* HEADER */}
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="font-semibold text-gray-700">{current.name}</h2>
@@ -662,7 +690,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 min-h-0 p-6 overflow-y-auto">
+        <div className="flex-1 p-6 overflow-y-auto">
           {/* EMPTY STATE */}
 
           {current.rules.length === 0 ? (
@@ -816,16 +844,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           <span className=" text-gray-500">
                             Cell Start With:{" "}
                           </span>
-                          <div className="flex flex-wrap gap-2">
-                            {(rule.value as string[])?.map((val, index) => (
-                              <span
-                                key={index}
-                                className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
-                              >
-                                {val}
-                              </span>
-                            ))}
-                          </div>
+                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                            {rule.value}
+                          </span>
                         </div>
                       )}
                       {rule.type === "cell_end_with" && (
@@ -927,9 +948,29 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           }
 
                           if (rule.type === "data_type") {
+                            const dataType = rule.value as string;
+
+                            let dateFormatRule = current.rules.find(
+                              (r) => r.type === "date_format",
+                            );
+
+                            let dateValue = dateFormatRule?.value as string;
+
+                            const isPredefined =
+                              date_format_options.includes(dateValue);
+
                             setTempRule({
                               type: "data_type",
-                              data_type: rule.value as string,
+                              data_type: dataType,
+
+                              ...(dataType === "date" && {
+                                date_format: isPredefined
+                                  ? dateValue
+                                  : "custom",
+                                custom_date_format: isPredefined
+                                  ? ""
+                                  : dateValue,
+                              }),
                             });
                           }
                           // ✅ DATA LENGTH
@@ -947,9 +988,17 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
                           // ✅ DATE FORMAT
                           if (rule.type === "date_format") {
+                            const value = rule.value as string;
+
+                            const isPredefined =
+                              date_format_options.includes(value);
+
                             setTempRule({
-                              type: "date_format",
-                              date_format: rule.value as string,
+                              type: "data_type", // ⚠️ IMPORTANT (since UI is inside data_type block)
+                              data_type: "date",
+
+                              date_format: isPredefined ? value : "custom",
+                              custom_date_format: isPredefined ? "" : value,
                             });
                           }
 
@@ -1152,11 +1201,6 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-gray-600">Field required?</span>
                 <ToggleRight className="text-blue-400" size={28} />
-                {/* <input
-                  type="checkbox"
-                  checked={tempRule.required ?? true}
-                  className="w-5 h-5 cursor-not-allowed opacity-60"
-                />  */}
               </div>
             )}
             {/* DATA TYPE RULE */}
@@ -1199,7 +1243,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                     </label>
 
                     <select
-                      value={tempRule.date_format || "YYYY-MM-DD"}
+                      value={tempRule.date_format || ""}
                       onChange={(e) =>
                         setTempRule({
                           ...tempRule,
@@ -1213,7 +1257,27 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           {format}
                         </option>
                       ))}
+                      <option value="custom">Custom Date...</option>
                     </select>
+                  </div>
+                )}
+                {tempRule.date_format === "custom" && (
+                  <div className="mb-4">
+                    <label className="text-sm text-gray-600">
+                      Add custom date
+                    </label>
+                    <input
+                      type="text"
+                      value={tempRule.custom_date_format || ""}
+                      onChange={(e) =>
+                        setTempRule({
+                          ...tempRule,
+                          custom_date_format: e.target.value,
+                        })
+                      }
+                      placeholder="Enter custom format (e.g. YYYY-DD-MM)"
+                      className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
                   </div>
                 )}
               </>
@@ -1452,13 +1516,28 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
               />
             )}
             {tempRule.type === "cell_start_with" && (
-              <TagInputRule
-                label="Cell start with value"
-                values={tempRule.cell_start_with || []}
-                onChange={(val) =>
-                  setTempRule({ ...tempRule, cell_start_with: val })
-                }
-              />
+              // <TagInputRule
+              //   label="Cell start with"
+              //   values={tempRule.cell_start_with || []}
+              //   onChange={(val) =>
+              //     setTempRule({ ...tempRule, cell_start_with: val })
+              //   }
+              // />
+              <div>
+                <label className="text-sm text-gray-600">Cell start with</label>
+                <input
+                  type="text"
+                  value={tempRule.cell_start_with || ""}
+                  onChange={(e) =>
+                    setTempRule({
+                      ...tempRule,
+                      cell_start_with: e.target.value,
+                    })
+                  }
+                  placeholder="e.g. https://"
+                  className="w-full px-3 py-2 mt-1 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             )}
             {tempRule.type === "cell_end_with" && (
               <TagInputRule

@@ -14,6 +14,10 @@ const getErrorStyle = (err: string) => {
   if (err.toLowerCase().includes("type"))
     return "text-blue-700 bg-blue-50 border-blue-200";
 
+  if (err.toLowerCase().includes("start")) {
+    return "text-orange-700 bg-green-50 border-green-200";
+  }
+
   return "text-red-600 bg-red-50 border-red-100"; // default
 };
 const getFilteredColumns = (columnStats: any) => {

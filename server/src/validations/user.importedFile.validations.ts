@@ -66,11 +66,18 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
       );
     }
 
-    if (rule.cell_start_with?.length) {
-      rule.cell_start_with_normalized = rule.cell_start_with.map((v) =>
-        //String(v).trim().toLowerCase(),
-        String(v),
-      );
+    if (rule.cell_start_with) {
+      const value = String(rule.cell_start_with);
+      // convert to array internally
+      rule.cell_start_with_normalized = [value];
+      // message
+      rule.cellStartWithMessage = value;
+      console.log("++rule.cellStartWithMessage++");
+      console.log(rule.cellStartWithMessage);
+      console.log("--rule.cellStartWithMessage--");
+      console.log("++rule.cell_start_with_normalized++");
+      console.log(rule.cell_start_with_normalized);
+      console.log("--rule.cell_start_with_normalized--");
     }
 
     if (rule.cell_end_with?.length) {
@@ -111,7 +118,7 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
       }
     }
     if (rule.cell_start_with) {
-      rule.cellStartWithMessage = rule.cell_start_with.join(", ");
+      rule.cellStartWithMessage = String(rule.cell_start_with);
     }
     if (rule.cell_end_with) {
       rule.cellEndWithMessage = rule.cell_end_with.join(", ");
