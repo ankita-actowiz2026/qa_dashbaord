@@ -45,20 +45,25 @@ const AdminLayout = () => {
       `}
       >
         {/* Logo */}
-        <div className="h-24 flex items-center px-3 border-b border-gray-800">
+        <div className="h-20 flex items-center px-4 border-b border-gray-800 bg-black ">
           <div className="flex items-center gap-3">
-            <div className="rounded-full overflow-hidden bg-white flex items-center justify-center">
+            {/* Logo */}
+            <div className="h-18 w-18 rounded-full overflow-hidden flex items-center justify-center bg-purple-100">
               <img
                 src={logo}
                 alt="App logo"
-                className="h-15 w-15 object-contain scale-110"
+                className="h-18 w-18 object-contain"
               />
             </div>
 
+            {/* Text */}
             {(sidebarOpen || isMobile) && (
-              <span className="text-white text-lg font-bold whitespace-nowrap">
-                QA Tool
-              </span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-lg font-semibold text-white">
+                  Actowiz
+                </span>
+                <span className="text-xs text-white">QA Tool</span>
+              </div>
             )}
           </div>
         </div>

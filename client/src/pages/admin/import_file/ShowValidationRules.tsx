@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import TagInputRule from "./TagInputRule";
 import toast from "react-hot-toast";
 import SubDependencySection from "./SubDependencySection";
+import { Ruler } from "lucide-react";
+
 const date_format_options = [
   "YYYY-MM-DD",
   "DD-MM-YYYY",
@@ -694,7 +696,8 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
   const appliedRuleDataType = current.rules.filter(
     (r) => r.type == "data_type",
   );
-
+  const formatText = (text: string) =>
+    text ? text.charAt(0).toUpperCase() + text.slice(1) : "-";
   const currentDataType =
     (appliedRuleDataType?.[0]?.value as string) || "string";
 
@@ -703,7 +706,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       {/* LEFT PANEL */}
       <div className="flex flex-col w-1/4 min-h-0 border-r bg-gradient-to-b from-gray-50 to-gray-100">
         {/* HEADER */}
-        <div className="p-4 font-semibold text-gray-800 border-b bg-white/70 backdrop-blur">
+        <div className="p-4 font-semibold text-white border-b bg-gray-800 ">
           Headers({filteredData.length})
         </div>
 
@@ -816,99 +819,202 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 >
                   <div className="text-sm text-gray-700">
                     {rule.type === "required" && (
-                      <span>
-                        Required:{" "}
-                        <b>{rule.value ? "No Empty Allowed" : "Allow Empty"}</b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Required: </span>
+
+                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          {rule.value ? "Empty Not Allowed" : "Empty Allow"}
+                        </span>
+                      </div>
                     )}
 
                     {rule.type === "data_type" && (
-                      <span>
-                        Data Type:{" "}
-                        <b>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Data Type</span>
+
+                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                           {rule.value
                             ? rule.value.charAt(0).toUpperCase() +
                               rule.value.slice(1)
-                            : ""}
-                        </b>
-                      </span>
+                            : "-"}
+                        </span>
+                      </div>
                     )}
+
                     {rule.type === "data_length" && (
-                      <span>
-                        Length:{" "}
-                        <b>
-                          {(rule.value as any).mode === "fixed"
-                            ? `Fixed (${(rule.value as any).fixed})`
-                            : `Min ${(rule.value as any).min} - Max ${(rule.value as any).max}`}
-                        </b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Length</span>
+
+                        {/* Mode Badge */}
+                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          {formatText(rule.value?.mode)}
+                        </span>
+
+                        {/* Values */}
+                        {rule.value?.mode === "fixed" && (
+                          <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                            {rule.value?.fixed || "-"}
+                          </span>
+                        )}
+
+                        {rule.value?.mode === "variable" && (
+                          <>
+                            <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                              {rule.value?.min || "-"}
+                            </span>
+                            <span className="font-semibold">To</span>
+                            <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                              {rule.value?.max || "-"}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     )}
 
                     {/* ✅ DATE FORMAT */}
                     {rule.type === "date_format" && (
-                      <span>
-                        Date Format: <b>{rule.value as string}</b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Date Format : </span>
+
+                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          {rule.value as string}
+                        </span>
+                      </div>
                     )}
 
                     {rule.type === "data_redundant" && (
-                      <span>
-                        Redundant:{" "}
-                        <b>
-                          {rule.value.data_redundant_value} (Threshold:{" "}
-                          {rule.value.data_redundant_threshold})
-                        </b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Redundant </span>
+                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          {rule.value.data_redundant_value}
+                        </span>
+                        <span className=" text-gray-500">Threshold </span>
+                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          {rule.value.data_redundant_threshold}
+                        </span>
+                      </div>
                     )}
 
                     {rule.type === "regex" && (
-                      <span>
-                        Regex: <b>{rule.value}</b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Regex: </span>
+
+                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          {rule.value}
+                        </span>
+                      </div>
                     )}
 
                     {rule.type === "fixed_header" && (
-                      <span>
-                        Fixed Headers:{" "}
-                        <b>{(rule.value as string[]).join(", ")}</b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Fixed Headers: </span>
+                        <div className="flex flex-wrap gap-2">
+                          {(rule.value as string[])?.map((val, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
+                            >
+                              {val}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                     {rule.type === "cell_start_with" && (
-                      <span>
-                        Cell Start With:{" "}
-                        <b>{(rule.value as string[]).join(", ")}</b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">
+                          Cell Start With:{" "}
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {(rule.value as string[])?.map((val, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
+                            >
+                              {val}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                     {rule.type === "cell_end_with" && (
-                      <span>
-                        Cell End With:{" "}
-                        <b>{(rule.value as string[]).join(", ")}</b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Cell End With: </span>
+                        <div className="flex flex-wrap gap-2">
+                          {(rule.value as string[])?.map((val, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
+                            >
+                              {val}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                     {rule.type === "not_match_found" && (
-                      <span>
-                        Blocked value:{" "}
-                        <b>{(rule.value as string[]).join(", ")}</b>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className=" text-gray-500">Blocked value: </span>
+                        <div className="flex flex-wrap gap-2">
+                          {(rule.value as string[])?.map((val, index) => (
+                            <span
+                              key={index}
+                              className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
+                            >
+                              {val}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                     {rule.type === "dependency" && (
-                      <div>
-                        Dependency:
-                        <b>
-                          {rule.value.mode === "required"
-                            ? " Required"
-                            : ` ${rule.value.main_value}`}
-                        </b>
-                        <div className="mt-1 text-xs text-gray-500">
-                          {rule.value.sub_dependencies.map(
-                            (s: any, i: number) => (
-                              <div key={i}>
-                                {s.headers.join(", ")} → {s.mode}
-                                {s.value && ` (${s.value})`}
-                              </div>
-                            ),
-                          )}
+                      <div className="flex flex-col gap-2">
+                        {/* 🔹 Main Dependency */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">
+                            Dependency
+                          </span>
+
+                          <span className="px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full">
+                            {rule.value.mode === "required"
+                              ? "Required"
+                              : rule.value.main_value}
+                          </span>
                         </div>
+
+                        {/* 🔹 Sub Dependencies */}
+                        {rule.value.sub_dependencies?.length > 0 && (
+                          <div className="flex flex-col gap-2 pl-4 border-l border-gray-200">
+                            {rule.value.sub_dependencies.map(
+                              (s: any, i: number) => (
+                                <div
+                                  key={i}
+                                  className="flex flex-wrap items-center gap-2 text-xs"
+                                >
+                                  {/* Headers */}
+                                  <span className="px-2 py-0.5 font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                                    {s.headers.join(", ")}
+                                  </span>
+
+                                  {/* Arrow */}
+                                  <span className="text-gray-400">→</span>
+
+                                  {/* Mode */}
+                                  <span className="px-2 py-0.5 font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full">
+                                    {s.mode}
+                                  </span>
+
+                                  {/* Value (optional) */}
+                                  {s.value && (
+                                    <span className="px-2 py-0.5 font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-full">
+                                      {s.value}
+                                    </span>
+                                  )}
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

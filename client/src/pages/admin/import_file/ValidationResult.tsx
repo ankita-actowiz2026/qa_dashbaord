@@ -4,7 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
 import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "react-router-dom";
+const getErrorStyle = (err: string) => {
+  if (err.toLowerCase().includes("empty"))
+    return "text-yellow-700 bg-yellow-50 border-yellow-200";
 
+  if (err.toLowerCase().includes("regex"))
+    return "text-purple-700 bg-purple-50 border-purple-200";
+
+  if (err.toLowerCase().includes("type"))
+    return "text-blue-700 bg-blue-50 border-blue-200";
+
+  return "text-red-600 bg-red-50 border-red-100"; // default
+};
 const getFilteredColumns = (columnStats: any) => {
   return Object.entries(columnStats).filter(([_, stats]: any) =>
     Object.entries(stats).some(
@@ -42,7 +53,7 @@ const ValidationResult = () => {
   return (
     <div className="mt-6 space-y-6">
       <h1 className="text-3xl font-semibold text-gray-800">
-        Validation Results
+        Validation Result
       </h1>
       <p className="text-sm text-gray-500"></p>
       <div className="mt-6 text-right">
@@ -110,52 +121,52 @@ const ValidationResult = () => {
                   className="transition-all duration-200 hover:bg-gray-50"
                 >
                   {/* ROW */}
-                  <div className="flex items-center justify-between gap-4 px-5 py-4">
-                    {/* LEFT */}
-                    <div className="flex items-center flex-1 gap-3 overflow-hidden">
-                      {/* Column Name */}
-                      <div className="font-medium text-gray-800 truncate max-w-[180px]">
-                        {col}
-                      </div>
 
-                      {/* Issues */}
-                      <div className="flex flex-wrap gap-2">
-                        {issues.length > 0 ? (
-                          issues.map(([key, val]) => (
-                            <span
-                              key={key}
-                              className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-full"
-                            >
-                              <AlertCircle size={12} />
-                              {key.replaceAll("_", " ")} ({val})
-                            </span>
-                          ))
-                        ) : (
-                          <span className="flex items-center gap-1 text-xs text-green-600">
-                            <CheckCircle size={14} />
-                            No issues
-                          </span>
-                        )}
-                      </div>
+                  <div className="grid grid-cols-[200px_1fr_120px] items-center gap-4 px-5 py-4">
+                    {/* Column Name */}
+                    <div className="font-medium text-gray-800 truncate">
+                      {col}
                     </div>
 
-                    {/* RIGHT BUTTON */}
-                    <button
-                      onClick={() =>
-                        setExpandedColumn(expandedColumn === col ? null : col)
-                      }
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 transition bg-blue-50 rounded-lg hover:bg-blue-100"
-                    >
-                      {expandedColumn === col ? (
-                        <>
-                          Hide <ChevronUp size={16} />
-                        </>
+                    {/* Issues */}
+                    <div className="flex flex-wrap gap-2">
+                      {issues.length > 0 ? (
+                        issues.map(([key, val]) => (
+                          <span
+                            key={key}
+                            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-full ${getErrorStyle(key)}`}
+                          >
+                            <AlertCircle size={12} />
+                            {key.replaceAll("_", " ")} ({val})
+                          </span>
+                        ))
                       ) : (
-                        <>
-                          Details <ChevronDown size={16} />
-                        </>
+                        <span className="flex items-center gap-1 text-xs text-green-600">
+                          <CheckCircle size={14} />
+                          No issues
+                        </span>
                       )}
-                    </button>
+                    </div>
+
+                    {/* Button */}
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() =>
+                          setExpandedColumn(expandedColumn === col ? null : col)
+                        }
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 transition bg-blue-50 rounded-lg hover:bg-blue-100"
+                      >
+                        {expandedColumn === col ? (
+                          <>
+                            Hide <ChevronUp size={16} />
+                          </>
+                        ) : (
+                          <>
+                            Details <ChevronDown size={16} />
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   {/* EXPAND */}
@@ -172,7 +183,7 @@ const ValidationResult = () => {
                             errors_for_coloms[col].map((err, i) => (
                               <span
                                 key={i}
-                                className="px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-full"
+                                className={`px-2.5 py-1 text-xs font-medium border rounded-full ${getErrorStyle(err)}`}
                               >
                                 {err}
                               </span>
@@ -201,11 +212,11 @@ const ValidationResult = () => {
                               {stats.error_msg.map((err, index) => (
                                 <div
                                   key={index}
-                                  className="grid grid-cols-[80px_120px_1fr] items-center gap-3 px-4 py-2 text-xs hover:bg-gray-50"
+                                  className="grid grid-cols-[40px_150px_1fr] items-center gap-3 px-4 py-2 text-xs hover:bg-gray-50"
                                 >
                                   {/* Row */}
                                   <span className="font-semibold text-gray-600">
-                                    Row {err.row}
+                                    #{err.row}
                                   </span>
 
                                   {/* Type Badge */}
