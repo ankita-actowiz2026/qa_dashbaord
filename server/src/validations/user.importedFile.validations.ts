@@ -387,7 +387,7 @@ export const validateRow = (
       rule.cellContainsRegex.lastIndex = 0; // 🔥 fix
 
       if (!rule.cellContainsRegex.test(value)) {
-        columnStat.pattern_error_count++;
+        columnStat.regex_pattern_error_count++;
         if (columnValid) columnStat.invalid_records++;
         columnValid = false;
         rowValid = false;
@@ -396,7 +396,7 @@ export const validateRow = (
             row: rowNumber,
             column: columnName,
             error_type: "Regex Pattern Error",
-            error_description: `${strValue} does not match required format ${columnStat.pattern_error_count}`,
+            error_description: `${strValue} does not match required format ${columnStat.regex_pattern_error_count}`,
           });
         errorBuffer.add([
           rowNumber,
@@ -697,6 +697,7 @@ export const validateRow = (
         }
       }
     } else if (
+      dataType === undefined ||
       dataType === "string" ||
       dataType === "email" ||
       dataType === "boolean" ||
@@ -753,7 +754,6 @@ export const validateRow = (
 
       // FIXED LENGTH
       else if (rule.length_validation_type === "fixed") {
-        //if (columnName == "URL") console.log(strLen + "!==" + rule.min_length);
         if (rule.min_length !== null && strLen !== Number(rule.min_length)) {
           if (columnValid === true) columnStat.invalid_records++;
 
@@ -825,9 +825,6 @@ export const validateRow = (
       }
     }
 
-    if (columnName == "sss") {
-      //console.log(rule.fixed_header_set)
-    }
     if (rule.fixed_header_set && !rule.fixed_header_set.has(strValue)) {
       if (columnValid) columnStat.invalid_records++;
       columnValid = false;
