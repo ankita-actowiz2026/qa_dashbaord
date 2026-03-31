@@ -70,7 +70,7 @@ export default function Header() {
             </div>
 
             {/* Profile */}
-            <button
+            {/* <button
               onClick={() => {
                 setOpen(!open);
                 navigate("/admin/update_profile");
@@ -79,7 +79,7 @@ export default function Header() {
             >
               <FiUser />
               Profile
-            </button>
+            </button> */}
 
             {/* Change Password */}
             <button

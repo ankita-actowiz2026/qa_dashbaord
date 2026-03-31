@@ -610,7 +610,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       <div className="flex flex-col w-1/4 min-h-0 border-r bg-gradient-to-b from-gray-50 to-gray-100">
         {/* HEADER */}
         <div className="p-4 font-semibold text-white border-b bg-gray-800 rounded-t-lg ">
-          Headers({filteredData.length})
+          Headers ({filteredData.length})
         </div>
 
         {/* SEARCH INPUT */}
@@ -644,8 +644,8 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           
           ${
             selectedHeader === item.id
-              ? "flex items-center justify-between px-3.5 py-3 cursor-pointer transition-all duration-150 border-b border-slate-50 bg-[#6C7685] text-white"
-              : "hover:bg-white hover:shadow-sm text-gray-800 "
+              ? "flex items-center justify-between px-3.5 py-3 cursor-pointer transition-all duration-150 border-b border-slate-50 bg-gray-500 text-white"
+              : "hover:bg-gray-200 hover:shadow-sm text-gray-800 "
           }`}
                 >
                   {/* NAME */}

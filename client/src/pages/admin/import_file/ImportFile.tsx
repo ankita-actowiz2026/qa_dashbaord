@@ -1,5 +1,4 @@
 import React, { useState, useRef } from "react";
-import ValidationResult from "./ValidationResult";
 import { FiUpload } from "react-icons/fi";
 import { FaUpload, FaPlay } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
@@ -56,7 +55,7 @@ const ImportFile: React.FC = () => {
   const readHeaderFromServer = async (file: File) => {
     const formData = new FormData();
     if (!file) {
-      toast.error("No file selected");
+      toast.error("Please select file");
       return;
     }
 
@@ -75,16 +74,22 @@ const ImportFile: React.FC = () => {
 
       reset();
       setHeaders(response.data.data);
+      toast.success("Please configure validation rules to proceed"); // ✅ success toast
 
       setRequestData(null);
     } catch (error: any) {
       reset();
       setHeaders([]);
       setRulesData({});
-      toast.error(
+      const msg =
         error?.response?.data?.message ||
-          error?.message ||
-          "Error reading file",
+        error?.message ||
+        "Error reading file";
+
+      toast.error(
+        msg == "Top-level object should be an array."
+          ? "Invalid file format. Please upload a file where the data is in an array format"
+          : msg,
       );
     } finally {
       setLoading(false);
@@ -100,7 +105,9 @@ const ImportFile: React.FC = () => {
     setRulesData({});
 
     if (!validateFile(selectedFile)) {
-      toast.error("Invalid file type");
+      toast.error(
+        "Invalid file type. Only .xlsx, .csv, .json, and .xls files are allowed",
+      );
 
       setRequestData(null);
       setFile(null);
@@ -129,7 +136,7 @@ const ImportFile: React.FC = () => {
     try {
       const formData = new FormData();
       if (!file) {
-        toast.error("No file selected");
+        toast.error("Please select file");
         return;
       }
       setValidating(true);
@@ -142,7 +149,7 @@ const ImportFile: React.FC = () => {
       const response = await apiClient.post(`admin/api/qa_file`, formData, {
         withCredentials: true,
       });
-      toast.success("Validation completed successfully.");
+      toast.success("Validation completed successfully");
       navigate("/admin/import_file/validation_result", {
         state: {
           responseData: response.data,
@@ -238,7 +245,7 @@ const ImportFile: React.FC = () => {
 
                   {/* File Details */}
                   <div className="min-w-0">
-                    <p className="text-sm text-gray-400">Uploaded File</p>
+                    <p className="text-sm text-gray-300">Uploaded File</p>
 
                     <p className="text-white font-semibold truncate">
                       {fileName}
