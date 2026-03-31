@@ -1,11 +1,55 @@
 import { FiTrash2, FiEdit } from "react-icons/fi";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import TagInputRule from "./TagInputRule";
+import { ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import SubDependencySection from "./SubDependencySection";
-import { Ruler } from "lucide-react";
-
-import { ToggleLeft, ToggleRight } from "lucide-react";
+import { ToggleRight } from "lucide-react";
+const DATA_TYPE_OPTIONS = [
+  { value: "string", label: "String" },
+  { value: "alphabetic", label: "Alphabetic" },
+  { value: "integer", label: "Integer" },
+  { value: "float", label: "Float" },
+  { value: "boolean", label: "Boolean" },
+  { value: "date", label: "Date" },
+  { value: "email", label: "Email" },
+];
+const RULE_OPTIONS = [
+  { value: "required", label: "Required" },
+  { value: "data_type", label: "Data Type" },
+  { value: "data_length", label: "Data Length" },
+  {
+    value: "date_format",
+    label: "Date Format",
+    show: (ctx) => ctx.currentDataType === "date",
+  },
+  { value: "data_redundant", label: "Data Redundant & Threshold" },
+  { value: "regex", label: "Regex" },
+  { value: "fixed_header", label: "Fixed Header Value" },
+  { value: "cell_start_with", label: "Cell Start With" },
+  { value: "cell_end_with", label: "Cell End With" },
+  { value: "not_match_found", label: "Blocked Value" },
+  { value: "dependency", label: "Dependency" },
+];
+const RULE_LABELS = {
+  required: "Required:",
+  data_type: "Data Type",
+  data_length: "Length",
+  date_format: "Date Format",
+  data_redundant: "Redundant Value",
+  regex: "Regex",
+  fixed_header: "Fixed Header Values",
+  not_match_found: "Blocked value",
+  cell_end_with: "Cell End With",
+  cell_start_with: "Cell Start With",
+  dependency: "",
+};
+const DEFAULT_TEMP_RULE = {
+  dependency_mode: "required",
+  sub_headers: [],
+  sub_mode: "required",
+  sub_dependencies: [],
+};
 const date_format_options = [
   "YYYY-MM-DD",
   "DD-MM-YYYY",
@@ -117,13 +161,14 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     })),
   );
   const [search, setSearch] = useState("");
-  const filteredData = data.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredData = useMemo(() => {
+    return data.filter((item) =>
+      item.name.toLowerCase().includes(search.toLowerCase()),
+    );
+  }, [data, search]);
   const [selectedHeader, setSelectedHeader] = useState<number>(0);
 
-  const current = data[selectedHeader];
-
+  const current = useMemo(() => data[selectedHeader], [data, selectedHeader]);
   const applyRule = () => {
     // ✅ 1. Rule must be selected
     if (!tempRule.type) {
@@ -271,22 +316,12 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       }
     }
 
-    if (tempRule.type === "data_redundant") {
-      if (!tempRule.data_redundant_value) {
-        toast.error("Please enter redundant value");
-        return;
-      }
-
-      if (!tempRule.data_redundant_threshold) {
-        toast.error("Please enter threshold");
-        return;
-      }
-    }
-
     // ✅ Regex Validation
     if (tempRule.type === "regex") {
-      if (!tempRule.cell_contains_value) {
-        toast.error("Please enter regex value");
+      try {
+        new RegExp(tempRule.cell_contains_value);
+      } catch {
+        toast.error("Invalid regex pattern");
         return;
       }
     }
@@ -461,7 +496,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       });
     }
     setData(updated);
-    onRulesChange?.(generateJSON(currentHeader));
+    onRulesChange?.(generateJSON());
 
     setIsModalOpen(false);
     setTempRule({});
@@ -470,7 +505,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     const rule = getRuleName(tempRule.type);
     toast.success(`${rule} rule applied`);
   };
-  const generateJSON = (currentHeader) => {
+  const generateJSON = () => {
     const result: any = {};
 
     data.forEach((item) => {
@@ -480,7 +515,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
       item.rules.forEach((rule) => {
         if (rule.type === "required") {
-          obj.has_empty = rule.value;
+          obj.is_required = rule.value;
         }
 
         if (rule.type === "data_type") {
@@ -574,7 +609,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       setData(updated);
 
       // ✅ send updated JSON to parent
-      onRulesChange?.(generateJSON(currentHeader));
+      onRulesChange?.(generateJSON());
 
       // ✅ toast message
       const rule = getRuleName(deletedRule.type);
@@ -593,7 +628,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     if (ruleType === "cell_start_with") return "Cell start with";
     if (ruleType === "cell_end_with") return "Cell end with";
     if (ruleType === "not_match_found") return "Blocked value";
-    if (ruleType === "dependency") return "Dependacy";
+    if (ruleType === "dependency") return "Dependency";
   };
   const appliedRuleTypes = current.rules.map((r) => r.type);
   const appliedRuleDataType = current.rules.filter(
@@ -720,16 +755,39 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 .map((rule, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between px-4 py-3 border rounded-lg bg-gray-50"
+                    className="flex items-center justify-between px-4 py-3 border rounded-lg bg-gray-50 "
                   >
-                    <div className="text-sm text-gray-700">
-                      {rule.type === "required" && (
+                    <div className="text-sm text-gray-700 flex-1 min-w-0">
+                      {[
+                        "required",
+                        "regex",
+                        "cell_start_with",
+                        "data_redundant",
+                      ].includes(rule.type) && (
                         <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">Required: </span>
+                          <span className=" text-gray-500">
+                            {RULE_LABELS[rule.type]}{" "}
+                          </span>
 
                           <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
-                            {rule.value ? "Empty Not Allowed" : "Empty Allow"}
+                            {rule.type === "required"
+                              ? rule.value
+                                ? "Empty Not Allowed"
+                                : "Empty Allow"
+                              : rule.type === "data_redundant"
+                                ? rule.value?.data_redundant_value
+                                : "==" + rule.value}
                           </span>
+
+                          {rule.type === "data_redundant" && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-500">Threshold</span>
+
+                              <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                                {rule.value?.data_redundant_threshold}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
 
@@ -760,7 +818,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
                       {rule.type === "data_length" && (
                         <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">Length</span>
+                          <span className=" text-gray-500">
+                            {RULE_LABELS[rule.type]}
+                          </span>
 
                           {/* Mode Badge */}
                           <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
@@ -788,44 +848,14 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                         </div>
                       )}
 
-                      {/* ✅ DATE FORMAT */}
-                      {/* {rule.type === "date_format" && (
-                      <div className="flex items-center gap-2">
-                        <span className=" text-gray-500">Date Format : </span>
-
-                        <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
-                          {rule.value as string}
-                        </span>
-                      </div>
-                    )} */}
-
-                      {rule.type === "data_redundant" && (
-                        <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">Redundant </span>
-                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
-                            {rule.value.data_redundant_value}
-                          </span>
-                          <span className=" text-gray-500">Threshold </span>
-                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
-                            {rule.value.data_redundant_threshold}
-                          </span>
-                        </div>
-                      )}
-
-                      {rule.type === "regex" && (
-                        <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">Regex: </span>
-
-                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
-                            {rule.value}
-                          </span>
-                        </div>
-                      )}
-
-                      {rule.type === "fixed_header" && (
-                        <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">
-                            Fixed Header Values:{" "}
+                      {[
+                        "fixed_header",
+                        "cell_end_with",
+                        "not_match_found",
+                      ].includes(rule.type) && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-gray-500 whitespace-nowrap">
+                            {RULE_LABELS[rule.type]}
                           </span>
                           <div className="flex flex-wrap gap-2">
                             {(rule.value as string[])?.map((val, index) => (
@@ -839,50 +869,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           </div>
                         </div>
                       )}
-                      {rule.type === "cell_start_with" && (
-                        <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">
-                            Cell Start With:{" "}
-                          </span>
-                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
-                            {rule.value}
-                          </span>
-                        </div>
-                      )}
-                      {rule.type === "cell_end_with" && (
-                        <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">
-                            Cell End With:{" "}
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {(rule.value as string[])?.map((val, index) => (
-                              <span
-                                key={index}
-                                className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
-                              >
-                                {val}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      {rule.type === "not_match_found" && (
-                        <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">
-                            Blocked value:{" "}
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {(rule.value as string[])?.map((val, index) => (
-                              <span
-                                key={index}
-                                className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
-                              >
-                                {val}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+
                       {rule.type === "dependency" && (
                         <div className="flex flex-col gap-2">
                           {/* 🔹 Main Dependency */}
@@ -913,7 +900,12 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                                     </span>
 
                                     {/* Arrow */}
-                                    <span className="text-gray-400">→</span>
+                                    <span className="text-gray-400">
+                                      <ArrowRight
+                                        size={12}
+                                        className="text-gray-400 inline-block"
+                                      />
+                                    </span>
 
                                     {/* Mode */}
                                     <span className="px-2 py-0.5 font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-full">
@@ -1123,77 +1115,17 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
               >
                 <option value="">Select</option>
 
-                <option
-                  value="required"
-                  disabled={appliedRuleTypes.includes("required")}
-                >
-                  Required
-                </option>
-
-                <option
-                  value="data_type"
-                  disabled={appliedRuleTypes.includes("data_type")}
-                >
-                  Data Type
-                </option>
-
-                <option
-                  value="data_length"
-                  disabled={appliedRuleTypes.includes("data_length")}
-                >
-                  Data Length
-                </option>
-
-                {currentDataType === "date" && (
+                {RULE_OPTIONS.filter(
+                  (opt) => !opt.show || opt.show({ currentDataType }),
+                ).map((opt) => (
                   <option
-                    value="date_format"
-                    disabled={appliedRuleTypes.includes("date_format")}
+                    key={opt.value}
+                    value={opt.value}
+                    disabled={appliedRuleTypes.includes(opt.value)}
                   >
-                    Date Format
+                    {opt.label}
                   </option>
-                )}
-                <option
-                  value="data_redundant"
-                  disabled={appliedRuleTypes.includes("data_redundant")}
-                >
-                  Data Redundant & Threshold
-                </option>
-                <option
-                  disabled={appliedRuleTypes.includes("regex")}
-                  value="regex"
-                >
-                  Regex
-                </option>
-                <option
-                  value="fixed_header"
-                  disabled={appliedRuleTypes.includes("fixed_header")}
-                >
-                  Fixed Header Value
-                </option>
-                <option
-                  value="cell_start_with"
-                  disabled={appliedRuleTypes.includes("cell_start_with")}
-                >
-                  Cell Start With
-                </option>
-                <option
-                  value="cell_end_with"
-                  disabled={appliedRuleTypes.includes("cell_end_with")}
-                >
-                  Cell End With
-                </option>
-                <option
-                  value="not_match_found"
-                  disabled={appliedRuleTypes.includes("not_match_found")}
-                >
-                  Blocked Value
-                </option>
-                <option
-                  value="dependency"
-                  disabled={appliedRuleTypes.includes("dependency")}
-                >
-                  Dependency
-                </option>
+                ))}
               </select>
             </div>
             {/* REQUIRED RULE */}
@@ -1225,13 +1157,11 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                     }}
                     className="w-full px-3 py-2 mt-1 text-sm border rounded-lg"
                   >
-                    <option value="string">String</option>
-                    <option value="alphabetic">Alphabetic</option>
-                    <option value="integer">Integer</option>
-                    <option value="float">Float</option>
-                    <option value="boolean">Boolean</option>
-                    <option value="date">Date</option>
-                    <option value="email">Email</option>
+                    {DATA_TYPE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1425,30 +1355,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 )}
               </div>
             )}
-            {/* {tempRule.type === "date_format" && (
-              <div className="mb-4">
-                <label className="text-sm text-gray-600">
-                  Select Date Format
-                </label>
 
-                <select
-                  value={tempRule.date_format || "YYYY-MM-DD"}
-                  onChange={(e) =>
-                    setTempRule({
-                      ...tempRule,
-                      date_format: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 mt-1 text-sm border rounded-lg"
-                >
-                  {date_format_options.map((format) => (
-                    <option key={format} value={format}>
-                      {format}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )} */}
             {tempRule.type === "data_redundant" && (
               <div className="space-y-3">
                 <div>
@@ -1516,13 +1423,6 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
               />
             )}
             {tempRule.type === "cell_start_with" && (
-              // <TagInputRule
-              //   label="Cell start with"
-              //   values={tempRule.cell_start_with || []}
-              //   onChange={(val) =>
-              //     setTempRule({ ...tempRule, cell_start_with: val })
-              //   }
-              // />
               <div>
                 <label className="text-sm text-gray-600">Cell start with</label>
                 <input

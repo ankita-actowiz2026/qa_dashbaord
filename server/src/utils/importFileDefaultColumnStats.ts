@@ -1,7 +1,7 @@
 import { ColumnStats } from "../interface/importedFile.interface";
 
 export const RULE_TO_STATS_MAP = {
-  has_empty: ["empty_count"],
+  is_required: ["empty_count"],
   data_type: ["datatype_error_count"],
   length_validation_type: ["length_validation_error_count"],
   data_redundant_value: ["redundant_error_count"],

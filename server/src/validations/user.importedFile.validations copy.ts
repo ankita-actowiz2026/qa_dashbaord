@@ -301,9 +301,9 @@ export const validateRow = (
     if (strValue !== "") {
       columnStat.total_records++;
     }
-    //has_empty
+    //is_required
 
-    if (!rule.has_empty && strValue === "") {
+    if (!rule.is_required && strValue === "") {
       columnStat.empty_count++;
       if (columnValid) columnStat.invalid_records++; //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
 

@@ -1,17 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
+import { ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
-import { FaPlus } from "react-icons/fa";
-import { FiEdit, FiTrash2, FiSave } from "react-icons/fi";
-import { MdClear } from "react-icons/md";
-const SubDependencySection = ({
+import { FiEdit, FiTrash2 } from "react-icons/fi";
+type SubDependency = {
+  headers: string[];
+  mode: "required" | "other";
+  value?: string;
+};
+
+type TempRule = {
+  sub_headers?: string[];
+  sub_mode?: "required" | "other";
+  sub_value?: string;
+  sub_dependencies?: SubDependency[];
+};
+
+type Props = {
+  tempRule: TempRule;
+  setTempRule: React.Dispatch<React.SetStateAction<TempRule>>;
+  headers: string[];
+  currentHeader: string;
+};
+const SubDependencySection: React.FC<Props> = ({
   tempRule,
   setTempRule,
   headers,
   currentHeader,
 }: any) => {
-  const availableHeaders = headers.filter((h: string) => h !== currentHeader);
+  const availableHeaders = useMemo(
+    () => headers.filter((h) => h !== currentHeader),
+    [headers, currentHeader],
+  );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     if (!tempRule.sub_headers || tempRule.sub_headers.length === 0) {
       toast.error("Select at least one header");
       return;
@@ -25,13 +46,12 @@ const SubDependencySection = ({
     const existing = tempRule.sub_dependencies || [];
 
     // ✅ Exclude current editing item (important for edit case)
-    const usedHeaders = existing
-      .filter((_, idx) => idx !== editingIndex)
-      .flatMap((s: any) => s.headers);
-
-    const duplicate = tempRule.sub_headers.some((h: string) =>
-      usedHeaders.includes(h),
+    const usedHeaders = new Set(
+      existing
+        .filter((_, idx) => idx !== editingIndex)
+        .flatMap((s) => s.headers),
     );
+    const duplicate = tempRule.sub_headers.some((h) => usedHeaders.has(h));
 
     if (duplicate) {
       toast.error("Header already used");
@@ -64,7 +84,7 @@ const SubDependencySection = ({
     });
 
     setEditingIndex(null); // reset edit mode
-  };
+  }, [tempRule, editingIndex, setTempRule]);
 
   return (
     <div className="space-y-4 border-t pt-4">
@@ -151,8 +171,14 @@ const SubDependencySection = ({
           key={i}
           className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded"
         >
-          <div className="text-sm">
-            {s.headers.join(", ")} → {s.mode} {s.value && <b>({s.value})</b>}
+          <div className="flex items-center gap-1 text-sm">
+            <span>{s.headers.join(", ")}</span>
+
+            <ArrowRight size={12} className="text-gray-400 inline-block" />
+
+            <span>
+              {s.mode} {s.value && <b>({s.value})</b>}
+            </span>
           </div>
 
           <div className="flex gap-2">
@@ -198,4 +224,4 @@ const SubDependencySection = ({
   );
 };
 
-export default SubDependencySection;
+export default React.memo(SubDependencySection);

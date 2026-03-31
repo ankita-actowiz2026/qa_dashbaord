@@ -1,54 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
 import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "react-router-dom";
-const getErrorStyle = (err: string) => {
-  const error = err.toLowerCase();
-
-  // EMPTY
-  if (error.includes("empty"))
-    return "text-yellow-700 bg-yellow-50 border-yellow-200";
-
-  // REGEX
-  if (error.includes("regex"))
-    return "text-purple-700 bg-purple-50 border-purple-200";
-
-  // DATATYPE
-  if (error.includes("datatype"))
-    return "text-blue-700 bg-blue-50 border-blue-200";
-
-  // LENGTH
-  if (error.includes("length"))
-    return "text-green-700 bg-green-50 border-green-200";
-
-  // START / END
-  if (error.includes("start"))
-    return "text-orange-700 bg-orange-50 border-orange-200";
-
-  if (error.includes("end"))
-    return "text-amber-700 bg-amber-50 border-amber-200";
-
-  // DUPLICATE / REDUNDANT
-  if (error.includes("duplicate") || error.includes("redundant"))
-    return "text-pink-700 bg-pink-50 border-pink-200";
-
-  // HEADER
-  if (error.includes("header"))
-    return "text-indigo-700 bg-indigo-50 border-indigo-200";
-
-  // BLOCKED WORD
-  if (error.includes("blocked"))
-    return "text-rose-700 bg-rose-50 border-rose-200";
-
-  // DEPENDENCY
-  if (error.includes("depend"))
-    return "text-cyan-700 bg-cyan-50 border-cyan-200";
-
-  // DEFAULT
-  return "text-gray-700 bg-gray-50 border-gray-200";
-};
 const getFilteredColumns = (columnStats: any) => {
   return Object.entries(columnStats).filter(([_, stats]: any) =>
     Object.entries(stats).some(
@@ -64,6 +19,54 @@ const getFilteredColumns = (columnStats: any) => {
     ),
   );
 };
+type ColumnError = {
+  row: number;
+  error_type: string;
+  error_description: string;
+};
+
+type ColumnStats = {
+  total_records: number;
+  valid_records: number;
+  invalid_records: number;
+  error_msg?: ColumnError[];
+  [key: string]: any;
+};
+
+type ResponseData = {
+  data: {
+    total_rows: number;
+    valid_rows: number;
+    invalid_rows: number;
+    column_wise_stats: Record<string, ColumnStats>;
+  };
+  result_file: string;
+  errors_for_coloms: Record<string, string[]>;
+};
+const errorStyleMap: Record<string, string> = {
+  empty: "text-yellow-700 bg-yellow-50 border-yellow-200",
+  regex: "text-purple-700 bg-purple-50 border-purple-200",
+  datatype: "text-blue-700 bg-blue-50 border-blue-200",
+  length: "text-green-700 bg-green-50 border-green-200",
+  start: "text-orange-700 bg-orange-50 border-orange-200",
+  end: "text-amber-700 bg-amber-50 border-amber-200",
+  duplicate: "text-pink-700 bg-pink-50 border-pink-200",
+  redundant: "text-pink-700 bg-pink-50 border-pink-200",
+  header: "text-indigo-700 bg-indigo-50 border-indigo-200",
+  blocked: "text-rose-700 bg-rose-50 border-rose-200",
+  depend: "text-cyan-700 bg-cyan-50 border-cyan-200",
+};
+
+const getErrorStyle = (err: string) => {
+  const lower = err.toLowerCase();
+
+  const match = Object.keys(errorStyleMap).find((key) => lower.includes(key));
+
+  return match
+    ? errorStyleMap[match]
+    : "text-gray-700 bg-gray-50 border-gray-200";
+};
+
 const ValidationResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -72,12 +75,19 @@ const ValidationResult = () => {
   const requestData = location.state?.requestData;
   // console.log(responseData);
   // console.log(requestData);
-  const [expandedColumn, setExpandedColumn] = useState(null);
+  const [expandedColumn, setExpandedColumn] = useState<string | null>(null);
 
-  if (!responseData) return null;
-
-  const { total_rows, valid_rows, invalid_rows, column_wise_stats } =
-    responseData.data;
+  if (!responseData) {
+    return (
+      <div className="p-6 text-center text-gray-500">No data available</div>
+    );
+  }
+  const {
+    total_rows = 0,
+    valid_rows = 0,
+    invalid_rows = 0,
+    column_wise_stats = {},
+  } = responseData?.data || {};
   const { result_file, errors_for_coloms } = responseData;
 
   const filteredColumns = useMemo(

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { FaPlus } from "react-icons/fa";
 import { FiEdit, FiTrash2, FiSave } from "react-icons/fi";
@@ -15,7 +15,7 @@ const TagInputRule: React.FC<Props> = ({ label, values, onChange }) => {
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     if (!input.trim()) {
       toast.error(`Please enter ${label}`);
       return;
@@ -25,11 +25,14 @@ const TagInputRule: React.FC<Props> = ({ label, values, onChange }) => {
       toast.error(`${label} already exists`);
       return;
     }
-
+    if (input.length > 100) {
+      toast.error("Max 100 characters allowed");
+      return;
+    }
     onChange([...values, input.trim()]);
     setInput("");
     toast.success(`${label} added`);
-  };
+  }, [input, values, onChange, label]);
 
   const handleDelete = (idx: number) => {
     const updated = [...values];
@@ -81,7 +84,7 @@ const TagInputRule: React.FC<Props> = ({ label, values, onChange }) => {
       <div className="space-y-2 overflow-y-auto max-h-40">
         {values.map((item, idx) => (
           <div
-            key={idx}
+            key={item}
             className="flex items-center justify-between px-3 py-2 border rounded-lg bg-gray-50"
           >
             {editIndex === idx ? (
