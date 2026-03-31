@@ -106,120 +106,139 @@ function UserList() {
     }
   }, [userData]); // or [loading]
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-bold">Users</h2>
-
-        <Link
-          to="/admin/user/add"
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition"
-        >
-          + Create User
-        </Link>
-      </div>
-
-      {/* Alert */}
-      {msg && (
-        <div
-          className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
-            msgType === "success"
-              ? "bg-green-100 text-green-700"
-              : "bg-red-100 text-red-700"
-          }`}
-        >
-          {msg}
-        </div>
-      )}
-
-      {/* Loading */}
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      ) : (
-        <>
-          {/* Search */}
-          <input
-            ref={searchRef}
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="mb-4 w-full md:w-80 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-400"
-          />
-
-          {/* Table */}
-          <div className="overflow-x-auto bg-white shadow-lg rounded-xl">
-            <table className="min-w-full text-sm text-left">
-              <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
-                <tr>
-                  {[
-                    { label: "Name", field: "name" },
-                    { label: "Email", field: "email" },
-                    { label: "Status", field: "status" },
-                    { label: "Created", field: "createdAt" },
-                  ].map((col) => (
-                    <th
-                      key={col.field}
-                      onClick={() => handleSort(col.field)}
-                      className="px-4 py-3 cursor-pointer select-none"
-                    >
-                      <div className="flex items-center gap-1">
-                        {col.label}
-                        {sortField === col.field && (
-                          <span className="text-xs">
-                            {sortOrder === "asc" ? "▲" : "▼"}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  ))}
-
-                  <th className="px-4 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-
-              <tbody className="divide-y">
-                {userData.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="text-center py-6 text-gray-500">
-                      No user found
-                    </td>
-                  </tr>
-                ) : (
-                  userData.map((item) => (
-                    <UserRow
-                      key={item._id}
-                      userData={item}
-                      handleDelete={handleDelete}
-                    />
-                  ))
-                )}
-              </tbody>
-            </table>
+    <div className="px-4 py-6 mx-auto sm:px-6 lg:px-8">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Users</h2>
+            <p className="text-sm text-gray-500">Manage all system users</p>
           </div>
+          <Link
+            to="/admin/user/add"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition"
+          >
+            + Create User
+          </Link>
+        </div>
 
-          {/* Pagination */}
-          {total > limit && (
-            <div className="flex justify-center mt-6 gap-2 flex-wrap">
-              {Array.from({ length: Math.ceil(total / limit) }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(i + 1)}
-                  className={`px-3 py-1 rounded-md text-sm ${
-                    page === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "bg-gray-200 hover:bg-gray-300"
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+        {/* Alert */}
+        {msg && (
+          <div
+            className={`text-center mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
+              msgType === "success"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {msg}
+          </div>
+        )}
+
+        {/* Loading */}
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            {/* Search */}
+            <div className="relative mb-4 w-full md:w-80">
+              <input
+                ref={searchRef}
+                type="text"
+                placeholder="Search users..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+              <span className="absolute left-3 top-2.5 text-gray-400 text-sm">
+                🔍
+              </span>
             </div>
-          )}
-        </>
-      )}
+
+            {/* Table */}
+            <div className="overflow-x-auto border border-gray-200 rounded-xl">
+              <table className="min-w-full text-sm text-left">
+                <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                  <tr>
+                    {[
+                      { label: "Name", field: "name" },
+                      { label: "Email", field: "email" },
+                      { label: "Status", field: "status" },
+                      { label: "Created", field: "createdAt" },
+                    ].map((col) => (
+                      <th
+                        key={col.field}
+                        onClick={() => handleSort(col.field)}
+                        className="px-4 py-3 cursor-pointer select-none"
+                      >
+                        <div className="flex items-center gap-1">
+                          {col.label}
+                          {sortField === col.field && (
+                            <span className="text-xs">
+                              {sortOrder === "asc" ? "▲" : "▼"}
+                            </span>
+                          )}
+                        </div>
+                      </th>
+                    ))}
+
+                    <th className="px-4 py-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y text-gray-700">
+                  {userData.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={10}
+                        className="text-center py-6 text-gray-500"
+                      >
+                        <div className="flex flex-col items-center justify-center py-10 text-center">
+                          <p className="text-sm font-semibold text-gray-600">
+                            No users found
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            Try adjusting your search or filters
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    userData.map((item) => (
+                      <UserRow
+                        key={item._id}
+                        userData={item}
+                        handleDelete={handleDelete}
+                      />
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            {total > limit && (
+              <div className="flex justify-center mt-6 gap-2 flex-wrap">
+                {Array.from({ length: Math.ceil(total / limit) }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPage(i + 1)}
+                    className={`px-3 py-1.5 rounded-md text-sm border ${
+                      page === i + 1
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-white text-gray-600 hover:bg-gray-50 border-gray-300"
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

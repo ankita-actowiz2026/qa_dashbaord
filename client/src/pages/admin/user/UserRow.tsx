@@ -25,6 +25,10 @@ function UserRow({ userData, handleDelete }: UserRowProps) {
       <td className="px-4 py-3">{userData.name || "-"}</td>
       <td className="px-4 py-3">{userData.email || "-"}</td>
       <td className="px-4 py-3 max-w-xs truncate">{userData.status || "-"}</td>
+      {/* <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">
+
+      bg-red-100 text-red-600
+ */}
       <td className="px-4 py-3">
         {userData.createdAt
           ? new Date(userData.createdAt).toLocaleDateString()

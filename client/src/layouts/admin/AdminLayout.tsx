@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
-import { FiHome, FiUpload } from "react-icons/fi";
+import {
+  FiHome,
+  FiUpload,
+  FiUser,
+  FiChevronDown,
+  FiChevronUp,
+} from "react-icons/fi";
+
 import Header from "../../layouts/admin/Header";
 import logo from "../../assets/actowizLogo.svg";
 import Footer from "../../layouts/admin/Footer";
@@ -21,6 +28,11 @@ const AdminLayout = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+  useEffect(() => {
+    if (location.pathname.startsWith("/admin/user")) {
+      setUserMenuOpen(true);
+    }
+  }, [location.pathname]);
   useEffect(() => {
     if (location.pathname.startsWith("/admin/user")) {
       setUserMenuOpen(true);
@@ -71,45 +83,103 @@ const AdminLayout = () => {
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-2">
+          {/* Dashboard */}
           <NavLink
             to="/admin/dashboard"
             className={({ isActive }) =>
               `flex items-center ${
                 sidebarOpen || isMobile ? "justify-start" : "justify-center"
               } gap-3 px-3 py-2 rounded-lg transition
-            ${
-              isActive
-                ? "bg-gray-800 text-white"
-                : "text-gray-400 hover:bg-gray-800 hover:text-white"
-            }`
+      ${
+        isActive
+          ? "bg-gray-800 text-white"
+          : "text-gray-400 hover:bg-gray-800 hover:text-white"
+      }`
             }
           >
             <FiHome size={18} />
             {(sidebarOpen || isMobile) && <span>Dashboard</span>}
           </NavLink>
 
+          {/* Import */}
           <NavLink
             to="/admin/import_file"
             className={({ isActive }) =>
               `flex items-center ${
                 sidebarOpen || isMobile ? "justify-start" : "justify-center"
               } gap-3 px-3 py-2 rounded-lg transition
-    ${
-      isActive
-        ? "bg-gray-800 text-white"
-        : "text-gray-400 hover:bg-gray-800 hover:text-white"
-    }`
+      ${
+        isActive
+          ? "bg-gray-800 text-white"
+          : "text-gray-400 hover:bg-gray-800 hover:text-white"
+      }`
             }
           >
             <FiUpload size={18} />
             {(sidebarOpen || isMobile) && <span>Import</span>}
           </NavLink>
-        </nav>
 
-        {/* Footer */}
-        {/* <div className="p-4 border-t border-gray-800 text-xs text-gray-500">
-          {(sidebarOpen || isMobile) && "© 2026 Company"}
-        </div> */}
+          {/* ✅ USER MENU HERE */}
+          <div>
+            {/* Parent */}
+            <button
+              onClick={() => setUserMenuOpen((prev) => !prev)}
+              className={`w-full flex items-center ${
+                sidebarOpen || isMobile ? "justify-between" : "justify-center"
+              } px-3 py-2 rounded-lg transition
+  ${
+    location.pathname.startsWith("/admin/user")
+      ? "bg-gray-800 text-white"
+      : "text-gray-400 hover:bg-gray-800 hover:text-white"
+  }`}
+            >
+              <div className="flex items-center gap-3">
+                <FiUser size={18} />
+                {(sidebarOpen || isMobile) && <span>User</span>}
+              </div>
+
+              {(sidebarOpen || isMobile) && (
+                <FiChevronDown
+                  size={16}
+                  className={`transition-transform duration-200 ${
+                    userMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              )}
+            </button>
+
+            {/* Children */}
+            {userMenuOpen && (
+              <div className="ml-6 mt-1 space-y-1">
+                <NavLink
+                  to="/admin/user/list"
+                  className={({ isActive }) =>
+                    `block px-3 py-2 text-sm rounded-lg transition ${
+                      isActive
+                        ? "bg-gray-800 text-white"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                    }`
+                  }
+                >
+                  User List
+                </NavLink>
+
+                <NavLink
+                  to="/admin/user/add"
+                  className={({ isActive }) =>
+                    `block px-3 py-2 text-sm rounded-lg transition ${
+                      isActive
+                        ? "bg-gray-800 text-white"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                    }`
+                  }
+                >
+                  Add User
+                </NavLink>
+              </div>
+            )}
+          </div>
+        </nav>
       </aside>
       {/* Overlay */}
       {isMobile && sidebarOpen && (
