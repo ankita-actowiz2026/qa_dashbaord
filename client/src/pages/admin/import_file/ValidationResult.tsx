@@ -5,20 +5,49 @@ import { FaUpload } from "react-icons/fa";
 import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "react-router-dom";
 const getErrorStyle = (err: string) => {
-  if (err.toLowerCase().includes("empty"))
+  const error = err.toLowerCase();
+
+  // EMPTY
+  if (error.includes("empty"))
     return "text-yellow-700 bg-yellow-50 border-yellow-200";
 
-  if (err.toLowerCase().includes("regex"))
+  // REGEX
+  if (error.includes("regex"))
     return "text-purple-700 bg-purple-50 border-purple-200";
 
-  if (err.toLowerCase().includes("type"))
+  // DATATYPE
+  if (error.includes("datatype"))
     return "text-blue-700 bg-blue-50 border-blue-200";
 
-  if (err.toLowerCase().includes("start")) {
-    return "text-orange-700 bg-green-50 border-green-200";
-  }
+  // LENGTH
+  if (error.includes("length"))
+    return "text-green-700 bg-green-50 border-green-200";
 
-  return "text-red-600 bg-red-50 border-red-100"; // default
+  // START / END
+  if (error.includes("start"))
+    return "text-orange-700 bg-orange-50 border-orange-200";
+
+  if (error.includes("end"))
+    return "text-amber-700 bg-amber-50 border-amber-200";
+
+  // DUPLICATE / REDUNDANT
+  if (error.includes("duplicate") || error.includes("redundant"))
+    return "text-pink-700 bg-pink-50 border-pink-200";
+
+  // HEADER
+  if (error.includes("header"))
+    return "text-indigo-700 bg-indigo-50 border-indigo-200";
+
+  // BLOCKED WORD
+  if (error.includes("blocked"))
+    return "text-rose-700 bg-rose-50 border-rose-200";
+
+  // DEPENDENCY
+  if (error.includes("depend"))
+    return "text-cyan-700 bg-cyan-50 border-cyan-200";
+
+  // DEFAULT
+  return "text-gray-700 bg-gray-50 border-gray-200";
 };
 const getFilteredColumns = (columnStats: any) => {
   return Object.entries(columnStats).filter(([_, stats]: any) =>
@@ -41,7 +70,8 @@ const ValidationResult = () => {
 
   const responseData = location.state?.responseData;
   const requestData = location.state?.requestData;
-  console.log(requestData);
+  // console.log(responseData);
+  // console.log(requestData);
   const [expandedColumn, setExpandedColumn] = useState(null);
 
   if (!responseData) return null;

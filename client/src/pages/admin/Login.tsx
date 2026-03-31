@@ -19,8 +19,7 @@ const schema = yup.object({
 });
 
 const Login = () => {
-  const { login } = useAuth();
-  const location = useLocation();
+  const { setUserData } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -39,16 +38,8 @@ const Login = () => {
       };
 
       const result = await apiClient.post("/admin/auth/login", userData);
-
-      const user_data = {
-        accessToken: result.data.data.accessToken,
-        user: {
-          name: result.data.data.user.name,
-          id: result.data.data.user._id,
-          role: result.data.data.user.role,
-        },
-      };
-      login(user_data.accessToken, user_data.user);
+      const apiUser = result.data.data.user;
+      setUserData(apiUser);
       toast.success("Logged in successfully!"); // ✅ success toast
 
       navigate("/admin/dashboard");

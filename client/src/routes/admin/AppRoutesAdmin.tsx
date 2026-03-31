@@ -10,6 +10,8 @@ import Report from "../../pages/report/Report";
 import ImportFile from "../../pages/admin/import_file/ImportFile";
 import PageNotFound from "../../pages/admin/PageNotFound";
 import ValidationResult from "../../pages/admin/import_file/ValidationResult";
+import ChangePassword from "../../pages/admin/ChangePassword";
+import UpdateProfile from "../../pages/admin/UpdateProfile";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -34,6 +36,8 @@ const AppRoutes = () => {
           path="import_file/validation_result"
           element={<ValidationResult />}
         />
+        <Route path="change_password" element={<ChangePassword />} />
+        <Route path="update_profile" element={<UpdateProfile />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="user" element={<UserList />} />
         <Route path="user/list" element={<UserList />} />

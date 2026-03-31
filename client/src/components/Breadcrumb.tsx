@@ -4,6 +4,8 @@ const routeNameMap: Record<string, string> = {
   admin: "Dashboard",
   import_file: "Import File",
   validation_result: "Validation Result",
+  update_profile: "Update profile",
+  change_password: "Change Password",
 };
 
 export default function Breadcrumb() {

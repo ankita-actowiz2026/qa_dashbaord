@@ -341,7 +341,7 @@ export const validateRow = (
       const value = String(strValue).trim();
 
       if (rule.cellContainsRegex && !rule.cellContainsRegex.test(value)) {
-        columnStat.pattern_error_count++;
+        columnStat.regex_pattern_error_count++;
         if (columnValid) columnStat.invalid_records++;
         columnValid = false;
         rowValid = false;

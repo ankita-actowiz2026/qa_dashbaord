@@ -3,11 +3,12 @@ import IUser, {
   ILoginResponseAdmin,
   ILogin,
   UserType,
+  IChangePassword,
+  IUpdateProfile,
 } from "../interface/user.interface";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ApiError from "../utils/api.error";
-import crypto from "crypto";
 
 export class AuthService {
   async login(data: ILogin): Promise<ILoginResponseAdmin> {
@@ -39,6 +40,63 @@ export class AuthService {
     delete (userObj as any).password; // ✅ Remove password from response
 
     return { user: userObj, adminToken };
+  }
+
+  async changePassword(data: IChangePassword, user_id: any) {
+    const { current_password, new_password } = data;
+    console.log(user_id);
+
+    const user = await User.findById(user_id);
+    if (!user) {
+      throw new ApiError("User not found");
+    }
+
+    const isMatch = await bcrypt.compare(current_password, user.password);
+
+    if (!isMatch) {
+      throw new ApiError("Current password is incorrect");
+    }
+
+    const isSame = await bcrypt.compare(new_password, user.password);
+    if (isSame) {
+      throw new ApiError("New password must be different from old password");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(new_password, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return {
+      message: "Password updated successfully",
+    };
+  }
+  async updateProfile(data: IUpdateProfile, user_id: any) {
+    const { first_name, last_name } = data;
+    console.log("=========>" + user_id);
+    // ✅ Find user
+    const user = await User.findById(user_id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // ✅ Update fields
+    user.first_name = first_name;
+    user.last_name = last_name;
+
+    await user.save();
+
+    return {
+      message: "Profile updated successfully",
+      user: {
+        id: user._id,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role,
+      },
+    };
   }
 }
 export const authService = new AuthService();

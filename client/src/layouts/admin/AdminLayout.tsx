@@ -89,10 +89,6 @@ const AdminLayout = () => {
 
           <NavLink
             to="/admin/import_file"
-            onClick={(e) => {
-              // 👇 force reset even if already on same page
-              window.dispatchEvent(new Event("resetImport"));
-            }}
             className={({ isActive }) =>
               `flex items-center ${
                 sidebarOpen || isMobile ? "justify-start" : "justify-center"

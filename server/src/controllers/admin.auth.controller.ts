@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import IUser, { ILogin } from "../interface/user.interface";
+import IUser, {
+  ILogin,
+  IChangePassword,
+  IUpdateProfile,
+} from "../interface/user.interface";
 
 import { authService } from "../services/admin.auth.service";
 class AuthController {
@@ -45,11 +49,48 @@ class AuthController {
       next(err);
     }
   };
+  changePassword = async (
+    req: Request<{}, {}, IChangePassword>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const response = await authService.changePassword(
+        req.body,
+        req?.user?.id,
+      );
+
+      res.status(200).json({
+        success: true,
+        message: response.message,
+      });
+    } catch (error: any) {
+      next(error); // 🔥 handled by global error middleware
+    }
+  };
+  //updateProfile =async(){};
   profile = async (req: Request, res: Response) => {
     res.json({
       success: true,
       data: req.user, // ✅ Assumes `req.user` is set by middleware
     });
+  };
+  updateProfile = async (
+    req: Request<{}, {}, IUpdateProfile>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const response = await authService.updateProfile(req.body, req?.user?.id);
+
+      res.status(200).json({
+        success: true,
+        message: response.message,
+        data: response.user,
+      });
+    } catch (error) {
+      next(error);
+    }
   };
 }
 export const authController = new AuthController();

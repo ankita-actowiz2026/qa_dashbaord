@@ -1,30 +1,36 @@
-import  {Schema, model,} from 'mongoose'
-import  IUser, {Status,UserType}  from "../interface/user.interface";
+import { Schema, model } from "mongoose";
+import IUser, { Status, UserType } from "../interface/user.interface";
 
-const userSchema = new Schema<IUser>({
-    name: {
-        type: String,
+const userSchema = new Schema<IUser>(
+  {
+    first_name: {
+      type: String,
+    },
+    last_name: {
+      type: String,
     },
     email: {
-        type: String,
+      type: String,
     },
     password: {
-        type: String,
-    },    
+      type: String,
+    },
     status: {
-        type: String,
-        enum: Object.values(Status), 
-        default: Status.ACTIVE,
-    }, 
+      type: String,
+      enum: Object.values(Status),
+      default: Status.ACTIVE,
+    },
     role: {
       type: String,
       enum: Object.values(UserType),
-      default: UserType.QA,      
+      default: UserType.QA,
     },
-     deletedAt: {
+    deletedAt: {
       type: Date,
       default: null,
     },
-},{ timestamps: true })
- const User = model<IUser>('User', userSchema )
- export default User
+  },
+  { timestamps: true },
+);
+const User = model<IUser>("User", userSchema);
+export default User;
