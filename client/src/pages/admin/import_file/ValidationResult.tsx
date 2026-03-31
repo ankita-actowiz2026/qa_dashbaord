@@ -1,7 +1,9 @@
 import { useState, useMemo, useCallback } from "react";
+import { XCircle } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
+import { FiFileText, FiDownload } from "react-icons/fi";
 import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "react-router-dom";
 const getFilteredColumns = (columnStats: any) => {
@@ -13,9 +15,7 @@ const getFilteredColumns = (columnStats: any) => {
           "valid_records",
           "invalid_records",
           "error_msg",
-        ].includes(key) &&
-        value !== 0 &&
-        value !== null,
+        ].includes(key),
     ),
   );
 };
@@ -73,6 +73,7 @@ const ValidationResult = () => {
 
   const responseData = location.state?.responseData;
   const requestData = location.state?.requestData;
+  const fileName = location.state?.fileName;
   // console.log(responseData);
   // console.log(requestData);
   const [expandedColumn, setExpandedColumn] = useState<string | null>(null);
@@ -100,10 +101,23 @@ const ValidationResult = () => {
         Validation Result
       </h1>
       <p className="text-sm text-gray-500"></p>
-      <div className="mt-6 text-right">
+      <div className="mt-6 flex items-center justify-end gap-4">
+        {/* File Name */}
+        <div
+          className="text-sm text-gray-600 max-w-xs truncate"
+          title={fileName}
+        >
+          <span className="text-gray-400">Current file:</span>{" "}
+          <span className="inline-flex items-center gap-1 font-medium text-gray-800">
+            <FiFileText className="text-gray-400" />
+            {fileName || "No file selected"}
+          </span>
+        </div>
+
+        {/* Upload Button */}
         <button
           onClick={() => navigate("/admin/import_file")}
-          className="flex items-center gap-2 bg-black border border-gray-300 text-white py-2.5 px-5 rounded-xl font-medium hover:bg-gray-700 hover:shadow-sm transition-all duration-200"
+          className="flex items-center gap-2 bg-black text-white py-2.5 px-5 rounded-xl font-medium hover:bg-gray-700 transition"
         >
           <FaUpload className="text-sm" />
           Upload New File
@@ -120,8 +134,9 @@ const ValidationResult = () => {
           href={result_file}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 rounded-xl "
+          className="inline-flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-xl hover:bg-blue-700"
         >
+          <FiDownload className="text-sm" />
           Download Report
         </a>
       </div>
@@ -156,7 +171,7 @@ const ValidationResult = () => {
                     "valid_records",
                     "invalid_records",
                     "error_msg",
-                  ].includes(key) && val !== null,
+                  ].includes(key),
               );
 
               return (
@@ -174,6 +189,15 @@ const ValidationResult = () => {
 
                     {/* Issues */}
                     <div className="flex flex-wrap gap-2">
+                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full">
+                        <CheckCircle size={14} />
+                        Valid {stats.valid_records ?? 0}
+                      </span>
+
+                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full">
+                        <XCircle size={14} />
+                        Invalid {stats.invalid_records ?? 0}
+                      </span>
                       {issues.length > 0 ? (
                         issues.map(([key, val]) => (
                           <span

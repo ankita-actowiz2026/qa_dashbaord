@@ -8,7 +8,23 @@ import ShowValidationRules from "./ShowValidationRules";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import apiClient from "../../../services/apiClient";
+const allowedTypes = [
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-excel",
+  "text/csv",
+  "application/json",
+];
 
+const getErrorMessage = (error: any) => {
+  const msg =
+    error?.response?.data?.message || error?.message || "Something went wrong";
+
+  if (msg.includes("Top-level object should be an array")) {
+    return "Invalid JSON format. Expected an array of objects.";
+  }
+
+  return msg;
+};
 type HeaderType = {
   name: string;
 };
@@ -29,25 +45,14 @@ const ImportFile: React.FC = () => {
       def_dep: "true",
     },
   });
-  const getErrorMessage = (error: any) => {
-    const msg =
-      error?.response?.data?.message ||
-      error?.message ||
-      "Something went wrong";
 
-    if (msg.includes("Top-level object should be an array")) {
-      return "Invalid JSON format. Expected an array of objects.";
-    }
-
-    return msg;
-  };
   const handleReset = () => {
     setHeaders([]);
     setRulesData({});
     setFile(null);
     setFileName("");
     setRequestData(null);
-    reset();
+    reset(); // react-hook-form reset
   };
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -57,13 +62,6 @@ const ImportFile: React.FC = () => {
 
   const [requestData, setRequestData] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const allowedTypes = [
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-excel",
-    "text/csv",
-    "application/json",
-  ];
 
   const validateFile = (file: File) => {
     return allowedTypes.includes(file.type);
@@ -89,16 +87,14 @@ const ImportFile: React.FC = () => {
         },
       );
 
-      handleReset();
+      reset();
       setHeaders(response.data.data);
-      toast.success("Please configure validation rules to proceed"); // ✅ success toast
 
       setRequestData(null);
     } catch (error: any) {
-      handleReset();
+      reset();
       setHeaders([]);
       setRulesData({});
-
       toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
@@ -110,6 +106,9 @@ const ImportFile: React.FC = () => {
   };
   const onSubmit = async (data: any) => {};
   const handleFile = async (selectedFile: File) => {
+    setHeaders([]);
+    setRulesData({});
+
     if (!validateFile(selectedFile)) {
       toast.error("Invalid file type. Only .xlsx, .csv, .json, .xls allowed");
       handleReset();
@@ -119,8 +118,15 @@ const ImportFile: React.FC = () => {
     setFile(selectedFile);
     setFileName(selectedFile.name);
 
-    await readHeaderFromServer(selectedFile);
+    try {
+      await readHeaderFromServer(selectedFile);
+    } catch {
+      setHeaders([]);
+      setRulesData({});
+      toast.error("Failed to read file");
+    }
 
+    // clear input so same file can be selected again
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -148,6 +154,7 @@ const ImportFile: React.FC = () => {
         state: {
           responseData: response.data,
           requestData: rulesData,
+          fileName: fileName,
         },
       });
       console.log("Validation Response:", response.data);
