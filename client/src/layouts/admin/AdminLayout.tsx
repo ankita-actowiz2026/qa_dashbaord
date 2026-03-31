@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation } from "react-router-dom";
 import { FiHome, FiUpload } from "react-icons/fi";
 import Header from "../../layouts/admin/Header";
 import logo from "../../assets/actowizLogo.svg";
+import Footer from "../../layouts/admin/Footer";
 import Breadcrumb from "../../components/Breadcrumb";
 const isMobile = window.innerWidth < 640;
 const AdminLayout = () => {
@@ -27,7 +28,7 @@ const AdminLayout = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex min-h-screen">
       {/* Sidebar */}-
       <aside
         className={`
@@ -121,12 +122,18 @@ const AdminLayout = () => {
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
 
-        <main className="flex-1 overflow-y-auto bg-white p-4 md:p-6">
-          <div className="w-full">
-            <Breadcrumb />
-            <Outlet />
-          </div>
-        </main>
+        <div className="flex-1 flex flex-col">
+          {/* Content */}
+          <main className="flex-1 overflow-y-auto bg-white p-4 md:p-6">
+            <div className="w-full">
+              <Breadcrumb />
+              <Outlet />
+            </div>
+          </main>
+
+          {/* Footer */}
+          <Footer></Footer>
+        </div>
       </div>
     </div>
   );
