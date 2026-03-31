@@ -11,7 +11,8 @@ import {
 import {
   validateRow,
   prepareColumnRules,
-  createColumnStatsFromRules
+  createColumnStatsFromRules,
+  extractDependencyColumns,
 } from "../../validations/user.importedFile.validations";
 
 export const jsonParser = async (
@@ -128,10 +129,23 @@ export const jsonParser = async (
           headers = Array.from(detectedHeaders);
 
           headers.forEach((header) => {
-             const ruleConfig = columnConfig[header] || {};
-                          columnStats[header] = createColumnStatsFromRules(ruleConfig);
+            const ruleConfig = columnConfig[header] || {};
+            columnStats[header] = createColumnStatsFromRules(
+              ruleConfig,
+              "not_add_dependency",
+            );
           });
+          const dependencyColumns = extractDependencyColumns(columnConfig);
 
+          dependencyColumns.forEach((col) => {
+            columnStats[col] ??= createColumnStatsFromRules(
+              {
+                dependency: true,
+              },
+              "add_dependency",
+            );
+            columnStats[col].dependancy_error_count ??= 0;
+          });
           headerInitialized = true;
 
           // Process buffered rows
@@ -152,10 +166,23 @@ export const jsonParser = async (
           headers = Array.from(detectedHeaders);
 
           headers.forEach((header) => {
-             const ruleConfig = columnConfig[header] || {};
-                          columnStats[header] = createColumnStatsFromRules(ruleConfig);
+            const ruleConfig = columnConfig[header] || {};
+            columnStats[header] = createColumnStatsFromRules(
+              ruleConfig,
+              "not_add_dependency",
+            );
           });
+          const dependencyColumns = extractDependencyColumns(columnConfig);
 
+          dependencyColumns.forEach((col) => {
+            columnStats[col] ??= createColumnStatsFromRules(
+              {
+                dependency: true,
+              },
+              "add_dependency",
+            );
+            columnStats[col].dependancy_error_count ??= 0;
+          });
           previewRows.forEach((row) => processRow(row));
         }
 

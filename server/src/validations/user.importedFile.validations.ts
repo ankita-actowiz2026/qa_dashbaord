@@ -22,7 +22,33 @@ const validBooleanValues = new Set([
   "disabled",
   "0",
 ]);
+export const extractDependencyColumns = (columnConfig: Record<string, any>) => {
+  const dependencyCols = new Set<string>();
 
+  Object.values(columnConfig).forEach((col: any) => {
+    const dependency = col?.dependency;
+    if (!dependency) return;
+
+    const mainColumn = col.name?.trim(); // ✅ normalize
+
+    Object.keys(dependency).forEach((key) => {
+      // ❌ skip main column safely
+      if (key.trim() === mainColumn) return;
+
+      // ✅ split and add sub dependency columns
+      key.split(",").forEach((k) => {
+        const trimmed = k.trim();
+
+        // ❌ skip if accidentally same as main column
+        if (trimmed === mainColumn) return;
+
+        if (trimmed) dependencyCols.add(trimmed);
+      });
+    });
+  });
+
+  return Array.from(dependencyCols);
+};
 export const createColumnStatsFromRules = (
   rules: any,
   dependency_option = "add_dependency",

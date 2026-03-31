@@ -11,7 +11,8 @@ import {
   validateRow,
   getCellValue,
   prepareColumnRules,
-  createColumnStatsFromRules
+  createColumnStatsFromRules,
+  extractDependencyColumns,
 } from "../../validations/user.importedFile.validations";
 
 export const csvParser = async (
@@ -59,7 +60,17 @@ export const csvParser = async (
               const ruleConfig = columnConfig[header] || {};
               columnStats[header] = createColumnStatsFromRules(ruleConfig);
             });
+            const dependencyColumns = extractDependencyColumns(columnConfig);
 
+            dependencyColumns.forEach((col) => {
+              columnStats[col] ??= createColumnStatsFromRules(
+                {
+                  dependency: true,
+                },
+                "add_dependency",
+              );
+              columnStats[col].dependancy_error_count ??= 0;
+            });
             headerInitialized = true;
           }
 

@@ -9,34 +9,9 @@ import {
   getCellValue,
   prepareColumnRules,
   createColumnStatsFromRules,
+  extractDependencyColumns,
 } from "../../validations/user.importedFile.validations";
-const extractDependencyColumns = (columnConfig: Record<string, any>) => {
-  const dependencyCols = new Set<string>();
 
-  Object.values(columnConfig).forEach((col: any) => {
-    const dependency = col?.dependency;
-    if (!dependency) return;
-
-    const mainColumn = col.name?.trim(); // ✅ normalize
-
-    Object.keys(dependency).forEach((key) => {
-      // ❌ skip main column safely
-      if (key.trim() === mainColumn) return;
-
-      // ✅ split and add sub dependency columns
-      key.split(",").forEach((k) => {
-        const trimmed = k.trim();
-
-        // ❌ skip if accidentally same as main column
-        if (trimmed === mainColumn) return;
-
-        if (trimmed) dependencyCols.add(trimmed);
-      });
-    });
-  });
-
-  return Array.from(dependencyCols);
-};
 export const xlsxParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
@@ -87,9 +62,6 @@ export const xlsxParser = async (
             headers.forEach((header) => {
               if (!header || typeof header !== "string") return;
               const ruleConfig = columnConfig[header] || {};
-              console.log("+++++++++++++++");
-              console.log(ruleConfig);
-              console.log("+++++++++++++++");
               columnStats[header] = createColumnStatsFromRules(
                 ruleConfig,
                 "not_add_dependency",
