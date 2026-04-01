@@ -115,10 +115,7 @@ export const validateRule = (tempRule, current) => {
     if (!tempRule.data_redundant_threshold) {
       return "Please enter threshold. Threshold value should be >= 0";
     }
-    if (
-      isNaN(tempRule.data_redundant_threshol) ||
-      tempRule.data_redundant_threshol < 0
-    ) {
+    if (tempRule.data_redundant_threshol < 0) {
       return "Threshold value must be >= 0";
     }
   }

@@ -200,7 +200,7 @@ const ImportFile: React.FC = () => {
 
                   <p className="font-medium">Drag & drop file here</p>
 
-                  <p className="text-sm text-gray-400">
+                  <p className="text-base text-gray-400">
                     or click to upload (.xlsx, .xls, .csv, .json)
                   </p>
                 </div>
@@ -223,13 +223,13 @@ const ImportFile: React.FC = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-10 h-10 border-4 border-white rounded-full sm:w-12 sm:h-12 border-t-transparent animate-spin"></div>
-                    <p className="text-sm text-white">Processing file...</p>
+                    <p className="text-base text-white">Processing file...</p>
                   </div>
                 </div>
               )}
 
               {fileName && (
-                <p className="px-2 mt-3 text-sm text-center text-blue-600 break-all">
+                <p className="px-2 mt-3 text-base text-center text-blue-600 break-all">
                   Uploaded: {fileName}
                 </p>
               )}
@@ -246,7 +246,7 @@ const ImportFile: React.FC = () => {
 
                   {/* File Details */}
                   <div className="min-w-0">
-                    <p className="text-sm text-gray-300">Uploaded File</p>
+                    <p className="text-base text-gray-300">Uploaded File</p>
 
                     <p className="text-white font-semibold truncate">
                       {fileName}
@@ -269,7 +269,7 @@ const ImportFile: React.FC = () => {
                     onClick={handleReset}
                     className="flex items-center gap-2 py-2.5 px-6 rounded-xl font-semibold shadow-sm transition-all duration-200 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 hover:scale-105"
                   >
-                    <FaUpload className="text-sm" />
+                    <FaUpload className="text-base" />
                     Upload New file
                   </button>
 
@@ -285,7 +285,7 @@ const ImportFile: React.FC = () => {
             : "bg-gray-200 text-gray-500 cursor-not-allowed"
         }`}
                   >
-                    <FaPlay className="text-sm" />
+                    <FaPlay className="text-base" />
                     {validating ? "Validating..." : "Validate Data"}
                   </button>
                 </div>

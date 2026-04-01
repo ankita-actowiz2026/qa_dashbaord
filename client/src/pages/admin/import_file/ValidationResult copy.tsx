@@ -1,8 +1,5 @@
-import AppliedRules from "./AppliedRule";
 import { GoDotFill } from "react-icons/go";
 import { useState, useMemo, useCallback } from "react";
-import { FiCheckCircle } from "react-icons/fi";
-
 import { XCircle } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
@@ -492,7 +489,9 @@ const ValidationResult = () => {
                   ].includes(key),
               );
               const colRules = requestData?.[col] || {};
-
+              console.log("+++++++++++++++++++++++++++");
+              console.log(JSON.stringify(issues));
+              console.log("++++++++");
               const issueMap = Object.fromEntries(issues);
               const rulesArray = buildRulesArray(colRules, issueMap);
 
@@ -503,36 +502,27 @@ const ValidationResult = () => {
                 >
                   {/* ROW */}
 
-                  <div className="grid grid-cols-[200px_1fr_120px] items-center gap-4 px-5 py-4 border-b hover:bg-gray-50 transition">
+                  <div className="grid grid-cols-[200px_180px_1fr_120px] items-center gap-4 px-5 py-4 border-b hover:bg-gray-50 transition">
                     {/* 1️⃣ Column Name */}
                     <div className="font-medium text-gray-800 truncate">
                       {col}
                     </div>
 
                     {/* 2️⃣ Valid / Invalid */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      {/* ✅ Valid */}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-base font-medium text-green-700 bg-green-50 border border-green-200 rounded-full">
-                        <CheckCircle size={14} />
-                        {stats.valid_records ?? 0} Valid
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 px-3 py-1 text-base font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full whitespace-nowrap">
+                        <CheckCircle size={14} /> Valid (
+                        {stats.valid_records ?? 0})
                       </span>
 
-                      {/* ❌ Invalid */}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-base font-medium text-red-700 bg-red-50 border border-red-200 rounded-full">
+                      <span className="flex items-center gap-1 px-3 py-1 text-base font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full whitespace-nowrap">
                         <XCircle size={14} />
-                        {stats.invalid_records ?? 0} Invalid
-                      </span>
-
-                      {/* 📊 Rules */}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
-                        <FiCheckCircle size={14} />
-                        {issues.length} Rules Applied
+                        Invalid({stats.invalid_records ?? 0})
                       </span>
                     </div>
 
                     {/* 3️⃣ Issues (LIMITED VIEW) */}
-
-                    {/* <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {issues.length > 0 ? (
                         <>
                           {issues.map(([key, val]) => (
@@ -551,7 +541,7 @@ const ValidationResult = () => {
                           Clean
                         </span>
                       )}
-                    </div> */}
+                    </div>
 
                     {/* 4️⃣ Details Button */}
                     <div className="flex justify-end">
@@ -583,12 +573,25 @@ const ValidationResult = () => {
                           Applied Rules
                         </p>
 
-                        <AppliedRules
-                          colRules={colRules}
-                          issueMap={issueMap}
-                          formatErrorMsg={formatErrorMsg}
-                          FIELD_LABELS={FIELD_LABELS}
-                        />
+                        <div className="space-y-2">
+                          {rulesArray.map((rule, i) => (
+                            <div
+                              key={i}
+                              className="flex items-start justify-between px-3 py-2 border rounded-lg bg-gray-50"
+                            >
+                              <span className="text-sm text-gray-600">
+                                {rule.label}
+                              </span>
+                              <span className="text-sm font-medium text-gray-800 text-right max-w-[60%] break-words">
+                                {rule.value}
+                              </span>
+                              --
+                              <span className="text-sm font-medium text-gray-800 text-right max-w-[60%] break-words">
+                                {rule.errorMsg}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       {/* 🔹 SUMMARY BLOCK */}
                       <div className="p-4 bg-white border border-gray-200 shadow-sm rounded-xl">
