@@ -5,7 +5,7 @@ export const getRuleName = (ruleType: string) => {
   if (ruleType === "regex") return "Regex";
   if (ruleType === "data_redundant") return "Data redundant and threshold";
   if (ruleType === "date_format") return "Date format";
-  if (ruleType === "fixed_header") return "Fixed Header Value";
+  if (ruleType === "fixed_header") return "Fixed Value";
   if (ruleType === "cell_start_with") return "Cell start with";
   if (ruleType === "cell_end_with") return "Cell end with";
   if (ruleType === "not_match_found") return "Blocked value";
@@ -31,7 +31,7 @@ export const RULE_OPTIONS = [
   },
   { value: "data_redundant", label: "Data Redundant & Threshold" },
   { value: "regex", label: "Regex" },
-  { value: "fixed_header", label: "Fixed Header Value" },
+  { value: "fixed_header", label: "Fixed Value" },
   { value: "cell_start_with", label: "Cell Start With" },
   { value: "cell_end_with", label: "Cell End With" },
   { value: "not_match_found", label: "Blocked Value" },
@@ -44,7 +44,7 @@ export const RULE_LABELS = {
   date_format: "Date Format",
   data_redundant: "Redundant Value",
   regex: "Regex",
-  fixed_header: "Fixed Header Values",
+  fixed_header: "Fixed Values",
   not_match_found: "Blocked value",
   cell_end_with: "Cell End With",
   cell_start_with: "Cell Start With",

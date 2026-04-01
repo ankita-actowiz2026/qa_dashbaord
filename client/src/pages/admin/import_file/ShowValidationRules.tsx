@@ -1,7 +1,8 @@
 import { validateRule } from "./ruleValidator";
 import RuleModal from "./RuleModal";
-import { FiTrash2, FiEdit } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiEdit } from "react-icons/fi";
 import React, { useState, useMemo } from "react";
+
 import { ArrowRight, CloudHail } from "lucide-react";
 import toast from "react-hot-toast";
 import { getRuleName, date_format_options, RULE_LABELS } from "./defaultValues";
@@ -148,35 +149,11 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
       // ✅ If editing data_type → also remove date_format
       if (removingType === "data_type") {
-        const oldDataType = currentHeader.rules[editingIndex]?.value;
-        const newDataType = tempRule.data_type;
-
-        const isOldDate = oldDataType === "date";
-        const isNewDate = newDataType === "date";
-
-        // ✅ Only true when switching between date and non-date
-        const isDateTransition = isOldDate !== isNewDate;
-
-        currentHeader.rules = currentHeader.rules.filter((r, i) => {
-          // always remove the old data_type rule itself
-          if (i === editingIndex) return false;
-
-          // ✅ remove dependent rules ONLY for date transition
-          if (
-            isDateTransition &&
-            (r.type === "date_format" || r.type === "data_length")
-          ) {
-            return false;
-          }
-
-          return true;
-        });
-      } else {
-        // alert(removingType);
-        // ✅ remove ALL rules of same type (prevents duplicates)
         currentHeader.rules = currentHeader.rules.filter(
-          (r) => r.type !== removingType,
+          (r, i) => i !== editingIndex && r.type !== "date_format",
         );
+      } else {
+        currentHeader.rules.splice(editingIndex, 1);
       }
     }
     switch (tempRule.type) {
@@ -428,17 +405,17 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             placeholder="Search headers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         {/* LIST */}
         <div className="flex-1 min-h-0 overflow-y-auto bg-gray-100">
           {filteredData.length === 0 ? (
-            <div className="p-6 text-sm text-center text-gray-400">
+            <div className="p-6 text-base text-center text-gray-400">
               <div className="mb-2 text-3xl"></div>
               <p className="font-medium text-gray-500">No headers found</p>
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-base text-gray-400">
                 Try adjusting your search
               </p>
             </div>
@@ -448,7 +425,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 <div
                   key={item.id}
                   onClick={() => setSelectedHeader(item.id)}
-                  className={`group flex items-center justify-between px-3 py-2.5  cursor-pointer text-sm transition-all font-semibold
+                  className={`group flex items-center justify-between px-3 py-2.5  cursor-pointer text-base transition-all font-semibold
           
           ${
             selectedHeader === item.id
@@ -462,7 +439,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                   {/* BADGE */}
                   {item.rules.length > 0 && (
                     <span
-                      className={`text-xs px-2 py-0.5 rounded-full transition
+                      className={`text-base px-2 py-0.5 rounded-full transition
               ${
                 selectedHeader === item.id
                   ? "bg-blue-100 text-blue-700"
@@ -486,13 +463,14 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           <h2 className="font-semibold text-gray-700">{current.name}</h2>
 
           <button
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 active:scale-[0.98] transition"
+            className="inline-flex items-center gap-2 py-2.5 px-6  font-medium bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 active:scale-[0.98] transition"
             onClick={() => {
               setEditingRule(false);
               setTempRule({});
               setIsModalOpen(true);
             }}
           >
+            <FiPlus size={16} />
             Add Rule
           </button>
         </div>
@@ -505,7 +483,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
               <div className="mb-2 text-4xl">📄</div>
               <p className="mb-3 font-medium">No rules yet</p>
-              <p className="mb-4 text-sm text-gray-400">
+              <p className="mb-4 text-base text-gray-400">
                 Start by adding your first rule
               </p>
 
@@ -529,7 +507,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                     key={idx}
                     className="flex items-center justify-between px-4 py-3 border rounded-lg bg-gray-50 "
                   >
-                    <div className="text-sm text-gray-700 flex-1 min-w-0">
+                    <div className="text-base text-gray-700 flex-1 min-w-0">
                       {[
                         "required",
                         "regex",
@@ -541,7 +519,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                             {RULE_LABELS[rule.type]}{" "}
                           </span>
 
-                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          <span className="px-2.5 py-1 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                             {rule.type === "required"
                               ? rule.value
                                 ? "Empty Not Allowed"
@@ -557,7 +535,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                             <div className="flex items-center gap-2">
                               <span className="text-gray-500">Threshold</span>
 
-                              <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                              <span className="px-2.5 py-1 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                                 {rule.value?.data_redundant_threshold}
                               </span>
                             </div>
@@ -570,7 +548,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           <span className="text-gray-500">Data Type</span>
 
                           {/* Data Type Badge */}
-                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          <span className="px-2.5 py-1 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                             {formatText(rule.value as string)}
                           </span>
 
@@ -582,7 +560,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                               );
 
                               return dateFormatRule ? (
-                                <span className="px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full">
+                                <span className="px-2.5 py-1 text-base font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full">
                                   {dateFormatRule.value as string}
                                 </span>
                               ) : null;
@@ -597,24 +575,24 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           </span>
 
                           {/* Mode Badge */}
-                          <span className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                          <span className="px-2.5 py-1 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                             {formatText(rule.value?.mode)}
                           </span>
 
                           {/* Values */}
                           {rule.value?.mode === "fixed" && (
-                            <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                            <span className="px-2 py-0.5 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                               {rule.value?.fixed || "-"}
                             </span>
                           )}
 
                           {rule.value?.mode === "variable" && (
                             <>
-                              <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                              <span className="px-2 py-0.5 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                                 {rule.value?.min || "-"}
                               </span>
                               <span className="font-semibold">To</span>
-                              <span className="px-2 py-0.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                              <span className="px-2 py-0.5 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                                 {rule.value?.max || "-"}
                               </span>
                             </>
@@ -627,15 +605,15 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                         "cell_end_with",
                         "not_match_found",
                       ].includes(rule.type) && (
-                        <div className="flex items-start gap-2">
-                          <span className="text-gray-500 whitespace-nowrap">
-                            {RULE_LABELS[rule.type]}
+                        <div className="flex items-center gap-2">
+                          <span className=" text-gray-500">
+                            Blocked value:{" "}
                           </span>
                           <div className="flex flex-wrap gap-2">
                             {(rule.value as string[])?.map((val, index) => (
                               <span
                                 key={index}
-                                className="px-2.5 py-1 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
+                                className="px-2.5 py-1 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full"
                               >
                                 {val}
                               </span>
@@ -648,11 +626,11 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                         <div className="flex flex-col gap-2">
                           {/* 🔹 Main Dependency */}
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-base text-gray-500">
                               Dependency
                             </span>
 
-                            <span className="px-2.5 py-1 text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full">
+                            <span className="px-2.5 py-1 text-base font-medium text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-full">
                               {rule.value.mode === "required"
                                 ? "Required"
                                 : rule.value.main_value}
@@ -666,7 +644,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                                 (s: any, i: number) => (
                                   <div
                                     key={i}
-                                    className="flex flex-wrap items-center gap-2 text-xs"
+                                    className="flex flex-wrap items-center gap-2 text-base"
                                   >
                                     {/* Headers */}
                                     <span className="px-2 py-0.5 font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
@@ -709,7 +687,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           setTempRule(buildTempRule(rule));
                           setIsModalOpen(true);
                         }}
-                        className="text-sm text-blue-600"
+                        className="text-base text-blue-600"
                       >
                         <FiEdit size={16} />
                       </button>

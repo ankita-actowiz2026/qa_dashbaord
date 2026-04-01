@@ -17,7 +17,7 @@ export const errorMessageMap: Record<string, string> = {
   datatype_error_count: "Datatype validation failed",
   regex_pattern_error_count: "Regex Pattern validation failed",
   redundant_error_count: "Redundant value found",
-  fixed_header_error_count: "Fixed header validation failed",
+  fixed_header_error_count: "Fixed validation failed",
   //date_format_error_count: "Invalid date format",
   cell_start_with_error_count: "Cell start with validation failed",
   cell_end_with_error_count: "Cell end with validation failed",

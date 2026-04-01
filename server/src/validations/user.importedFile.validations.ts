@@ -421,9 +421,6 @@ export const validateRow = (
         });
     }
 
-    // if (strValue === "") continue;
-    // EMAIL
-
     if (rule.cellContainsRegex) {
       const value = String(strValue).trim();
 
@@ -493,107 +490,6 @@ export const validateRow = (
         if (!rule.dateRegex.test(strValue)) {
           is_error = 1;
           error_msg = `${strValue} does not match format ${rule.date_format}`;
-        } else {
-          // Range validation
-          const currentDate = parseDateByFormat(strValue, rule.date_format);
-
-          if (
-            currentDate &&
-            rule.min_length &&
-            (rule.length_validation_type === "fixed" ||
-              (rule.length_validation_type === "variable" && rule.max_length))
-          ) {
-            // parse min/max using fixed format %d-%m-%Y
-            const parseFixedDate = (dateStr: string) => {
-              const parts = dateStr.split("-");
-              if (parts.length !== 3) return null;
-
-              const day = Number(parts[2]);
-              const month = Number(parts[1]) - 1;
-              const year = Number(parts[0]);
-
-              return new Date(year, month, day);
-            };
-
-            if (rule.length_validation_type === "fixed") {
-              const fixedDate = rule.min_length
-                ? parseFixedDate(rule.min_length)
-                : null;
-
-              if (fixedDate) {
-                // normalize both dates (remove time)
-                const inputDate = new Date(
-                  currentDate.getFullYear(),
-                  currentDate.getMonth(),
-                  currentDate.getDate(),
-                );
-
-                const compareDate = new Date(
-                  fixedDate.getFullYear(),
-                  fixedDate.getMonth(),
-                  fixedDate.getDate(),
-                );
-
-                if (inputDate.getTime() !== compareDate.getTime()) {
-                  if (columnValid) columnStat.invalid_records++;
-                  columnStat.length_validation_error_count++;
-                  columnValid = false;
-                  rowValid = false;
-                  if (debug == 1)
-                    columnStat.error_msg.push({
-                      row: rowNumber,
-                      column: columnName,
-                      error_type: "Data Length Error",
-                      error_description: `${strValue} must be exactly ${rule.min_length}`,
-                    });
-                  errorBuffer.add([
-                    rowNumber,
-                    columnName,
-                    "Data Length Error",
-                    `${strValue} must be exactly ${rule.min_length}`,
-                  ]);
-                }
-              }
-            } else if (rule.length_validation_type === "variable") {
-              const minDate = rule.min_length
-                ? parseFixedDate(rule.min_length)
-                : null;
-              const maxDate = rule.max_length
-                ? parseFixedDate(rule.max_length)
-                : null;
-
-              // remove time from currentDate
-              const inputDate = new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth(),
-                currentDate.getDate(),
-              );
-
-              if (
-                (minDate && inputDate.getTime() < minDate.getTime()) ||
-                (maxDate && inputDate.getTime() > maxDate.getTime())
-              ) {
-                if (columnValid) columnStat.invalid_records++;
-                columnStat.length_validation_error_count++;
-                columnValid = false;
-                rowValid = false;
-
-                errorBuffer.add([
-                  rowNumber,
-                  columnName,
-                  "Data Length Error",
-                  `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
-                ]);
-                if (debug == 1)
-                  columnStat.error_msg.push({
-                    row: rowNumber,
-                    column: columnName,
-                    error_type: "Data Length Error",
-                    error_description: `${strValue} must be between ${rule.min_length} and ${rule.max_length}`,
-                  });
-              }
-            }
-          }
         }
       }
 
@@ -615,9 +511,7 @@ export const validateRow = (
       }
     }
     // }
-    console.log("length_validation_type");
-    console.log(rule.length_validation_type);
-    console.log("length_validation_type");
+
     //for number type, also check min/max length if specified
     if (
       rule.length_validation_type != null &&
@@ -676,6 +570,76 @@ export const validateRow = (
             error_msg = `${columnName} must be exactly ${rule.min_length} characters`;
           }
         }
+      } else if (dataType === "date") {
+        // Range validation
+        const currentDate = parseDateByFormat(strValue, rule.date_format);
+
+        if (
+          currentDate &&
+          rule.min_length &&
+          (rule.length_validation_type === "fixed" ||
+            (rule.length_validation_type === "variable" && rule.max_length))
+        ) {
+          // parse min/max using fixed format %d-%m-%Y
+          const parseFixedDate = (dateStr: string) => {
+            const parts = dateStr.split("-");
+            if (parts.length !== 3) return null;
+
+            const day = Number(parts[2]);
+            const month = Number(parts[1]) - 1;
+            const year = Number(parts[0]);
+
+            return new Date(year, month, day);
+          };
+
+          if (rule.length_validation_type === "fixed") {
+            const fixedDate = rule.min_length
+              ? parseFixedDate(rule.min_length)
+              : null;
+
+            if (fixedDate) {
+              // normalize both dates (remove time)
+              const inputDate = new Date(
+                currentDate.getFullYear(),
+                currentDate.getMonth(),
+                currentDate.getDate(),
+              );
+
+              const compareDate = new Date(
+                fixedDate.getFullYear(),
+                fixedDate.getMonth(),
+                fixedDate.getDate(),
+              );
+
+              if (inputDate.getTime() !== compareDate.getTime()) {
+                is_error = 1;
+                error_msg = `${strValue} must be exactly ${rule.min_length}`;
+              }
+            }
+          } else if (rule.length_validation_type === "variable") {
+            const minDate = rule.min_length
+              ? parseFixedDate(rule.min_length)
+              : null;
+            const maxDate = rule.max_length
+              ? parseFixedDate(rule.max_length)
+              : null;
+
+            // remove time from currentDate
+            const inputDate = new Date(
+              currentDate.getFullYear(),
+              currentDate.getMonth(),
+              currentDate.getDate(),
+            );
+
+            if (
+              (minDate && inputDate.getTime() < minDate.getTime()) ||
+              (maxDate && inputDate.getTime() > maxDate.getTime())
+            ) {
+              is_error = 1;
+              error_msg = `${strValue} must be between ${rule.min_length} and ${rule.max_length}`;
+            }
+          }
+        }
       }
       if (is_error == 1) {
         if (columnValid) columnStat.invalid_records++;
@@ -708,10 +672,6 @@ export const validateRow = (
         strValue === rule.data_redundant_value;
 
       if (shouldTrack) {
-        // const valueKey =
-        //   rule.data_redundant_value !== ""
-        //     ? rule.data_redundant_value
-        //     : strValue;
         const valueKey = rule.data_redundant_value || strValue;
 
         const newCount = (rule.redundantCounter.get(valueKey) || 0) + 1;
@@ -754,15 +714,15 @@ export const validateRow = (
       errorBuffer.add([
         rowNumber,
         columnName,
-        "Fixed Header Value Error",
+        "Fixed Value Error",
         `${strValue} not allowed`,
       ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
           column: columnName,
-          error_type: "Fixed Header Value Error",
-          error_description: `${strValue} is not valid fiexd headers. only ${rule.fixedHeaderMessage} are allowed`,
+          error_type: "Fixed Value Error",
+          error_description: `${strValue} is not valid fiexd value. only ${rule.fixedHeaderMessage} are allowed`,
         });
     }
 

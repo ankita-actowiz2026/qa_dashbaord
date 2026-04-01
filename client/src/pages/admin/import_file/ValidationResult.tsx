@@ -75,7 +75,7 @@ const ValidationResult = () => {
   const requestData = location.state?.requestData;
   const fileName = location.state?.fileName;
   // console.log(responseData);
-  // console.log(requestData);
+  console.log(requestData);
   const [expandedColumn, setExpandedColumn] = useState<string | null>(null);
 
   if (!responseData) {
@@ -97,14 +97,14 @@ const ValidationResult = () => {
   );
   return (
     <div className="mt-6 space-y-6">
-      <h1 className="text-3xl font-semibold text-gray-800">
+      <h1 className="text-4xl font-semibold text-gray-800">
         Validation Result
       </h1>
-      <p className="text-sm text-gray-500"></p>
+      <p className="text-base text-gray-500"></p>
       <div className="mt-6 flex items-center justify-end gap-4">
         {/* File Name */}
         <div
-          className="text-sm text-gray-600 max-w-xs truncate"
+          className="text-base text-gray-600 max-w-xs truncate"
           title={fileName}
         >
           <span className="text-gray-400">Current file:</span>{" "}
@@ -119,7 +119,7 @@ const ValidationResult = () => {
           onClick={() => navigate("/admin/import_file")}
           className="flex items-center gap-2 bg-black text-white py-2.5 px-5 rounded-xl font-medium hover:bg-gray-700 transition"
         >
-          <FaUpload className="text-sm" />
+          <FaUpload className="text-base" />
           Upload New File
         </button>
       </div>
@@ -136,7 +136,7 @@ const ValidationResult = () => {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-xl hover:bg-blue-700"
         >
-          <FiDownload className="text-sm" />
+          <FiDownload className="text-base" />
           Download Report
         </a>
       </div>
@@ -144,7 +144,7 @@ const ValidationResult = () => {
       <div className="bg-white border border-gray-200 shadow-sm rounded-2xl">
         {/* HEADER */}
         <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50 rounded-t-2xl">
-          <h2 className="text-sm font-semibold text-gray-700">
+          <h2 className="text-base font-semibold text-gray-700">
             Column Results ({filteredColumns.length})
           </h2>
         </div>
@@ -155,10 +155,10 @@ const ValidationResult = () => {
             // ✅ EMPTY STATE
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <CheckCircle className="mb-2 text-green-500" size={32} />
-              <p className="text-sm font-semibold text-green-600">
+              <p className="text-base font-semibold text-green-600">
                 All validations passed
               </p>
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-base text-gray-400">
                 No issues were found in your uploaded data.
               </p>
             </div>
@@ -189,12 +189,12 @@ const ValidationResult = () => {
 
                     {/* 2️⃣ Valid / Invalid */}
                     <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full whitespace-nowrap">
+                      <span className="flex items-center gap-1 px-3 py-1 text-base font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full whitespace-nowrap">
                         <CheckCircle size={14} /> Valid (
                         {stats.valid_records ?? 0})
                       </span>
 
-                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full whitespace-nowrap">
+                      <span className="flex items-center gap-1 px-3 py-1 text-base font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full whitespace-nowrap">
                         <XCircle size={14} />
                         Invalid({stats.invalid_records ?? 0})
                       </span>
@@ -207,15 +207,15 @@ const ValidationResult = () => {
                           {issues.map(([key, val]) => (
                             <span
                               key={key}
-                              className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-full ${getErrorStyle(key)}`}
+                              className={`flex items-center gap-1 px-2.5 py-1 text-base font-medium text-red-600 bg-red-50 border border-red-100 rounded-full ${getErrorStyle(key)}`}
                             >
-                              <AlertCircle size={12} />
+                              == <AlertCircle size={12} />
                               {key.replaceAll("_", " ")} ({val})
                             </span>
                           ))}
                         </>
                       ) : (
-                        <span className="flex items-center gap-1 text-xs text-green-600">
+                        <span className="flex items-center gap-1 text-base text-green-600">
                           <CheckCircle size={14} />
                           Clean
                         </span>
@@ -228,7 +228,7 @@ const ValidationResult = () => {
                         onClick={() =>
                           setExpandedColumn(expandedColumn === col ? null : col)
                         }
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
+                        className="flex items-center gap-1 px-3 py-1.5 text-base font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
                       >
                         {expandedColumn === col ? (
                           <>
@@ -248,7 +248,7 @@ const ValidationResult = () => {
                     <div className="px-5 pb-5 space-y-4 bg-gray-50">
                       {/* 🔹 SUMMARY BLOCK */}
                       <div className="p-4 bg-white border border-gray-200 shadow-sm rounded-xl">
-                        <p className="mb-2 text-sm font-semibold text-gray-700">
+                        <p className="mb-2 text-base font-semibold text-gray-700">
                           Column Errors
                         </p>
 
@@ -257,13 +257,13 @@ const ValidationResult = () => {
                             errors_for_coloms[col].map((err, i) => (
                               <span
                                 key={i}
-                                className={`px-2.5 py-1 text-xs font-medium border rounded-full ${getErrorStyle(err)}`}
+                                className={`px-2.5 py-1 text-base font-medium border rounded-full ${getErrorStyle(err)}`}
                               >
                                 {err}
                               </span>
                             ))
                           ) : (
-                            <span className="text-xs text-green-600">
+                            <span className="text-base text-green-600">
                               No issues found
                             </span>
                           )}
@@ -275,7 +275,7 @@ const ValidationResult = () => {
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
                           {/* Header */}
                           <div className="sticky top-0 z-10 px-4 py-3 bg-white border-b rounded-t-xl">
-                            <p className="text-sm font-semibold text-gray-700">
+                            <p className="text-base font-semibold text-gray-700">
                               Error Details
                             </p>
                           </div>
@@ -286,7 +286,7 @@ const ValidationResult = () => {
                               {stats.error_msg.map((err, index) => (
                                 <div
                                   key={index}
-                                  className="grid grid-cols-[40px_150px_1fr] items-center gap-3 px-4 py-2 text-xs hover:bg-gray-50"
+                                  className="grid grid-cols-[40px_150px_1fr] items-center gap-3 px-4 py-2 text-base hover:bg-gray-50"
                                 >
                                   {/* Row */}
                                   <span className="font-semibold text-gray-600">
@@ -310,8 +310,8 @@ const ValidationResult = () => {
                             </div>
                           ) : (
                             <div className="px-4 py-6 text-center">
-                              <p className="text-xs text-green-600">
-                                No errors found 🎉
+                              <p className="text-base text-green-600">
+                                No errors found
                               </p>
                             </div>
                           )}

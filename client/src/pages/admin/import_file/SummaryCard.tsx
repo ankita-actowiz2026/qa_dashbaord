@@ -32,7 +32,7 @@ const SummaryCard = ({ title, value, success, error }: any) => {
       {/* Content */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500">{title}</p>
+          <p className="text-base text-gray-500">{title}</p>
           <p className={`text-2xl font-bold mt-1 ${textColor}`}>{value}</p>
         </div>
 

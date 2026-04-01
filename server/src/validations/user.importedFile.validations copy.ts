@@ -813,14 +813,14 @@ export const validateRow = (
       errorBuffer.add([
         rowNumber,
         columnName,
-        "Fixed Header Value Error",
+        "Fixed Value Error",
         `${strValue} not allowed`,
       ]);
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
           column: columnName,
-          error_type: "Fixed Header Value Error",
+          error_type: "Fixed Value Error",
           error_description: `${strValue} not allowed`,
         });
     }
