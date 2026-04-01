@@ -10,7 +10,7 @@ export const validateRule = (tempRule, current) => {
       (rule) => rule.type === "data_type",
     );
 
-    const dataType = dataTypeRule?.value || "string";
+    const dataType = current?.tempDataType || dataTypeRule?.value || "string";
 
     if (tempRule.length_mode === "fixed") {
       if (!tempRule.fixed && tempRule.fixed !== 0) {

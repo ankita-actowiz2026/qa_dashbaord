@@ -448,7 +448,11 @@ export const validateRow = (
           `${strValue} does not match required format`,
         ]);
       }
-    } else {
+    }
+
+    if (dataType != undefined) {
+      let is_error = 0;
+      let error_msg = "";
       if (
         dataType === "string" ||
         dataType === "alphabetic" ||
@@ -461,25 +465,8 @@ export const validateRow = (
               ? alphabeticsRegex.test(strValue)
               : emailRegex.test(strValue);
         if (!regexResult) {
-          columnStat.datatype_error_count++;
-          if (columnValid) columnStat.invalid_records++;
-
-          columnValid = false;
-          rowValid = false;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Datatype Error",
-            `${strValue} does not match ${dataType} format`,
-          ]);
-
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Datatype Error",
-              error_description: `${strValue} does not match ${dataType} format`,
-            });
+          is_error = 1;
+          error_msg = `${strValue} does not match ${dataType} format`;
         }
       } else if (
         (dataType === "integer" || dataType === "float") &&
@@ -487,82 +474,25 @@ export const validateRow = (
         strValue !== "" &&
         datatype_validation_checked == 0
       ) {
-        const regexRes =
+        const regexResult =
           dataType === "integer"
             ? integerRegex.test(String(strValue).trim())
             : numberRegex.test(String(strValue).trim());
-        if (!regexRes) {
-          if (columnValid === true) columnStat.invalid_records++;
-
-          columnValid = false;
-          rowValid = false;
-
-          columnStat.datatype_error_count++;
-
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Datatype Error",
-            `${strValue} is not a valid ${dataType}`,
-          ]);
-
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Datatype Error",
-              error_description: `${strValue} is not a valid ${dataType}`,
-            });
+        if (!regexResult) {
+          is_error = 1;
+          error_msg = `${strValue} is not a valid ${dataType}`;
         }
       } else if (dataType === "boolean") {
         //const value = String(strValue).trim().toLowerCase();
         const value = String(strValue);
         if (!validBooleanValues.has(value.toLowerCase())) {
-          if (columnValid === true) columnStat.invalid_records++;
-
-          columnValid = false;
-          rowValid = false;
-
-          columnStat.datatype_error_count++;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Datatype Error",
-            `${strValue} is not a valid boolean value`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Datatype Error",
-              error_description: `${strValue} is not a valid boolean value`,
-            });
+          is_error = 1;
+          error_msg = `${strValue} is not a valid boolean value`;
         }
       } else if (dataType === "date" && rule.dateRegex) {
         if (!rule.dateRegex.test(strValue)) {
-          if (columnValid === true) columnStat.invalid_records++;
-
-          columnValid = false;
-          rowValid = false;
-
-          columnStat.datatype_error_count++;
-
-          columnValid = false;
-          rowValid = false;
-          //columnStat.date_format_error_count++;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Datatype Error",
-            `${strValue} does not match format ${rule.date_format}`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Datatype Error",
-              error_description: `${strValue} does not match format ${rule.date_format}`,
-            });
+          is_error = 1;
+          error_msg = `${strValue} does not match format ${rule.date_format}`;
         } else {
           // Range validation
           const currentDate = parseDateByFormat(strValue, rule.date_format);
@@ -666,161 +596,108 @@ export const validateRow = (
           }
         }
       }
+
+      if (is_error == 1) {
+        columnStat.datatype_error_count++;
+        if (columnValid) columnStat.invalid_records++;
+
+        columnValid = false;
+        rowValid = false;
+        errorBuffer.add([rowNumber, columnName, "Datatype Error", error_msg]);
+
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Datatype Error",
+            error_description: error_msg,
+          });
+      }
     }
     // }
-
+    console.log("length_validation_type");
+    console.log(rule.length_validation_type);
+    console.log("length_validation_type");
     //for number type, also check min/max length if specified
-    if (dataType === "float" || dataType === "integer") {
-      const numValue = +strValue;
-      // Variable length validation (numeric range)
-      if (rule.length_validation_type === "variable") {
-        if (rule.min_length !== null && numValue < rule.min_length) {
-          if (columnValid) columnStat.invalid_records++;
-
-          columnValid = false;
-          rowValid = false;
-          columnStat.length_validation_error_count++;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Data Length Error",
-            `${columnName} must be >= ${rule.min_length}`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Data Length Error",
-              error_description: `${columnName} must be >= ${rule.min_length}`,
-            });
-        }
-
-        if (rule.max_length !== null && numValue > rule.max_length) {
-          if (columnValid) columnStat.invalid_records++;
-          columnValid = false;
-          rowValid = false;
-          columnStat.length_validation_error_count++;
-
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Data Length Error",
-            `${columnName} must be <= ${rule.max_length}`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Data Length Error",
-              error_description: `${columnName} must be <= ${rule.max_length}`,
-            });
-        }
-      } else if (rule.length_validation_type === "fixed") {
-        const digitLength = strValue.toString().length;
-        //console.log(digitLength + "===" + rule.min_length);
-        if (rule.min_length !== null && strValue !== rule.min_length) {
-          if (columnValid) columnStat.invalid_records++;
-          columnValid = false;
-          rowValid = false;
-
-          columnStat.length_validation_error_count++;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Data Length Error",
-            `${columnName} must be exactly ${rule.min_length}`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Data Length Error",
-              error_description: `${columnName} must be exactly ${rule.min_length}`,
-            });
-        }
-      }
-    } else if (
-      dataType === undefined ||
-      dataType === "string" ||
-      dataType === "email" ||
-      dataType === "boolean" ||
-      dataType === "alphabetic"
+    if (
+      rule.length_validation_type != null &&
+      rule.length_validation_type != undefined
     ) {
-      const strLen = strValue.length;
+      let is_error = 0;
+      let error_msg = "";
 
-      // VARIABLE LENGTH (min / max)
-      if (rule.length_validation_type === "variable") {
-        if (rule.min_length !== null && strLen < rule.min_length) {
-          if (columnValid === true) columnStat.invalid_records++;
+      if (dataType === "float" || dataType === "integer") {
+        const numValue = +strValue;
+        // Variable length validation (numeric range)
+        if (rule.length_validation_type === "variable") {
+          if (rule.min_length !== null && numValue < rule.min_length) {
+            is_error = 1;
+            error_msg = `${columnName} must be >= ${rule.min_length}`;
+          }
 
-          columnValid = false;
-          rowValid = false;
+          if (rule.max_length !== null && numValue > rule.max_length) {
+            is_error = 1;
+            error_msg = `${columnName} must be <= ${rule.max_length}`;
+          }
+        } else if (rule.length_validation_type === "fixed") {
+          const digitLength = strValue.toString().length;
+          //console.log(digitLength + "===" + rule.min_length);
+          if (rule.min_length !== null && strValue !== rule.min_length) {
+            is_error = 1;
+            error_msg = `${columnName} must be exactly ${rule.min_length}`;
+          }
+        }
+      } else if (
+        dataType === undefined ||
+        dataType === "string" ||
+        dataType === "email" ||
+        dataType === "boolean" ||
+        dataType === "alphabetic"
+      ) {
+        const strLen = strValue.length;
 
-          columnStat.length_validation_error_count++;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Length Error",
-            `${columnName} must be at least ${rule.min_length} characters`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Length Error",
-              error_description: `${columnName} must be at least ${rule.min_length} characters`,
-            });
+        // VARIABLE LENGTH (min / max)
+        if (rule.length_validation_type === "variable") {
+          if (rule.min_length !== null && strLen < rule.min_length) {
+            is_error = 1;
+            error_msg = `${columnName} must be at least ${rule.min_length} characters`;
+          }
+
+          if (rule.max_length !== null && strLen > rule.max_length) {
+            is_error = 1;
+            error_msg = `${columnName} must be <= ${rule.max_length} characters`;
+          }
         }
 
-        if (rule.max_length !== null && strLen > rule.max_length) {
-          if (columnValid === true) columnStat.invalid_records++;
-
-          columnValid = false;
-          rowValid = false;
-
-          columnStat.length_validation_error_count++;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Data Length Error",
-            `${columnName} must be <= ${rule.max_length} characters`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Data Length Error",
-              error_description: `${columnName} must be <= ${rule.max_length} characters`,
-            });
+        // FIXED LENGTH
+        else if (rule.length_validation_type === "fixed") {
+          if (rule.min_length !== null && strLen !== Number(rule.min_length)) {
+            is_error = 1;
+            error_msg = `${columnName} must be exactly ${rule.min_length} characters`;
+          }
         }
       }
+      if (is_error == 1) {
+        if (columnValid) columnStat.invalid_records++;
 
-      // FIXED LENGTH
-      else if (rule.length_validation_type === "fixed") {
-        if (rule.min_length !== null && strLen !== Number(rule.min_length)) {
-          if (columnValid === true) columnStat.invalid_records++;
-
-          columnValid = false;
-          rowValid = false;
-
-          columnStat.length_validation_error_count++;
-          errorBuffer.add([
-            rowNumber,
-            columnName,
-            "Data Length Error",
-            `${columnName} must be exactly ${rule.min_length} characters`,
-          ]);
-          if (debug == 1)
-            columnStat.error_msg.push({
-              row: rowNumber,
-              column: columnName,
-              error_type: "Data Length Error",
-              error_description: `${columnName} must be exactly ${rule.min_length} characters`,
-            });
-        }
+        columnValid = false;
+        rowValid = false;
+        columnStat.length_validation_error_count++;
+        errorBuffer.add([
+          rowNumber,
+          columnName,
+          "Data Length Error",
+          error_msg,
+        ]);
+        if (debug == 1)
+          columnStat.error_msg.push({
+            row: rowNumber,
+            column: columnName,
+            error_type: "Data Length Error",
+            error_description: error_msg,
+          });
       }
     }
-
     // DUPLICATE
     if (rule.data_redundant_threshold && rule.redundantCounter) {
       const threshold = Number(rule.data_redundant_threshold);

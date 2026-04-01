@@ -38,7 +38,7 @@ export const RULE_OPTIONS = [
   { value: "dependency", label: "Dependency" },
 ];
 export const RULE_LABELS = {
-  required: "Required:",
+  required: "Required",
   data_type: "Data Type",
   data_length: "Length",
   date_format: "Date Format",

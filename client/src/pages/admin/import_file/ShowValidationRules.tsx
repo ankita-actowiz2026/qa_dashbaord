@@ -2,7 +2,7 @@ import { validateRule } from "./ruleValidator";
 import RuleModal from "./RuleModal";
 import { FiTrash2, FiEdit } from "react-icons/fi";
 import React, { useState, useMemo } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CloudHail } from "lucide-react";
 import toast from "react-hot-toast";
 import { getRuleName, date_format_options, RULE_LABELS } from "./defaultValues";
 import { generateRulesJSON } from "./generateRulesJSON";
@@ -61,7 +61,6 @@ type Props = {
 };
 
 const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
-  console.log("rrender");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -130,7 +129,13 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
   const current = useMemo(() => data[selectedHeader], [data, selectedHeader]);
   const applyRule = () => {
-    const error = validateRule(tempRule, current.rules);
+    const error = validateRule(tempRule, {
+      ...current,
+      tempDataType:
+        tempRule.type === "data_type"
+          ? tempRule.data_type
+          : current.rules?.find((r) => r.type === "data_type")?.value,
+    });
     if (error) return toast.error(error);
     const updated = data.map((h, i) =>
       i === selectedHeader ? { ...h, rules: [...h.rules] } : h,
@@ -143,11 +148,35 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
       // ✅ If editing data_type → also remove date_format
       if (removingType === "data_type") {
-        currentHeader.rules = currentHeader.rules.filter(
-          (r, i) => i !== editingIndex && r.type !== "date_format",
-        );
+        const oldDataType = currentHeader.rules[editingIndex]?.value;
+        const newDataType = tempRule.data_type;
+
+        const isOldDate = oldDataType === "date";
+        const isNewDate = newDataType === "date";
+
+        // ✅ Only true when switching between date and non-date
+        const isDateTransition = isOldDate !== isNewDate;
+
+        currentHeader.rules = currentHeader.rules.filter((r, i) => {
+          // always remove the old data_type rule itself
+          if (i === editingIndex) return false;
+
+          // ✅ remove dependent rules ONLY for date transition
+          if (
+            isDateTransition &&
+            (r.type === "date_format" || r.type === "data_length")
+          ) {
+            return false;
+          }
+
+          return true;
+        });
       } else {
-        currentHeader.rules.splice(editingIndex, 1);
+        // alert(removingType);
+        // ✅ remove ALL rules of same type (prevents duplicates)
+        currentHeader.rules = currentHeader.rules.filter(
+          (r) => r.type !== removingType,
+        );
       }
     }
     switch (tempRule.type) {
@@ -257,7 +286,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       const deletedRule = currentHeader.rules[index];
 
       currentHeader.rules.splice(index, 1);
-      console.log(updated);
+
       setData(updated);
 
       // ✅ send updated JSON to parent
@@ -382,6 +411,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         return {};
     }
   };
+
   return (
     <div className="flex h-[600px] border rounded-2xl bg-white shadow-sm mt-2">
       {/* LEFT PANEL */}
@@ -492,7 +522,6 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* [[{JSON.stringify(current.rules)}]] */}
               {current.rules
                 .filter((rule) => rule.type !== "date_format")
                 .map((rule, idx) => (
@@ -519,7 +548,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                                 : "Empty Allow"
                               : rule.type === "data_redundant"
                                 ? rule.value?.data_redundant_value
-                                : +rule.value}
+                                : typeof rule.value === "string"
+                                  ? rule.value
+                                  : ""}
                           </span>
 
                           {rule.type === "data_redundant" && (

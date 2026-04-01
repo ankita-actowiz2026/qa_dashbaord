@@ -120,8 +120,8 @@ const AdminLayout = () => {
           </NavLink>
 
           {/* ✅ USER MENU HERE */}
-          <div>
-            {/* Parent */}
+          {/* <div>
+          
             <button
               onClick={() => setUserMenuOpen((prev) => !prev)}
               className={`w-full flex items-center ${
@@ -148,7 +148,7 @@ const AdminLayout = () => {
               )}
             </button>
 
-            {/* Children */}
+          
             {userMenuOpen && (
               <div className="ml-6 mt-1 space-y-1">
                 <NavLink
@@ -178,7 +178,7 @@ const AdminLayout = () => {
                 </NavLink>
               </div>
             )}
-          </div>
+          </div> */}
         </nav>
       </aside>
       {/* Overlay */}

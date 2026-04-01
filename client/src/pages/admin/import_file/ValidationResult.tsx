@@ -181,48 +181,54 @@ const ValidationResult = () => {
                 >
                   {/* ROW */}
 
-                  <div className="grid grid-cols-[200px_1fr_120px] items-center gap-4 px-5 py-4">
-                    {/* Column Name */}
+                  <div className="grid grid-cols-[200px_180px_1fr_120px] items-center gap-4 px-5 py-4 border-b hover:bg-gray-50 transition">
+                    {/* 1️⃣ Column Name */}
                     <div className="font-medium text-gray-800 truncate">
                       {col}
                     </div>
 
-                    {/* Issues */}
-                    <div className="flex flex-wrap gap-2">
-                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full">
-                        <CheckCircle size={14} />
-                        Valid {stats.valid_records ?? 0}
+                    {/* 2️⃣ Valid / Invalid */}
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-green-700 bg-green-50 border border-green-200 rounded-full whitespace-nowrap">
+                        <CheckCircle size={14} /> Valid (
+                        {stats.valid_records ?? 0})
                       </span>
 
-                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full">
+                      <span className="flex items-center gap-1 px-3 py-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-full whitespace-nowrap">
                         <XCircle size={14} />
-                        Invalid {stats.invalid_records ?? 0}
+                        Invalid({stats.invalid_records ?? 0})
                       </span>
+                    </div>
+
+                    {/* 3️⃣ Issues (LIMITED VIEW) */}
+                    <div className="flex flex-wrap gap-2">
                       {issues.length > 0 ? (
-                        issues.map(([key, val]) => (
-                          <span
-                            key={key}
-                            className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-full ${getErrorStyle(key)}`}
-                          >
-                            <AlertCircle size={12} />
-                            {key.replaceAll("_", " ")} ({val})
-                          </span>
-                        ))
+                        <>
+                          {issues.map(([key, val]) => (
+                            <span
+                              key={key}
+                              className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-full ${getErrorStyle(key)}`}
+                            >
+                              <AlertCircle size={12} />
+                              {key.replaceAll("_", " ")} ({val})
+                            </span>
+                          ))}
+                        </>
                       ) : (
                         <span className="flex items-center gap-1 text-xs text-green-600">
                           <CheckCircle size={14} />
-                          No issues
+                          Clean
                         </span>
                       )}
                     </div>
 
-                    {/* Button */}
+                    {/* 4️⃣ Details Button */}
                     <div className="flex justify-end">
                       <button
                         onClick={() =>
                           setExpandedColumn(expandedColumn === col ? null : col)
                         }
-                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 transition bg-blue-50 rounded-lg hover:bg-blue-100"
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
                       >
                         {expandedColumn === col ? (
                           <>
