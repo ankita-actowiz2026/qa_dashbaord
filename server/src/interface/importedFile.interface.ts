@@ -49,7 +49,7 @@ export interface SummaryReportQuery {
 }
 export interface ColumnRule {
   name: string;
-  data_type?: "string" | "integer" | "number" | "boolean" | "date" | "email";
+  data_type?: "string" | "integer" | "number" | "boolean" | "date";
   is_required?: boolean;
   data_redundant_value?: string | null;
   data_redundant_threshold?: number;

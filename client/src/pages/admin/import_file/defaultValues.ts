@@ -18,7 +18,6 @@ export const DATA_TYPE_OPTIONS = [
   { value: "float", label: "Float" },
   { value: "boolean", label: "Boolean" },
   { value: "date", label: "Date" },
-  { value: "email", label: "Email" },
 ];
 export const RULE_OPTIONS = [
   { value: "required", label: "Required" },

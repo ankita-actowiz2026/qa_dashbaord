@@ -7,7 +7,7 @@ import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
 const debug = 1;
-const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 const stringRegex = /^.*$/s;
 const alphabeticsRegex = /^[a-zA-Z ]*$/;
 const integerRegex = /^-?\d+$/;
@@ -442,17 +442,12 @@ export const validateRow = (
     if (dataType != undefined) {
       let is_error = 0;
       let error_msg = "";
-      if (
-        dataType === "string" ||
-        dataType === "alphabetic" ||
-        dataType === "email"
-      ) {
+      if (dataType === "string" || dataType === "alphabetic") {
         const regexResult =
           dataType === "string"
             ? stringRegex.test(strValue)
-            : dataType === "alphabetic"
-              ? alphabeticsRegex.test(strValue)
-              : emailRegex.test(strValue);
+            : alphabeticsRegex.test(strValue);
+
         if (!regexResult) {
           is_error = 1;
           error_msg = `${strValue} does not match ${dataType} format`;
@@ -535,7 +530,6 @@ export const validateRow = (
       } else if (
         dataType === undefined ||
         dataType === "string" ||
-        dataType === "email" ||
         dataType === "boolean" ||
         dataType === "alphabetic"
       ) {

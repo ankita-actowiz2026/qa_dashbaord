@@ -225,7 +225,7 @@ const RuleModal: React.FC<Props> = ({
             {tempRule.length_mode === "variable" && (
               <div className="grid grid-cols-2 gap-3">
                 {/* STRING TYPES */}
-                {["string", "alphabetic", "email", "boolean"].includes(
+                {["string", "alphabetic", "boolean"].includes(
                   currentDataType,
                 ) && (
                   <>
@@ -301,7 +301,7 @@ const RuleModal: React.FC<Props> = ({
             {tempRule.length_mode === "fixed" && (
               <div className="grid grid-cols-1 gap-3">
                 {/* STRING TYPES */}
-                {["string", "alphabetic", "email", "boolean"].includes(
+                {["string", "alphabetic", "boolean"].includes(
                   currentDataType,
                 ) && (
                   <input
