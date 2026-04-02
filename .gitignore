@@ -3,3 +3,4 @@ server/validation_result/*
 server/uploads/*
 client/.env
 server/.env
+my_file/*
