@@ -65,7 +65,7 @@ const AppliedRules = ({
       )}
       {/* ✅ Redundant */}
       {colRules.data_redundant_value !== undefined && (
-        <div className="p-3 border rounded-lg bg-gray-50">
+        <div className="p-4 transition bg-white border shadow-sm rounded-xl hover:shadow-md">
           <div className="flex items-start justify-between mb-2">
             <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
               Redundant Value
@@ -88,7 +88,7 @@ const AppliedRules = ({
       )}
       {/* ✅ Regex */}
       {colRules.cell_contains && (
-        <div className="p-3 border rounded-lg bg-gray-50">
+        <div className="p-4 transition bg-white border shadow-sm rounded-xl hover:shadow-md">
           <div className="flex items-start justify-between mb-2">
             <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
               Regex
@@ -108,7 +108,7 @@ const AppliedRules = ({
       )}
       {/* ✅ Data Type */}
       {colRules.data_type && (
-        <div className="p-3 border rounded-lg bg-gray-50">
+        <div className="p-4 transition bg-white border shadow-sm rounded-xl hover:shadow-md">
           <div className="flex items-start justify-between mb-2">
             <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
               Data Type
@@ -119,7 +119,8 @@ const AppliedRules = ({
             <span>
               {colRules.data_type === "date"
                 ? `Date with format ${colRules.date_format || "format"}`
-                : colRules.data_type}
+                : colRules.data_type.charAt(0).toUpperCase() +
+                  colRules.data_type.slice(1)}
             </span>
           </div>
           <div className="flex items-center gap-1 mt-1 text-base text-red-600">
@@ -253,7 +254,7 @@ const AppliedRules = ({
                 : String(value);
 
         return (
-          <div key={key} className="p-3 border rounded-lg bg-gray-50">
+          <div className="p-4 transition bg-white border shadow-sm rounded-xl hover:shadow-md">
             <div className="flex items-start justify-between mb-2">
               <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
                 {FIELD_LABELS[key] || key}

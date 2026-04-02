@@ -61,11 +61,11 @@ const AdminLayout = () => {
         <div className="h-20 flex items-center px-4 border-b border-gray-800 bg-black ">
           <div className="flex items-center gap-3">
             {/* Logo */}
-            <div className="h-18 w-18 rounded-full overflow-hidden flex items-center justify-center bg-purple-100">
+            <div className="h-16 w-16 rounded-full overflow-hidden flex items-center justify-center bg-purple-100">
               <img
                 src={logo}
                 alt="App logo"
-                className="h-18 w-18 object-contain"
+                className="h-16 w-16 object-contain"
               />
             </div>
 

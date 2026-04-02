@@ -2,7 +2,7 @@ import { validateRule } from "./ruleValidator";
 import RuleModal from "./RuleModal";
 import { FiPlus, FiTrash2, FiEdit } from "react-icons/fi";
 import React, { useState, useMemo } from "react";
-
+import { MdClear } from "react-icons/md";
 import { ArrowRight, CloudHail } from "lucide-react";
 import toast from "react-hot-toast";
 import { getRuleName, date_format_options, RULE_LABELS } from "./defaultValues";
@@ -62,6 +62,8 @@ type Props = {
 };
 
 const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRule, setEditingRule] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -272,25 +274,27 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     const rule = getRuleName(tempRule.type || "");
     toast.success(`${rule} rule applied`);
   };
-
   const handleDeleteRule = (index: number) => {
-    if (window.confirm("Are you sure to delete this rule?")) {
-      const updated = [...data];
-      const currentHeader = updated[selectedHeader];
+    setDeleteIndex(index);
+    setConfirmOpen(true);
+  };
+  const confirmDelete = () => {
+    if (deleteIndex === null) return;
 
-      const deletedRule = currentHeader.rules[index];
+    const updated = [...data];
+    const currentHeader = updated[selectedHeader];
 
-      currentHeader.rules.splice(index, 1);
+    const deletedRule = currentHeader.rules[deleteIndex];
+    currentHeader.rules.splice(deleteIndex, 1);
 
-      setData(updated);
+    setData(updated);
+    onRulesChange?.(generateRulesJSON(updated));
 
-      // ✅ send updated JSON to parent
-      onRulesChange?.(generateRulesJSON(updated));
+    const rule = getRuleName(deletedRule.type);
+    toast.success(`${rule} rule removed`);
 
-      // ✅ toast message
-      const rule = getRuleName(deletedRule.type);
-      toast.success(`${rule} rule removed`);
-    }
+    setConfirmOpen(false);
+    setDeleteIndex(null);
   };
 
   const appliedRuleTypes = current.rules.map((r) => r.type);
@@ -457,7 +461,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                   {/* BADGE */}
                   {item.rules.length > 0 && (
                     <span
-                      className={`text-base px-2 py-0.5 rounded-full transition
+                      className={`text-sm px-2 py-0.5 rounded-full transition
               ${
                 selectedHeader === item.id
                   ? "bg-blue-100 text-blue-700"
@@ -743,6 +747,55 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         headers={data.map((h) => h.name)}
         currentHeader={current.name}
       />
+      {confirmOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+          onClick={() => setConfirmOpen(false)}
+        >
+          <div
+            className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6
+               transform transition-all duration-200 scale-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setConfirmOpen(false)}
+              className="absolute top-6 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <MdClear size={18} />
+            </button>
+            {/* Title */}
+            <div className=" pb-3">
+              <h2 className="mb-4 text-xl font-semibold text-gray-800">
+                Delete Rule
+              </h2>
+
+              {/* Description */}
+              <p className="text-base text-gray-500 mt-2 leading-relaxed">
+                Are you sure you want to delete this rule?
+              </p>
+
+              {/* Actions */}
+              <div className="flex justify-center gap-3 mt-6">
+                <button
+                  onClick={() => setConfirmOpen(false)}
+                  className="px-4 py-2 text-base rounded-lg border border-gray-200
+                      text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 text-base rounded-lg bg-red-500 text-white
+                      hover:bg-red-600 transition-colors shadow-sm"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

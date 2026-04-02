@@ -4,13 +4,27 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
-
+import { useRef, useEffect } from "react";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function Header() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const dropdownRef = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   const handleLogout = async () => {
     try {
       await axios.post(
@@ -41,13 +55,23 @@ export default function Header() {
       </h1>
 
       {/* Right Section */}
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         {/* Profile Button */}
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-gray-100 transition"
+          className="group flex items-center gap-2 px-3 py-2 rounded-xl
+             transition-all duration-200 ease-out
+             hover:bg-gray-100 hover:shadow-md
+             hover:-translate-y-[1px]
+             active:scale-[0.97]
+             focus:outline-none focus:ring-2 focus:ring-gray-200"
         >
-          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-gray-700 font-semibold">
+          <div
+            className="w-8 h-8 flex items-center justify-center rounded-full
+               bg-gray-200 text-gray-700 font-semibold
+               transition-all duration-200
+               group-hover:bg-gray-300 group-hover:scale-105"
+          >
             {user?.first_name?.charAt(0) || "U"}
           </div>
 
@@ -55,12 +79,16 @@ export default function Header() {
             {user?.first_name}
           </span>
 
-          <FiChevronDown className="text-gray-500" />
+          <FiChevronDown
+            className={`text-gray-500 transition-transform duration-200 ${
+              open ? "rotate-180" : "group-hover:rotate-180"
+            }`}
+          />
         </button>
 
         {/* Dropdown */}
         {open && (
-          <div className="absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-20">
+          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-2 z-20">
             {/* Username */}
             <div className="px-4 py-2 text-sm text-gray-500 border-b">
               Signed in as
@@ -87,7 +115,10 @@ export default function Header() {
                 setOpen(!open);
                 navigate("/admin/change_password");
               }}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl 
+             transition-all duration-200 
+             hover:bg-gray-100 hover:shadow-sm hover:scale-[1.02] 
+             active:scale-[0.98]"
             >
               <FiSettings />
               Change Password
@@ -99,7 +130,11 @@ export default function Header() {
             {/* Logout */}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl 
+             transition-all duration-200 
+             hover:bg-gray-100 hover:shadow-sm hover:scale-[1.02] 
+             active:scale-[0.98]
+              text-red-500"
             >
               <FiLogOut />
               Logout

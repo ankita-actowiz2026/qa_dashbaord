@@ -11,42 +11,44 @@ function App() {
       <Toaster
         position="top-right"
         reverseOrder={false}
-        gutter={12}
-        containerStyle={{ top: 16, right: 16 }}
+        gutter={8} // 🔽 reduced spacing between toasts
+        containerStyle={{ top: 12, right: 12 }}
         toastOptions={{
-          duration: 4000,
+          duration: 3500,
           style: {
-            borderRadius: "12px",
-            padding: "14px 24px",
-            fontSize: "14px",
-            fontWeight: 600,
-            maxWidth: "380px",
-            backdropFilter: "blur(10px)",
+            borderRadius: "10px",
+            padding: "8px 12px", // 🔽 reduced height
+            fontSize: "13px", // 🔽 slightly smaller
+            fontWeight: 400, // 🔽 more professional than 600
+            maxWidth: "340px",
+            backdropFilter: "blur(8px)",
             border: "1px solid",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.06)", // 🔽 softer shadow
           },
+
           success: {
             style: {
-              background: "linear-gradient(135deg, #ecfdf5, #d1fae5)",
+              background: "#ecfdf5",
               border: "1px solid #a7f3d0",
               color: "#065f46",
-              boxShadow: "0 6px 24px rgba(16, 185, 129, 0.1)",
             },
+            iconTheme: { primary: "#10b981", secondary: "#ecfdf5" },
           },
+
           error: {
             style: {
-              background: "linear-gradient(135deg, #fef2f2, #fee2e2)",
-              border: "1px solid #fca5a5",
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
               color: "#991b1b",
-              boxShadow: "0 6px 24px rgba(239, 68, 68, 0.1)",
             },
             iconTheme: { primary: "#ef4444", secondary: "#fef2f2" },
           },
+
           loading: {
             style: {
-              background: "linear-gradient(135deg, #eff6ff, #dbeafe)",
-              border: "1px solid #93c5fd",
+              background: "#eff6ff",
+              border: "1px solid #bfdbfe",
               color: "#1e40af",
-              boxShadow: "0 6px 24px rgba(59, 130, 246, 0.1)",
             },
             iconTheme: { primary: "#3b82f6", secondary: "#eff6ff" },
           },

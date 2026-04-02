@@ -1,7 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { FiChevronRight, FiHome } from "react-icons/fi";
 const routeNameMap: Record<string, string> = {
-  admin: "Dashboard",
+  admin: "Admin",
+  dashboard: "Dashboard",
   import_file: "Import File",
   validation_result: "Validation Result",
   update_profile: "Update Profile",
