@@ -177,7 +177,8 @@ const SubDependencySection: React.FC<Props> = ({
             <ArrowRight size={12} className="text-gray-400 inline-block" />
 
             <span>
-              {s.mode} {s.value && <b>({s.value})</b>}
+              {s.mode == "required" ? s.mode.toUpperCase() : ""}{" "}
+              {s.value && <b>{s.value}</b>}
             </span>
           </div>
 
