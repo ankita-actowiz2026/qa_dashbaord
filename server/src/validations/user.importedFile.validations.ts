@@ -347,7 +347,6 @@ export const validateRow = (
 
     if (!columnStat) continue;
     let columnValid = true;
-    console.log("+++calling me++++");
 
     const markInvalid = () => {
       if (columnValid) columnStat.invalid_records++;
@@ -509,19 +508,23 @@ export const validateRow = (
     ) {
       let is_error = 0;
       let error_msg = "";
+      const numValue = +strValue;
+
+      const isInvalidNumber = Number.isNaN(numValue);
 
       if (dataType === "float" || dataType === "integer") {
-        const numValue = +strValue;
-        // Variable length validation (numeric range)
-        if (rule.length_validation_type === "variable") {
+        if (isInvalidNumber) {
+          is_error = 1;
+          error_msg = `${strValueOriginal ?? "Value"}  must be between ${rule.min_length} and ${rule.max_length}`;
+        } else if (rule.length_validation_type === "variable") {
           if (rule.min_length !== null && numValue < rule.min_length) {
             is_error = 1;
-            error_msg = `${strValueOriginal ?? "Value"} must be >= ${rule.min_length}`;
+            error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
           }
 
           if (rule.max_length !== null && numValue > rule.max_length) {
             is_error = 1;
-            error_msg = `${strValueOriginal ?? "Value"} must be <= ${rule.max_length}`;
+            error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
           }
         } else if (rule.length_validation_type === "fixed") {
           if (rule.min_length !== null && strValue !== rule.min_length) {
@@ -542,10 +545,10 @@ export const validateRow = (
         if (rule.length_validation_type === "variable") {
           if (rule.min_length !== null && strLen < rule.min_length) {
             is_error = 1;
-            error_msg = `${strValueOriginal ?? "Value"} must be at least ${rule.min_length} characters`;
+            error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and  ${rule.max_length} characters`;
           } else if (rule.max_length !== null && strLen > rule.max_length) {
             is_error = 1;
-            error_msg = `${strValueOriginal ?? "Value"} must be <= ${rule.max_length} characters`;
+            error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and  ${rule.max_length} characters`;
           }
         }
 

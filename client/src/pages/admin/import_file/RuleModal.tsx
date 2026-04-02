@@ -122,13 +122,7 @@ const RuleModal: React.FC<Props> = ({
             ))}
           </select>
         </div>
-        {/* REQUIRED RULE */}
-        {tempRule.type === "required" && (
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-base text-gray-600">Field required?</span>
-            <ToggleRight className="text-blue-400" size={28} />
-          </div>
-        )}
+
         {/* DATA TYPE RULE */}
         {tempRule.type === "data_type" && (
           <>

@@ -102,112 +102,135 @@ class ImportFileController {
           );
       }
 
-     // start storing in excel first sheet
+      // start storing in excel first sheet
 
-// 1. Get stats first
-const column_wise_stats = result.column_wise_stats;
-const columns = Object.keys(column_wise_stats);
+      // 1. Get stats first
+      const column_wise_stats = result.column_wise_stats;
+      const columns = Object.keys(column_wise_stats);
 
-if (!columns.length) {
-  throw new Error("No column stats generated or File is empty");
-}
-
-// 2. Ignore default keys
-const IGNORE_KEYS = [
-  "total_records",
-  "valid_records",
-  "invalid_records",
-  "error_msg",
-];
-
-// 3. Filter columns with meaningful data
-const filteredColumns = columns.filter((col) => {
-  const stats = column_wise_stats[col];
-
-  return Object.keys(stats).some((key) => {
-    return (
-      !IGNORE_KEYS.includes(key) &&
-      stats[key] !== null &&
-      stats[key] !== 0 &&
-      stats[key] !== undefined
-    );
-  });
-});
-
-// 👉 4. Use filteredColumns OR fallback to all columns
-const finalColumns = filteredColumns.length ? filteredColumns : columns;
-
-// 5. Metrics (based on available columns safely)
-const metrics = Object.keys(column_wise_stats[finalColumns[0]]).filter(
-  (m) => m !== "error_msg"
-);
-
-// 6. Header Row
-const totalHeaderRow = totalsSheet.addRow([
-  "Validation Type",
-  ...finalColumns,
-]);
-
-totalHeaderRow.eachCell((cell) => {
-  cell.font = { bold: true };
-});
-
-totalHeaderRow.commit();
-
-// 7. Loop metrics
-for (const metric of metrics) {
-  const row = totalsSheet.addRow([
-    metric
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase()),
-
-    ...finalColumns.map((c) => {
-      const val = column_wise_stats[c]?.[metric];
-
-      if (val === null || val === undefined || Number.isNaN(val)) {
-        return "-";
+      if (!columns.length) {
+        throw new Error("No column stats generated or File is empty");
       }
 
-      return val;
-    }),
-  ]);
+      // 2. Ignore default keys
+      const IGNORE_KEYS = [
+        "total_records",
+        "valid_records",
+        "invalid_records",
+        "error_msg",
+      ];
 
-  row.getCell(1).font = { bold: true };
-  row.commit();
-}
+      // 3. Filter columns with meaningful data
+      const filteredColumns = columns.filter((col) => {
+        const stats = column_wise_stats[col];
 
-// end first sheet
+        return Object.keys(stats).some((key) => {
+          return (
+            !IGNORE_KEYS.includes(key) &&
+            stats[key] !== null &&
+            stats[key] !== undefined
+          );
+        });
+      });
+
+      // 👉 4. Use filteredColumns OR fallback to all columns
+      const finalColumns = filteredColumns.length ? filteredColumns : columns;
+
+      // 5. Metrics (based on available columns safely)
+
+      const metricsSet = new Set();
+
+      finalColumns.forEach((col) => {
+        Object.keys(column_wise_stats[col] || {}).forEach((key) => {
+          if (key !== "error_msg") {
+            metricsSet.add(key);
+          }
+        });
+      });
+
+      const metrics = Array.from(metricsSet);
+      // 6. Header Row
+      const totalHeaderRow = totalsSheet.addRow([
+        "Validation Type",
+        ...finalColumns,
+      ]);
+
+      totalHeaderRow.eachCell((cell) => {
+        cell.font = { bold: true };
+      });
+
+      totalHeaderRow.commit();
+
+      // 7. Loop metrics
+      for (const metric of metrics) {
+        const row = totalsSheet.addRow([
+          metric.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+
+          ...finalColumns.map((c) => {
+            const val = column_wise_stats[c]?.[metric];
+
+            if (val === null || val === undefined || Number.isNaN(val)) {
+              return "N/A";
+            }
+
+            return val;
+          }),
+        ]);
+
+        row.getCell(1).font = { bold: true };
+        row.commit();
+      }
+
+      // end first sheet
 
       //show colom wise errors
       const errors_for_coloms: Record<string, string[]> = {};
+
       for (const column in result.column_wise_stats) {
         const stats = column_wise_stats[column];
         const errors: string[] = [];
+
         for (const key in errorMessageMap) {
           if (stats[key] && stats[key] > 0) {
             errors.push(errorMessageMap[key]);
           }
         }
-        errors_for_coloms[column] = errors;
+
+        if (errors.length > 0) {
+          errors_for_coloms[column] = errors;
+        }
       }
+
+      console.log(errors_for_coloms);
+
+      // ✅ Use only columns with errors
+      const errorColumns = Object.keys(errors_for_coloms);
+
       const colomwise_sheet = workbook.addWorksheet("Column errors");
-      const colomwiseHeaderRow = colomwise_sheet.addRow(columns);
+
+      // ✅ Header
+      const colomwiseHeaderRow = colomwise_sheet.addRow(errorColumns);
       colomwiseHeaderRow.font = { bold: true };
       colomwiseHeaderRow.commit();
 
-      // Find max error length
-      const lengths = Object.values(errors_for_coloms).map((arr) => arr.length);
-      const maxRows = lengths.length ? Math.max(...lengths) : 0;
-
-      // Add rows
-      for (let i = 0; i < maxRows; i++) {
-        const rowData = columns.map((col) =>
-          this.cleanExcelString(errors_for_coloms[col][i] || ""),
+      // ✅ Handle no errors case
+      if (!errorColumns.length) {
+        colomwise_sheet.addRow(["No column errors found"]).commit();
+      } else {
+        const lengths = Object.values(errors_for_coloms).map(
+          (arr) => arr.length,
         );
-        const row = colomwise_sheet.addRow(rowData);
-        row.commit();
-      }
+        const maxRows = Math.max(...lengths);
 
+        for (let i = 0; i < maxRows; i++) {
+          const rowData = errorColumns.map((col) =>
+            this.cleanExcelString(errors_for_coloms[col][i] || ""),
+          );
+
+          const row = colomwise_sheet.addRow(rowData);
+          row.commit();
+        }
+      }
       //end added in sheet
 
       try {
@@ -383,7 +406,6 @@ for (const metric of metrics) {
       pipeline
         .on("data", ({ value }) => {
           // 🔍 DEBUG (optional)
-          console.log("ROW:", value);
 
           if (value && typeof value === "object") {
             Object.keys(value).forEach((key) => headersSet.add(key));
@@ -422,7 +444,6 @@ for (const metric of metrics) {
         throw new Error("Failed to convert XLS file");
       }
       const stats = fs.statSync(xlsxPath);
-      console.log("====================Converted XLSX size:", stats.size);
 
       // STEP 2: parse XLSX
       const result = await this.xlsxParserHeader(xlsxPath);
