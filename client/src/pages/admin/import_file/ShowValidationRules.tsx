@@ -521,7 +521,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
-              {JSON.stringify(current)}
+              {/* {JSON.stringify(current)} */}
               {current.rules
                 .filter((rule) => rule.type !== "date_format")
                 .map((rule, idx) => (
