@@ -6,7 +6,7 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 0;
+const debug = 1;
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const stringRegex = /^.*$/s;
 const alphabeticsRegex = /^[a-zA-Z ]*$/;
@@ -64,10 +64,7 @@ export const createColumnStatsFromRules = (
     if (dependency_option == "not_add_dependency" && ruleKey == "dependency") {
       return;
     }
-    // console.log("+++++++");
-    // console.log(ruleKey);
-    // console.log(RULE_TO_STATS_MAP);
-    // console.log("+++++++");
+    
     const statKeys = RULE_TO_STATS_MAP[ruleKey];
 
     if (statKeys) {
@@ -98,12 +95,7 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
       rule.cell_start_with_normalized = [value];
       // message
       rule.cellStartWithMessage = value;
-      console.log("++rule.cellStartWithMessage++");
-      console.log(rule.cellStartWithMessage);
-      console.log("--rule.cellStartWithMessage--");
-      console.log("++rule.cell_start_with_normalized++");
-      console.log(rule.cell_start_with_normalized);
-      console.log("--rule.cell_start_with_normalized--");
+      
     }
 
     if (rule.cell_end_with?.length) {
@@ -171,9 +163,7 @@ export const getCellValue = (cell: any, dataType?: string): string => {
   if (cell === null || cell === undefined) return "";
 
   // ✅ Only convert to date if column expects date
-  // console.log(
-  //   "cell=>" + cell + "   type-->" + dataType + "   typeof " + typeof cell,
-  // );
+  
   if (dataType === "date" && typeof cell === "number") {
     const jsDate = excelDateToJSDate(cell);
     return formatDate(jsDate);
@@ -188,15 +178,15 @@ export const getCellValue = (cell: any, dataType?: string): string => {
     }
 
     if (cell.text) {
-      return String(cell.text).trim();
+      return String(cell.text);
     }
 
     if (cell.result) {
-      return String(cell.result).trim();
+      return String(cell.result);
     }
   }
 
-  return String(cell).trim();
+  return String(cell);
 };
 
 export const parseDateByFormat = (
@@ -345,32 +335,39 @@ export const validateRow = (
   for (let i = 0; i < headers.length; i++) {
     let datatype_validation_checked = 0;
     const columnName = headers[i];
-    //console.log(columnName);
+    
     const rule = ruleMap[columnName];
+    
     if (!rule) continue;
     const dataType = rule.data_type;
 
     const columnStat = columnStats[columnName];
+   
     if (!columnStat) continue;
     let columnValid = true;
-
+    console.log("+++calling me++++")
+    
+    const markInvalid = () => {
+      if (columnValid) columnStat.invalid_records++;
+      columnValid = false;
+      rowValid = false;
+    };
     let rawValue = rowData[columnName];
 
     const displayValue = getCellValue(rawValue, dataType);
-    const strValue = String(displayValue).trim();
+    //const strValue = String(displayValue).trim();
+    const strValue = String(displayValue);
     const normalizedValue = strValue;
-
+ 
     if (strValue !== "") {
       columnStat.total_records++;
     }
+   
     //has_empty
 
     if (rule.is_required && strValue === "") {
       columnStat.empty_count++;
-      if (columnValid) columnStat.invalid_records++; //set this condition coz if colom has multiple validsation failed then invalid count was incremented so wrong invalid count was coming
-
-      columnValid = false;
-      rowValid = false;
+      markInvalid()
       if (debug == 1)
         columnStat.error_msg.push({
           row: rowNumber,
@@ -386,7 +383,7 @@ export const validateRow = (
         `${columnName} is mandatory`,
       ]);
 
-      continue;
+     
     }
 
     // ✅ datatype check FIRST
@@ -400,10 +397,7 @@ export const validateRow = (
     ) {
       datatype_validation_checked = 1;
       columnStat.datatype_error_count++;
-      if (columnValid) columnStat.invalid_records++;
-
-      columnValid = false;
-      rowValid = false;
+      markInvalid()
 
       errorBuffer.add([
         rowNumber,
@@ -422,15 +416,13 @@ export const validateRow = (
     }
 
     if (rule.cellContainsRegex) {
-      const value = String(strValue).trim();
+      const value = String(strValue);
 
       rule.cellContainsRegex.lastIndex = 0; // 🔥 fix
 
       if (!rule.cellContainsRegex.test(value)) {
         columnStat.regex_pattern_error_count++;
-        if (columnValid) columnStat.invalid_records++;
-        columnValid = false;
-        rowValid = false;
+        markInvalid()
         if (debug == 1)
           columnStat.error_msg.push({
             row: rowNumber,
@@ -495,10 +487,7 @@ export const validateRow = (
 
       if (is_error == 1) {
         columnStat.datatype_error_count++;
-        if (columnValid) columnStat.invalid_records++;
-
-        columnValid = false;
-        rowValid = false;
+        markInvalid()
         errorBuffer.add([rowNumber, columnName, "Datatype Error", error_msg]);
 
         if (debug == 1)
@@ -534,8 +523,8 @@ export const validateRow = (
             error_msg = `${columnName} must be <= ${rule.max_length}`;
           }
         } else if (rule.length_validation_type === "fixed") {
-          const digitLength = strValue.toString().length;
-          //console.log(digitLength + "===" + rule.min_length);
+          
+          
           if (rule.min_length !== null && strValue !== rule.min_length) {
             is_error = 1;
             error_msg = `${columnName} must be exactly ${rule.min_length}`;
@@ -551,14 +540,12 @@ export const validateRow = (
         const strLen = strValue.length;
 
         // VARIABLE LENGTH (min / max)
-        if (rule.length_validation_type === "variable") {
-          if (rule.min_length !== null && strLen < rule.min_length) {
+        if (rule.length_validation_type === "variable") {          
+          if (rule.min_length !== null && strLen < rule.min_length) {            
             is_error = 1;
             error_msg = `${columnName} must be at least ${rule.min_length} characters`;
-          }
-
-          if (rule.max_length !== null && strLen > rule.max_length) {
-            is_error = 1;
+          }else if (rule.max_length !== null && strLen > rule.max_length) {
+            is_error = 1;           
             error_msg = `${columnName} must be <= ${rule.max_length} characters`;
           }
         }
@@ -642,10 +629,7 @@ export const validateRow = (
         }
       }
       if (is_error == 1) {
-        if (columnValid) columnStat.invalid_records++;
-
-        columnValid = false;
-        rowValid = false;
+        markInvalid()
         columnStat.length_validation_error_count++;
         errorBuffer.add([
           rowNumber,
@@ -706,9 +690,7 @@ export const validateRow = (
     }
 
     if (rule.fixed_header_set && !rule.fixed_header_set.has(strValue)) {
-      if (columnValid) columnStat.invalid_records++;
-      columnValid = false;
-      rowValid = false;
+      markInvalid()
       columnStat.fixed_header_error_count++;
 
       errorBuffer.add([
@@ -732,9 +714,7 @@ export const validateRow = (
         normalizedValue.startsWith(prefix),
       )
     ) {
-      if (columnValid) columnStat.invalid_records++;
-      columnValid = false;
-      rowValid = false;
+      markInvalid()
       columnStat.cell_start_with_error_count++;
       errorBuffer.add([
         rowNumber,
@@ -758,9 +738,7 @@ export const validateRow = (
         normalizedValue.endsWith(suffix),
       )
     ) {
-      if (columnValid) columnStat.invalid_records++;
-      columnValid = false;
-      rowValid = false;
+      markInvalid()
       columnStat.cell_end_with_error_count++;
 
       errorBuffer.add([
@@ -783,9 +761,7 @@ export const validateRow = (
         normalizedValue.includes(word),
       )
     ) {
-      if (columnValid) columnStat.invalid_records++;
-      columnValid = false;
-      rowValid = false;
+      markInvalid()
       columnStat.blocked_word_error_count++;
 
       errorBuffer.add([
@@ -823,7 +799,7 @@ export const validateRow = (
       const [currentKey, currentCondition] = dependencyEntries[i];
       const [nextKey, nextCondition] = dependencyEntries[i + 1];
 
-      const currentValue = String(rowData[currentKey] ?? "").trim();
+      const currentValue = String(rowData[currentKey] ?? "");
       const nextColumns = nextKey.split(",");
 
       let conditionMatched = false;

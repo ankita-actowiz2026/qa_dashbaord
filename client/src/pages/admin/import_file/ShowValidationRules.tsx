@@ -149,10 +149,28 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
       // ✅ If editing data_type → also remove date_format
       if (removingType === "data_type") {
-        currentHeader.rules = currentHeader.rules.filter(
-          (r, i) => i !== editingIndex && r.type !== "date_format",
-        );
+        const previousDataType = currentHeader.rules[editingIndex]?.value;
+        const newDataType = tempRule.data_type;
+
+        currentHeader.rules = currentHeader.rules.filter((r, i) => {
+          if (i === editingIndex) return false;
+
+          // keep your existing logic
+          if (r.type === "date_format") return false;
+
+          // ✅ FIXED condition
+          const isSwitchingWithDate =
+            previousDataType !== newDataType &&
+            (previousDataType === "date" || newDataType === "date");
+
+          if (r.type === "data_length" && isSwitchingWithDate) {
+            return false;
+          }
+
+          return true;
+        });
       } else {
+        console.log("Else");
         currentHeader.rules.splice(editingIndex, 1);
       }
     }
@@ -394,7 +412,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       {/* LEFT PANEL */}
       <div className="flex flex-col w-1/4 min-h-0 border-r bg-gradient-to-b from-gray-50 to-gray-100">
         {/* HEADER */}
-        <div className="p-4 font-semibold text-white border-b bg-gray-800 rounded-t-lg ">
+        <div className="p-4 font-semibold text-white bg-gray-800 border-b rounded-t-lg ">
           Headers ({filteredData.length})
         </div>
 
@@ -446,7 +464,10 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                   : "bg-gray-200 text-gray-600 group-hover:bg-blue-50 group-hover:text-blue-600"
               }`}
                     >
-                      {item.rules.length}
+                      {
+                        item.rules.filter((r) => r.type !== "date_format")
+                          .length
+                      }
                     </span>
                   )}
                 </div>
@@ -500,6 +521,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
+              {JSON.stringify(current)}
               {current.rules
                 .filter((rule) => rule.type !== "date_format")
                 .map((rule, idx) => (
@@ -507,7 +529,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                     key={idx}
                     className="flex items-center justify-between px-4 py-3 border rounded-lg bg-gray-50 "
                   >
-                    <div className="text-base text-gray-700 flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 text-base text-gray-700">
                       {[
                         "required",
                         "regex",
@@ -515,7 +537,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                         "data_redundant",
                       ].includes(rule.type) && (
                         <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">
+                          <span className="text-gray-500 ">
                             {RULE_LABELS[rule.type]}{" "}
                           </span>
 
@@ -570,7 +592,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
                       {rule.type === "data_length" && (
                         <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">
+                          <span className="text-gray-500 ">
                             {RULE_LABELS[rule.type]}
                           </span>
 
@@ -606,7 +628,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                         "not_match_found",
                       ].includes(rule.type) && (
                         <div className="flex items-center gap-2">
-                          <span className=" text-gray-500">
+                          <span className="text-gray-500 ">
                             Blocked value:{" "}
                           </span>
                           <div className="flex flex-wrap gap-2">
@@ -655,7 +677,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                                     <span className="text-gray-400">
                                       <ArrowRight
                                         size={12}
-                                        className="text-gray-400 inline-block"
+                                        className="inline-block text-gray-400"
                                       />
                                     </span>
 

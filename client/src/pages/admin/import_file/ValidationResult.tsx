@@ -174,134 +174,6 @@ const formatValue = (value) => {
   if (value === false) return "No";
   return String(value);
 };
-// const buildRulesArray = (colRules, issueMap = {}) => {
-//   const arr = [];
-//   console.log("+++++++++++");
-//   console.log(issueMap);
-//   console.log("+++++++++++");
-//   if (!colRules) return arr;
-
-//   // ✅ Length
-//   if (colRules.length_validation_type) {
-//     let value = colRules.length_validation_type;
-
-//     if (colRules.min_length !== undefined && colRules.min_length !== "") {
-//       value += `  Min: ${colRules.min_length}`;
-//     }
-
-//     if (colRules.max_length !== undefined && colRules.max_length !== "") {
-//       value += `  Max: ${colRules.max_length}`;
-//     }
-
-//     arr.push({
-//       label: "Length Type",
-//       value,
-//       errorMsg: issueMap.length_validation_error_count,
-//     });
-//   }
-
-//   // ✅ Redundant
-//   if (colRules.data_redundant_value !== undefined) {
-//     let value = colRules.data_redundant_value;
-
-//     if (colRules.data_redundant_threshold !== undefined) {
-//       value += `  Threshold: ${colRules.data_redundant_threshold}`;
-//     }
-
-//     arr.push({
-//       label: "Redundant Value",
-//       value,
-//       errorMsg: issueMap.redundant_error_count,
-//     });
-//   }
-
-//   // ✅ Regex
-//   if (colRules.cell_contains) {
-//     let value = "";
-
-//     if (colRules.cell_contains && colRules.cell_contains_value) {
-//       value += ` ${colRules.cell_contains_value}`;
-//     }
-
-//     arr.push({
-//       label: "Regex",
-//       value,
-//       errorMsg: issueMap.regex_pattern_error_count,
-//     });
-//   }
-//   if (colRules.data_type) {
-//     let value = colRules.data_type;
-
-//     if (colRules.data_type == "date") {
-//       value += ` ${colRules.date_format}`;
-//     }
-
-//     arr.push({
-//       label: "Data Type",
-//       value,
-//       errorMsg: issueMap.datatype_error_count,
-//     });
-//   }
-//   // ✅ Dependency
-
-//   if (colRules.dependency && Object.keys(colRules.dependency).length > 0) {
-//     const value = Object.entries(colRules.dependency)
-//       .map(([k, v]) => (v === true ? `${k}: Required` : `${k}: ${v}`))
-//       .join(" • ");
-
-//     arr.push({ label: "Dependency", value });
-//   }
-
-//   // ✅ Remaining fields (generic)
-//   Object.entries(colRules).forEach(([key, value]) => {
-//     if (
-//       [
-//         "name",
-//         "date_format",
-//         "length_validation_type",
-//         "min_length",
-//         "max_length",
-//         "data_redundant_value",
-//         "data_redundant_threshold",
-//         "cell_contains",
-//         "cell_contains_value",
-//         "dependency",
-//       ].includes(key)
-//     ) {
-//       return;
-//     }
-
-//     arr.push({
-//       label: key || key,
-//       value:
-//         typeof value === "object"
-//           ? Array.isArray(value)
-//             ? value.join(", ")
-//             : Object.entries(value)
-//                 .map(([k, v]) => `${k}: ${v}`)
-//                 .join(", ")
-//           : value === true
-//             ? "Yes"
-//             : value === false
-//               ? "No"
-//               : String(value),
-//       errorMsg:
-//         key == "fixed_header"
-//           ? issueMap.fixed_header_error_count
-//           : key == "is_required"
-//             ? issueMap.datatype_error_count
-//             : key == "cell_start_with"
-//               ? issueMap.cell_start_with_error_count
-//               : key == "cell_end_with"
-//                 ? issueMap.cell_end_with_error_count
-//                 : key == "not_match_found"
-//                   ? issueMap.blocked_word_error_count
-//                   : "",
-//     });
-//   });
-
-//   return arr;
-// };
 const getFilteredColumns = (columnStats: any) => {
   return Object.entries(columnStats).filter(([_, stats]: any) =>
     Object.entries(stats).some(
@@ -417,12 +289,13 @@ const ValidationResult = () => {
     <div className="mt-6 space-y-6">
       <h1 className="text-4xl font-semibold text-gray-800">
         Validation Result
+        {JSON.stringify(requestData)}
       </h1>
       <p className="text-base text-gray-500"></p>
-      <div className="mt-6 flex items-center justify-end gap-4">
+      <div className="flex items-center justify-end gap-4 mt-6">
         {/* File Name */}
         <div
-          className="text-base text-gray-600 max-w-xs truncate"
+          className="max-w-xs text-base text-gray-600 truncate"
           title={fileName}
         >
           <span className="text-gray-400">Current file:</span>{" "}
@@ -495,7 +368,37 @@ const ValidationResult = () => {
 
               const issueMap = Object.fromEntries(issues);
               const rulesArray = buildRulesArray(colRules, issueMap);
+              const dependencyMap = {};
 
+              Object.entries(requestData || {}).forEach(
+                ([parentCol, rules]: any) => {
+                  if (!rules.dependency) return;
+
+                  const entries = Object.entries(rules.dependency);
+
+                  for (let i = 0; i < entries.length - 1; i++) {
+                    const [currentKey, currentValue] = entries[i];
+                    const [nextKey, nextValue] = entries[i + 1];
+
+                    const currentCols = currentKey
+                      .split(",")
+                      .map((c) => c.trim());
+                    const nextCols = nextKey.split(",").map((c) => c.trim());
+
+                    nextCols.forEach((childCol) => {
+                      if (!dependencyMap[childCol]) {
+                        dependencyMap[childCol] = [];
+                      }
+
+                      dependencyMap[childCol].push({
+                        parentGroup: currentCols, // ✅ correct parent
+                        parentValue: currentValue,
+                        expected: nextValue,
+                      });
+                    });
+                  }
+                },
+              );
               return (
                 <div
                   key={col}
@@ -584,10 +487,14 @@ const ValidationResult = () => {
                         </p>
 
                         <AppliedRules
+                          col={col}
                           colRules={colRules}
                           issueMap={issueMap}
+                          errors_for_coloms={errors_for_coloms}
+                          dependencyMap={dependencyMap} // ✅ NEW
                           formatErrorMsg={formatErrorMsg}
                           FIELD_LABELS={FIELD_LABELS}
+                          columnStats={column_wise_stats[col]}
                         />
                       </div>
                       {/* 🔹 SUMMARY BLOCK */}

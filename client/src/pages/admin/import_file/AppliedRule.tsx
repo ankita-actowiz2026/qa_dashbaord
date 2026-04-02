@@ -1,31 +1,48 @@
-import { FaRuler } from "react-icons/fa";
+import { ArrowRight } from "lucide-react";
+
 import { FiList } from "react-icons/fi";
 import { GoDotFill } from "react-icons/go";
 import ErrorBadge from "./ErrorBadge";
 
 type Props = {
+  col: string;
   colRules: any;
   issueMap: any;
+  errors_for_coloms: Record<string, string[]>;
+  dependencyMap: any; // ✅ NEW
   formatErrorMsg: (count: number, label: string) => string;
   FIELD_LABELS: Record<string, string>;
+  columnStats: any; // ✅ NEW
 };
 const AppliedRules = ({
+  col,
   colRules,
   issueMap,
+  errors_for_coloms,
+  dependencyMap,
   formatErrorMsg,
   FIELD_LABELS,
+  columnStats,
 }: Props) => {
-  if (!colRules || Object.keys(colRules).length === 0) {
+  const dependentRules = dependencyMap[col] || [];
+
+  if (
+    (!colRules || Object.keys(colRules).length === 0) &&
+    dependentRules.length === 0
+  ) {
     return <div className="text-base text-green-600">No rules applied</div>;
   }
+  const parseDependencyKey = (key: string) => {
+    return key.split(",").map((k) => k.trim());
+  };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {/* ✅ Length */}
       {colRules.length_validation_type && (
-        <div className="p-4 border rounded-xl bg-white shadow-sm hover:shadow-md transition">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xl font-medium text-gray-500 uppercase tracking-wide">
+        <div className="p-4 transition bg-white border shadow-sm rounded-xl hover:shadow-md">
+          <div className="flex items-start justify-between mb-2">
+            <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
               Length Type
             </span>
           </div>
@@ -38,7 +55,7 @@ const AppliedRules = ({
             </span>
           </div>
 
-          <div className="mt-1 text-base text-red-600 flex items-center gap-1">
+          <div className="flex items-center gap-1 mt-1 text-base text-red-600">
             <ErrorBadge
               count={issueMap.length_validation_error_count}
               label="Length Type"
@@ -49,8 +66,8 @@ const AppliedRules = ({
       {/* ✅ Redundant */}
       {colRules.data_redundant_value !== undefined && (
         <div className="p-3 border rounded-lg bg-gray-50">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xl font-medium text-gray-500 uppercase tracking-wide">
+          <div className="flex items-start justify-between mb-2">
+            <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
               Redundant Value
             </span>
           </div>
@@ -61,7 +78,7 @@ const AppliedRules = ({
               {colRules.data_redundant_threshold ?? "-"}
             </span>
           </div>
-          <div className="mt-1 text-base text-red-600 flex items-center gap-1">
+          <div className="flex items-center gap-1 mt-1 text-base text-red-600">
             <ErrorBadge
               count={issueMap.redundant_error_count}
               label="Redundant Value"
@@ -72,8 +89,8 @@ const AppliedRules = ({
       {/* ✅ Regex */}
       {colRules.cell_contains && (
         <div className="p-3 border rounded-lg bg-gray-50">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xl font-medium text-gray-500 uppercase tracking-wide">
+          <div className="flex items-start justify-between mb-2">
+            <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
               Regex
             </span>
           </div>
@@ -81,7 +98,7 @@ const AppliedRules = ({
             <FiList size={16} />
             <span> {colRules.cell_contains_value || "pattern"}</span>
           </div>
-          <div className="mt-1 text-base text-red-600 flex items-center gap-1">
+          <div className="flex items-center gap-1 mt-1 text-base text-red-600">
             <ErrorBadge
               count={issueMap.regex_pattern_error_count}
               label="Regex"
@@ -92,8 +109,8 @@ const AppliedRules = ({
       {/* ✅ Data Type */}
       {colRules.data_type && (
         <div className="p-3 border rounded-lg bg-gray-50">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xl font-medium text-gray-500 uppercase tracking-wide">
+          <div className="flex items-start justify-between mb-2">
+            <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
               Data Type
             </span>
           </div>
@@ -105,7 +122,7 @@ const AppliedRules = ({
                 : colRules.data_type}
             </span>
           </div>
-          <div className="mt-1 text-base text-red-600 flex items-center gap-1">
+          <div className="flex items-center gap-1 mt-1 text-base text-red-600">
             <ErrorBadge
               count={issueMap.datatype_error_count}
               label="Data Type"
@@ -116,28 +133,84 @@ const AppliedRules = ({
       {/* ✅ Dependency */}
       {colRules.dependency && Object.keys(colRules.dependency).length > 0 && (
         <div className="p-3 border rounded-lg bg-gray-50">
-          <div className="flex justify-between items-start mb-2">
-            <span className="text-xl font-medium text-gray-500 uppercase tracking-wide">
-              Dependency
-            </span>
+          <div className="text-xl font-medium text-gray-500 uppercase">
+            Dependency
           </div>
-          <div className="flex items-center gap-1 text-base font-semibold text-black break-words">
-            <FiList size={16} />
-            <span>
-              {Object.entries(colRules.dependency)
-                .map(([k, v]) =>
-                  v === true ? `${k} (Required)` : `${k} (${v})`,
-                )
-                .join(" • ")}
-            </span>
-          </div>
-          <div className="mt-1 text-base text-red-600 flex items-center gap-1">
-            ++
-            <GoDotFill size={10} />
-            {formatErrorMsg(issueMap.dependancy_error_count, "Dependency")}
+
+          <div className="flex flex-col gap-1">
+            {(() => {
+              const entries = Object.entries(colRules.dependency || {});
+
+              return entries.map(([key, value], index) => {
+                const next = entries[index + 1];
+                if (!next) return null;
+
+                const [nextKey, nextValue] = next;
+
+                const currentFields = parseDependencyKey(key);
+                const nextFields = parseDependencyKey(nextKey);
+
+                const left =
+                  value === true
+                    ? `${currentFields.join(" & ")} is required`
+                    : `${currentFields.join(" & ")} = ${value}`;
+
+                const right =
+                  nextValue === true
+                    ? `${nextFields.join(" & ")} must be required`
+                    : `${nextFields.join(" & ")} must be ${nextValue}`;
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center gap-1 text-base font-semibold text-black break-words"
+                  >
+                    <FiList size={16} />
+                    {left}{" "}
+                    <ArrowRight
+                      size={12}
+                      className="inline-block text-gray-400"
+                    />{" "}
+                    {right}
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
       )}
+      {dependentRules.length > 0 &&
+        dependentRules.map((dep, idx) => {
+          const errorCount = columnStats?.dependancy_error_count || 0;
+          const parentText =
+            dep.parentValue === true
+              ? `${dep.parentGroup.join(" & ")} is required`
+              : `${dep.parentGroup.join(" & ")} = ${dep.parentValue}`;
+
+          const expectedText =
+            dep.expected === true
+              ? `${col} must be required`
+              : `${col} must be ${dep.expected}`;
+          return (
+            <div key={idx} className="p-3 border rounded-lg bg-gray-50">
+              <div className="text-xl font-medium text-gray-500 uppercase">
+                Dependency (From {dep.parent})
+              </div>
+
+              <div className="flex items-center gap-1 text-base font-semibold text-black break-words">
+                <FiList size={16} />
+                If {parentText}{" "}
+                <ArrowRight size={12} className="inline-block text-gray-400" />{" "}
+                {expectedText}
+              </div>
+
+              <div className="flex items-center gap-1 mt-1 text-base text-red-600">
+                <GoDotFill size={10} />
+                {formatErrorMsg(errorCount, "Dependency")}
+              </div>
+            </div>
+          );
+        })}
       {/* ✅ Generic Rules */}
       {Object.entries(colRules).map(([key, value]) => {
         if (
@@ -181,8 +254,8 @@ const AppliedRules = ({
 
         return (
           <div key={key} className="p-3 border rounded-lg bg-gray-50">
-            <div className="flex justify-between items-start mb-2">
-              <span className="text-xl font-medium text-gray-500 uppercase tracking-wide">
+            <div className="flex items-start justify-between mb-2">
+              <span className="text-xl font-medium tracking-wide text-gray-500 uppercase">
                 {FIELD_LABELS[key] || key}
               </span>
             </div>
@@ -203,8 +276,8 @@ const AppliedRules = ({
                 {formattedValue}
               </span>
             </div>
-            <div className="mt-1 text-base text-red-600 flex items-center gap-1">
-              <ErrorBadge count={issueMap.errorCount} label={key} />
+            <div className="flex items-center gap-1 mt-1 text-base text-red-600">
+              <ErrorBadge count={errorCount} label={key} />
             </div>
           </div>
         );
