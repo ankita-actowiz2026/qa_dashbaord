@@ -287,10 +287,7 @@ const ValidationResult = () => {
   );
   return (
     <div className="mt-6 space-y-6">
-      <h1 className="text-4xl font-semibold text-gray-800">
-        Validation Result
-        {JSON.stringify(requestData)}
-      </h1>
+      <h1 className="text-4xl font-semibold text-gray-800"></h1>
       <p className="text-base text-gray-500"></p>
       <div className="flex items-center justify-end gap-4 mt-6">
         {/* File Name */}
