@@ -82,19 +82,13 @@ export const validateEdit = [];
 //if (columnName == "Id") console.log(columnValid);
 export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
   for (const rule of Object.values(ruleMap)) {
-    if (rule.fixed_header?.length) {
-      rule.fixed_header_set = new Set(
-        //rule.fixed_header.map((v: string) => v.trim().toLowerCase()),
-        rule.fixed_header.map((v: string) => v),
-      );
-    }
 
+    if (rule.fixed_header !== undefined && rule.fixed_header !== null) {
+      rule.fixed_header_value = String(rule.fixed_header).replace(/^'/, "");
+      // some time inpt text has ' then node will truncate it. truncate from my rule.fixed_header also.
+    }
     if (rule.cell_start_with) {
-      const value = String(rule.cell_start_with);
-      // convert to array internally
-      rule.cell_start_with_normalized = [value];
-      // message
-      rule.cellStartWithMessage = value;
+      rule.cell_start_with_value = String(rule.cell_start_with).replace(/^'/, "");      
     }
 
     if (rule.cell_end_with?.length) {
@@ -144,7 +138,7 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
       rule.cellEndWithMessage = rule.cell_end_with.join(", ");
     }
     if (rule.fixed_header) {
-      rule.fixedHeaderMessage = rule.fixed_header.join(", ");
+      rule.fixedHeaderMessage = String(rule.fixed_header);
     }
   }
 };
@@ -684,8 +678,8 @@ export const validateRow = (
         }
       }
     }
-
-    if (rule.fixed_header_set && !rule.fixed_header_set.has(strValue)) {
+    console.log(strValue +"!=="+ rule.fixed_header_value)
+    if (rule.fixed_header_value !== undefined && strValue !== rule.fixed_header_value) {
       markInvalid();
       columnStat.fixed_header_error_count++;
 
@@ -704,12 +698,7 @@ export const validateRow = (
         });
     }
 
-    if (
-      rule.cell_start_with_normalized?.length &&
-      !rule.cell_start_with_normalized.some((prefix) =>
-        normalizedValue.startsWith(prefix),
-      )
-    ) {
+    if (rule.cell_start_with_value !== undefined && !normalizedValue.startsWith(rule.cell_start_with_value)) {
       markInvalid();
       columnStat.cell_start_with_error_count++;
       errorBuffer.add([

@@ -29,7 +29,7 @@ const formatErrorMsg = (count, label) => {
       return `${count} value${count > 1 ? "s" : ""} have incorrect data type`;
 
     case "fixed_header":
-      return `${count} value${count > 1 ? "s" : ""} did not match allowed values`;
+      return `${count} value${count > 1 ? "s" : ""} did not match fixed value`;
 
     case "Dependency":
       return `${count} dependency condition${count > 1 ? "s" : ""} failed`;
@@ -248,7 +248,7 @@ const FIELD_LABELS = {
   cell_contains: "Regex Enabled",
   cell_contains_value: "Regex Pattern",
 
-  fixed_header: "Fixed Values",
+  fixed_header: "Fixed Value",
   cell_start_with: "Starts With",
   cell_end_with: "Ends With",
 

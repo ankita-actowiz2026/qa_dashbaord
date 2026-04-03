@@ -56,32 +56,37 @@ const TagInputRule: React.FC<Props> = ({ label, values, onChange }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="px-6 py-5 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50/30">
       {/* INPUT */}
-      <div className="flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={`Enter ${label}`}
-          className="flex-1 px-3 py-2 text-base border rounded-lg"
-        />
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={`Enter ${label}`}
+            className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white hover:border-gray-300 transition-all duration-200"
+          />
 
-        <button
-          onClick={handleAdd}
-          className="px-3 py-2 text-base text-white bg-blue-600 rounded-lg"
-        >
-          <FaPlus className="w-4 h-4" />
-        </button>
-
-        {input && (
-          <button onClick={() => setInput("")} className="text-gray-500">
-            <MdClear size={18} />
+          <button
+            onClick={handleAdd}
+            className="p-2.5 text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 hover:shadow-md active:scale-95 transition-all duration-200"
+          >
+            <FaPlus className="w-4 h-4" />
           </button>
-        )}
-      </div>
 
+          {input && (
+            <button
+              onClick={() => setInput("")}
+              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+            >
+              <MdClear size={18} />
+            </button>
+          )}
+        </div>
+      </div>
       {/* LIST */}
-      <div className="space-y-2 overflow-y-auto max-h-40">
+      <div className="pt-6 space-y-2 overflow-y-auto mb-14 max-h-40">
+        {" "}
         {values.map((item, idx) => (
           <div
             key={item}

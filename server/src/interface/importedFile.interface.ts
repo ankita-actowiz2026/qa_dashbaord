@@ -68,6 +68,8 @@ export interface ColumnRule {
   cell_start_with?: string[];
   cell_end_with?: string[];
   dependency?: Record<string, any>;
+  fixed_header_value?: string;
+  cell_start_with_value?: string;
   fixed_header_set?: Set<string>; //for faster speed validation of predefined values
   cell_start_with_normalized?: string[]; //for faster speed validation of start_with values
   cell_end_with_normalized?: string[]; //for faster speed validation of end_with values

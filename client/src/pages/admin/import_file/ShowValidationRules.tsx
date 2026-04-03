@@ -1,6 +1,6 @@
 import { validateRule } from "./ruleValidator";
 import RuleModal from "./RuleModal";
-import { FiPlus, FiTrash2, FiEdit } from "react-icons/fi";
+import { FiSearch, FiPlus, FiTrash2, FiEdit, FiFileText } from "react-icons/fi";
 import React, { useState, useMemo } from "react";
 import { MdClear } from "react-icons/md";
 import { ArrowRight, CloudHail } from "lucide-react";
@@ -92,7 +92,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     data_redundant_value?: string;
     data_redundant_threshold?: string;
     cell_contains_value?: string;
-    fixed_header?: string[];
+    fixed_header?: string;
     not_match_found?: string[];
     cell_end_with?: string[];
     cell_start_with?: string;
@@ -372,7 +372,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       case "fixed_header":
         return {
           type: "fixed_header",
-          fixed_header: rule.value as string[],
+          fixed_header: rule.value,
         };
 
       case "cell_start_with":
@@ -412,27 +412,40 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
   };
 
   return (
-    <div className="flex h-[600px] border rounded-2xl bg-white shadow-sm mt-2">
+    <div className="flex flex-col gap-5 mt-2 md:flex-row">
       {/* LEFT PANEL */}
-      <div className="flex flex-col w-1/4 min-h-0 border-r bg-gradient-to-b from-gray-50 to-gray-100">
+      <div className="flex flex-col w-full md:w-1/4 min-h-[600px] bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
         {/* HEADER */}
-        <div className="p-4 font-semibold text-white bg-gray-800 border-b rounded-t-lg ">
-          Headers ({filteredData.length})
+        <div className="px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold tracking-wide text-gray-700 uppercase">
+              Headers
+            </h3>
+            <span className="px-2.5 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full">
+              {filteredData.length}
+            </span>
+          </div>
         </div>
 
         {/* SEARCH INPUT */}
-        <div className="p-3 bg-white border-b">
-          <input
-            type="text"
-            placeholder="Search headers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="p-4 bg-white border-b border-gray-100">
+          <div className="relative">
+            <FiSearch
+              className="absolute text-gray-400 -translate-y-1/2 left-3 top-1/2"
+              size={16}
+            />
+            <input
+              type="text"
+              placeholder="Search headers..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+            />
+          </div>
         </div>
 
         {/* LIST */}
-        <div className="flex-1 min-h-0 overflow-y-auto bg-gray-100">
+        <div className="flex-1 min-h-0 overflow-y-auto bg-white">
           {filteredData.length === 0 ? (
             <div className="p-6 text-base text-center text-gray-400">
               <div className="mb-2 text-3xl"></div>
@@ -447,26 +460,25 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 <div
                   key={item.id}
                   onClick={() => setSelectedHeader(item.id)}
-                  className={`group flex items-center justify-between px-3 py-2.5  cursor-pointer text-base transition-all font-semibold
-          
-          ${
-            selectedHeader === item.id
-              ? "flex items-center justify-between px-3.5 py-3 cursor-pointer transition-all duration-150 border-b border-slate-50 bg-gray-500 text-white"
-              : "hover:bg-gray-200 hover:shadow-sm text-gray-800 "
-          }`}
+                  className={`group flex items-center justify-between px-4 py-3 cursor-pointer transition-all duration-200 rounded-lg ${
+                    selectedHeader === item.id
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md"
+                      : "hover:bg-gray-50 text-gray-700"
+                  }`}
                 >
                   {/* NAME */}
-                  <span className="truncate">{item.name}</span>
+                  <span className="flex-1 text-sm font-medium truncate">
+                    {item.name}
+                  </span>
 
                   {/* BADGE */}
                   {item.rules.length > 0 && (
                     <span
-                      className={`text-sm px-2 py-0.5 rounded-full transition
-              ${
-                selectedHeader === item.id
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-gray-200 text-gray-600 group-hover:bg-blue-50 group-hover:text-blue-600"
-              }`}
+                      className={`text-xs px-2 py-1 rounded-full font-medium transition-all duration-200 ${
+                        selectedHeader === item.id
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
+                      }`}
                     >
                       {
                         item.rules.filter((r) => r.type !== "date_format")
@@ -482,13 +494,20 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="relative flex flex-col flex-1 min-h-0">
+      <div className="flex flex-col flex-1 min-h-[600px] bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
         {/* HEADER */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="font-semibold text-gray-700">{current.name}</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50 rounded-t-2xl">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-800">
+              {current.name}
+            </h2>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Configure validation rules
+            </p>
+          </div>
 
           <button
-            className="inline-flex items-center gap-2 py-2.5 px-6  font-medium bg-blue-600 text-white rounded-lg shadow-sm hover:bg-blue-700 active:scale-[0.98] transition"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all duration-200"
             onClick={() => {
               setEditingRule(false);
               setTempRule({});
@@ -505,15 +524,19 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           {/* EMPTY STATE */}
 
           {current.rules.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <div className="mb-2 text-4xl">📄</div>
-              <p className="mb-3 font-medium">No rules yet</p>
-              <p className="mb-4 text-base text-gray-400">
-                Start by adding your first rule
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="flex items-center justify-center w-20 h-20 mb-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl">
+                <FiFileText className="text-3xl text-blue-400" />
+              </div>
+              <p className="mb-2 text-base font-semibold text-gray-700">
+                No rules yet
+              </p>
+              <p className="mb-6 text-sm text-gray-400">
+                Start by adding your first validation rule
               </p>
 
               <button
-                className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
                 onClick={() => {
                   setEditingRule(false);
                   setTempRule({});
@@ -531,13 +554,14 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 .map((rule, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center justify-between px-4 py-3 border rounded-lg bg-gray-50 "
+                    className="flex items-center justify-between px-5 py-4 transition-all duration-200 bg-white border border-gray-100 group rounded-xl hover:shadow-md hover:border-gray-200 "
                   >
                     <div className="flex-1 min-w-0 text-base text-gray-700">
                       {[
                         "required",
                         "regex",
                         "cell_start_with",
+                        "fixed_header",
                         "data_redundant",
                       ].includes(rule.type) && (
                         <div className="flex items-center gap-2">
@@ -626,11 +650,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                         </div>
                       )}
 
-                      {[
-                        "fixed_header",
-                        "cell_end_with",
-                        "not_match_found",
-                      ].includes(rule.type) && (
+                      {["cell_end_with", "not_match_found"].includes(
+                        rule.type,
+                      ) && (
                         <div className="flex items-center gap-2">
                           <span className="text-gray-500 ">
                             Blocked value:{" "}
@@ -705,7 +727,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 ml-4 transition-opacity duration-200 opacity-0 group-hover:opacity-100">
                       <button
                         onClick={() => {
                           setEditingRule(true);
@@ -713,13 +735,13 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           setTempRule(buildTempRule(rule));
                           setIsModalOpen(true);
                         }}
-                        className="text-base text-blue-600"
+                        className="p-2 text-gray-500 transition-all duration-200 rounded-lg hover:text-blue-600 hover:bg-blue-50"
                       >
                         <FiEdit size={16} />
                       </button>
                       <button
                         onClick={() => handleDeleteRule(idx)}
-                        className="text-red-500 hover:text-red-700"
+                        className="p-2 text-gray-500 transition-all duration-200 rounded-lg hover:text-red-600 hover:bg-red-50"
                       >
                         <FiTrash2 size={16} />
                       </button>
@@ -753,41 +775,41 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           onClick={() => setConfirmOpen(false)}
         >
           <div
-            className="bg-white w-full max-w-sm rounded-2xl shadow-xl p-6
-               transform transition-all duration-200 scale-100"
+            className="relative w-full max-w-md p-6 transition-all duration-200 transform scale-100 bg-white shadow-2xl rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setConfirmOpen(false)}
-              className="absolute top-6 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute text-gray-400 top-6 right-4 hover:text-gray-600"
             >
               <MdClear size={18} />
             </button>
             {/* Title */}
-            <div className=" pb-3">
-              <h2 className="mb-4 text-xl font-semibold text-gray-800">
+            <div className="text-center">
+              {/* Description */}
+              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
+                <FiTrash2 className="text-2xl text-red-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-gray-800">
                 Delete Rule
               </h2>
-
-              {/* Description */}
-              <p className="text-base text-gray-500 mt-2 leading-relaxed">
-                Are you sure you want to delete this rule?
+              <p className="mt-2 text-sm text-gray-500">
+                Are you sure you want to delete this rule? This action cannot be
+                undone.
               </p>
 
               {/* Actions */}
               <div className="flex justify-center gap-3 mt-6">
                 <button
                   onClick={() => setConfirmOpen(false)}
-                  className="px-4 py-2 text-base rounded-lg border border-gray-200
-                      text-gray-600 hover:bg-gray-100 transition-colors"
+                  className="px-4 py-2 text-base text-gray-600 transition-colors border border-gray-200 rounded-lg hover:bg-gray-100"
                 >
                   Cancel
                 </button>
 
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 text-base rounded-lg bg-red-500 text-white
-                      hover:bg-red-600 transition-colors shadow-sm"
+                  className="px-4 py-2 text-base text-white transition-colors bg-red-500 rounded-lg shadow-sm hover:bg-red-600"
                 >
                   Delete
                 </button>

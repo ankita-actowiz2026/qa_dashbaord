@@ -3,7 +3,7 @@ import { FiChevronRight, FiHome } from "react-icons/fi";
 const routeNameMap: Record<string, string> = {
   admin: "Admin",
   dashboard: "Dashboard",
-  import_file: "Import File",
+  import_file: "Upload File",
   validation_result: "Validation Result",
   update_profile: "Update Profile",
   change_password: "Change Password",
@@ -15,8 +15,8 @@ export default function Breadcrumb() {
   const pathnames = location.pathname.split("/").filter(Boolean);
 
   return (
-    <nav className="flex items-center text-sm text-gray-500 mb-4">
-      <ol className="flex items-center gap-1 flex-wrap">
+    <nav className="flex items-center mb-4 text-sm text-gray-500">
+      <ol className="flex flex-wrap items-center gap-1">
         {/* Home */}
 
         {pathnames.map((value, index) => {
@@ -28,12 +28,12 @@ export default function Breadcrumb() {
               {!isLast ? (
                 <Link
                   to={to}
-                  className="hover:text-gray-800 transition font-medium"
+                  className="font-medium transition hover:text-gray-800"
                 >
                   {routeNameMap[value] || value}
                 </Link>
               ) : (
-                <span className="text-gray-800 font-semibold">
+                <span className="font-semibold text-gray-800">
                   {routeNameMap[value] || value}
                 </span>
               )}

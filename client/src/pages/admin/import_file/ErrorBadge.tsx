@@ -25,7 +25,7 @@ const ErrorBadge = ({ count, label }: Props) => {
         return `${count} value${count > 1 ? "s" : ""} have incorrect type`;
 
       case "fixed_header":
-        return `${count} value${count > 1 ? "s" : ""} not in allowed values`;
+        return `${count} value${count > 1 ? "s" : ""} not Fix values`;
 
       case "cell_start_with":
         return `${count} value${count > 1 ? "s" : ""} invalid prefix`;

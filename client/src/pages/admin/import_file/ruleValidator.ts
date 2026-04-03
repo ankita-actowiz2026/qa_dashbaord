@@ -134,8 +134,8 @@ export const validateRule = (tempRule, current) => {
     }
   }
 
-  if (tempRule.type === "fixed_header") {
-    if (!tempRule.fixed_header || tempRule.fixed_header.length === 0) {
+  if (tempRule.type === "fixed_header") {    
+    if (!tempRule.fixed_header) {
       return "Please add at least one header value";
     }
   }

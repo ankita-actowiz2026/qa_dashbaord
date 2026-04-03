@@ -263,17 +263,15 @@ const AppliedRules = ({
             <div className="flex items-center gap-1 text-base font-semibold text-black break-words">
               <FiList size={16} />
               <span>
-                {key == "fixed_header" ? (
-                  <>Any of </>
-                ) : key == "cell_start_with" ? (
-                  "Start With "
-                ) : key == "cell_end_with" ? (
-                  "Any of "
-                ) : key == "not_match_found" ? (
-                  "Not allowed "
-                ) : (
-                  ""
-                )}
+                {key == "fixed_header"
+                  ? "Fixed value"
+                  : key == "cell_start_with"
+                    ? "Start With "
+                    : key == "cell_end_with"
+                      ? "Any of "
+                      : key == "not_match_found"
+                        ? "Not allowed "
+                        : ""}
                 {formattedValue}
               </span>
             </div>
