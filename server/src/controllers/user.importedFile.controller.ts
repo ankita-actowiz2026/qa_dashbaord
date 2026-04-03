@@ -259,12 +259,12 @@ class ImportFileController {
     } finally {
       //Delete uploaded file after processing
       if (filePath) {
-        try {
-          await fs.promises.unlink(filePath);
-          console.log("Uploaded file deleted:", filePath);
-        } catch (err) {
-          console.error("Error deleting file:", err);
-        }
+        // try {
+        //   await fs.promises.unlink(filePath);
+        //   console.log("Uploaded file deleted:", filePath);
+        // } catch (err) {
+        //   console.error("Error deleting file:", err);
+        // }
       }
     }
   };

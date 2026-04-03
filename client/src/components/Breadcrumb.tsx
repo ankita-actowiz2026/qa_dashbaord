@@ -15,7 +15,7 @@ export default function Breadcrumb() {
   const pathnames = location.pathname.split("/").filter(Boolean);
 
   return (
-    <nav className="flex items-center mb-4 text-sm text-gray-500">
+    <nav className="flex items-center mb-4 text-lg text-gray-500">
       <ol className="flex flex-wrap items-center gap-1">
         {/* Home */}
 

@@ -74,7 +74,7 @@ const RuleModal: React.FC<Props> = ({
         <div className="sticky top-0 z-10 px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
           <div className="flex items-center gap-2">
             <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-2xl font-semibold text-gray-800">
               {editingRule ? "Edit Rule" : "Add Rule"}
             </h2>
           </div>
@@ -509,7 +509,7 @@ const RuleModal: React.FC<Props> = ({
                   Required
                 </label>
 
-                <label className="flex items-center gap-2 text-base">
+                <label className="flex items-center gap-2 text-lg">
                   <input
                     type="radio"
                     name="dependency_mode"
