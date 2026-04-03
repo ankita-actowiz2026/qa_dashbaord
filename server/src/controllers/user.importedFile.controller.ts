@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, response } from "express";
 import path from "path";
 import fs from "fs";
 import ExcelJS from "exceljs";
@@ -18,6 +18,7 @@ import {
   getCellValue,
   prepareColumnRules,
 } from "../validations/user.importedFile.validations";
+import { FileRules } from "../models/fileRules.model";
 
 /**
  * Add/Upload Imported File
@@ -36,6 +37,28 @@ class ImportFileController {
 
     return `${file_name}_${mm}${dd}${yyyy}${hh}${mi}${ss}.${extension}`;
   };
+  saveRulesToDB = async (user_id: string, rules: any) => {
+    try {
+      const result = await FileRules.findOneAndUpdate(
+        { user_id },
+        { $setOnInsert: { user_id, rules } },
+        { new: true, upsert: true },
+      );
+
+      return {
+        success: true,
+        data: result,
+        message: "Inserted if not exists, otherwise ignored",
+      };
+    } catch (error: any) {
+      console.error("Error saving rules to DB:", error);
+      return {
+        success: false,
+        message: error.message,
+      };
+    }
+  };
+
   addImportedFile = async (
     req: Request,
     res: Response,
@@ -104,6 +127,17 @@ class ImportFileController {
           throw new Error(
             "Unsupported file type. Only .xlsx, .json, .csv, .xls files are allowed",
           );
+      }
+
+      //save repsonse to db
+
+      const response = await this.saveRulesToDB(
+        req.user._id,
+        req.body.columnConfig,
+      );
+      let file_saved = true;
+      if (!response.success) {
+        file_saved = false;
       }
 
       // start storing in excel first sheet
@@ -253,6 +287,7 @@ class ImportFileController {
         result_file: publicUrl,
         data: result,
         errors_for_coloms: errors_for_coloms,
+        file_saved: file_saved,
       });
     } catch (error) {
       next(error);

@@ -417,7 +417,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
   return (
     <div className="flex flex-col gap-5 mt-2 md:flex-row">
       {/* LEFT PANEL */}
-      <div className="flex flex-col w-full md:w-1/4 min-h-[600px] bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="flex flex-col w-full md:w-1/4 h-[calc(100vh-2rem)] bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
         {/* HEADER */}
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
@@ -497,7 +497,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       </div>
 
       {/* RIGHT PANEL */}
-      <div className="flex flex-col flex-1 min-h-[600px] bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="flex flex-col flex-1 h-[calc(100vh-2rem)] bg-white border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
         {/* HEADER */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50 rounded-t-2xl">
           <div>
@@ -552,7 +552,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* {JSON.stringify(current)} */}
+              [[[[{JSON.stringify(current)}]]]
               {current.rules
                 .filter((rule) => rule.type !== "date_format")
                 .map((rule, idx) => (

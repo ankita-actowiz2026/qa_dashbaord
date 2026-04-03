@@ -145,9 +145,14 @@ const ImportFile: React.FC = () => {
         return;
       }
       setValidating(true);
-
+      const updatedRulesData = Object.fromEntries(
+        Object.entries(rulesData).map(([key, value]) => {
+          const { name, ...rest } = value; // remove "name"
+          return [key, rest];
+        }),
+      );
       const formData = {
-        columnConfig: JSON.stringify(rulesData),
+        columnConfig: JSON.stringify(updatedRulesData),
         fileName: uploadedFileName,
       };
       const response = await apiClient.post(`admin/api/qa_file`, formData, {
