@@ -29,7 +29,7 @@ export const RULE_OPTIONS = [
     show: (ctx) => ctx.currentDataType === "date",
   },
   { value: "data_redundant", label: "Data Redundant & Threshold" },
-  { value: "regex", label: "Patern Configuration" },
+  { value: "regex", label: "Pattern Configuration" },
   { value: "fixed_header", label: "Fixed Value" },
   { value: "cell_start_with", label: "Cell Start With" },
   { value: "cell_end_with", label: "Cell End With" },

@@ -51,10 +51,17 @@ const RuleModal: React.FC<Props> = ({
     };
   }, [onClose]);
   if (!isOpen) return null;
-
+  const label_style = "text-base font-semibold tracking-wide text-sidebar ";
+  const label_style_title =
+    "text-xs font-semibold tracking-wide text-gray-500 uppercase";
+  const dropdown_style =
+    "w-full px-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer";
+  const textbox_style =
+    "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
+  const div_class_1 = "px-6 pt-1 pb-2 border-t border-gray-50";
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 bg-black/60 backdrop-blur-base"
       onClick={onClose}
     >
       <div
@@ -78,17 +85,15 @@ const RuleModal: React.FC<Props> = ({
               {editingRule ? "Edit Rule" : "Add Rule"}
             </h2>
           </div>
-          <p className="pl-3 mt-2 text-sm text-gray-500">
+          <p className="pl-3 mt-2 text-base text-gray-500">
             Configure validation rules for{" "}
             <span className="font-medium text-blue-600">{currentHeader}</span>
           </p>
         </div>
         {/* RULE TYPE */}
-        <div className="px-6 pt-5 pb-3">
-          <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-            Rule Type
-          </label>
-          <div className="mt-2">
+        <div className={div_class_1}>
+          <label className={label_style}>Rule Type</label>
+          <div className="mt-1">
             <select
               value={tempRule.type || ""}
               onChange={(e) => {
@@ -112,7 +117,7 @@ const RuleModal: React.FC<Props> = ({
                   }),
                 });
               }}
-              className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer"
+              className={dropdown_style}
             >
               <option value="" disabled hidden>
                 Select Rule
@@ -136,15 +141,9 @@ const RuleModal: React.FC<Props> = ({
         {tempRule.type === "data_type" && (
           <>
             {/* Data Type */}
-            <div className="px-6 py-4 border-t border-gray-50">
-              <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-                Configuration
-              </label>
-              <div className="mt-3">
-                <label className="text-sm font-medium text-gray-700">
-                  Data Type
-                </label>
-
+            <div className={div_class_1}>
+              <label className={label_style}>Data Type</label>
+              <div className="mt-1">
                 <select
                   value={tempRule.data_type || "string"}
                   onChange={(e) => {
@@ -156,7 +155,7 @@ const RuleModal: React.FC<Props> = ({
                       ...(newType !== "date" && { date_format: undefined }),
                     }));
                   }}
-                  className="w-full px-4 py-2.5 mt-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                  className={dropdown_style}
                 >
                   {DATA_TYPE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -168,61 +167,54 @@ const RuleModal: React.FC<Props> = ({
             </div>
             {/* ✅ Show only if date selected */}
             {tempRule.data_type === "date" && (
-              <div className="mt-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Date Format
-                </label>
-
-                <select
-                  value={tempRule.date_format || ""}
-                  onChange={(e) =>
-                    setTempRule({
-                      ...tempRule,
-                      date_format: e.target.value,
-                    })
-                  }
-                  className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
-                >
-                  {date_format_options.map((format) => (
-                    <option key={format} value={format}>
-                      {format}
-                    </option>
-                  ))}
-                  <option value="custom">Custom Date...</option>
-                </select>
+              <div className={div_class_1}>
+                <label className={label_style}>Date Format</label>
+                <div className="mt-1">
+                  <select
+                    value={tempRule.date_format || ""}
+                    onChange={(e) =>
+                      setTempRule({
+                        ...tempRule,
+                        date_format: e.target.value,
+                      })
+                    }
+                    className={dropdown_style}
+                  >
+                    {date_format_options.map((format) => (
+                      <option key={format} value={format}>
+                        {format}
+                      </option>
+                    ))}
+                    <option value="custom">Custom Date...</option>
+                  </select>
+                </div>
               </div>
             )}
             {tempRule.date_format === "custom" && (
-              <div className="mt-3">
-                <label className="text-sm font-medium text-gray-700">
-                  Add custom date
-                </label>
-                <input
-                  type="text"
-                  value={tempRule.custom_date_format || ""}
-                  onChange={(e) =>
-                    setTempRule({
-                      ...tempRule,
-                      custom_date_format: e.target.value,
-                    })
-                  }
-                  placeholder="Enter custom format (e.g. YYYY-DD-MM)"
-                  className="w-full px-4 py-2.5 mt-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
-                />
+              <div className={div_class_1}>
+                <label className={label_style}>Add custom date</label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    value={tempRule.custom_date_format || ""}
+                    onChange={(e) =>
+                      setTempRule({
+                        ...tempRule,
+                        custom_date_format: e.target.value,
+                      })
+                    }
+                    placeholder="Enter custom format (e.g. YYYY-DD-MM)"
+                    className={textbox_style}
+                  />
+                </div>
               </div>
             )}
           </>
         )}
         {tempRule.type === "data_length" && (
-          <div className="px-6 py-4 border-t border-gray-50">
-            <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Length Configuration
-            </label>
-            {/* MODE */}
-            <div className="pb-4 mt-3">
-              <label className="text-sm font-medium text-gray-700">
-                Length Type
-              </label>
+          <div className={div_class_1}>
+            <label className={label_style}>Length Type</label>
+            <div className="mt-1">
               <select
                 value={tempRule.length_mode || "variable"}
                 onChange={(e) =>
@@ -231,7 +223,7 @@ const RuleModal: React.FC<Props> = ({
                     length_mode: e.target.value as any,
                   })
                 }
-                className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+                className={dropdown_style}
               >
                 <option value="variable">Variable</option>
                 <option value="fixed">Fixed</option>
@@ -240,177 +232,181 @@ const RuleModal: React.FC<Props> = ({
 
             {/* VARIABLE */}
             {tempRule.length_mode === "variable" && (
-              <div className="grid grid-cols-2 gap-3">
-                {/* STRING TYPES */}
-                {["string", "alphabetic", "boolean"].includes(
-                  currentDataType,
-                ) && (
-                  <>
-                    <input
-                      type="number"
-                      placeholder="Min Value"
-                      value={tempRule.min || ""}
-                      onChange={(e) =>
-                        setTempRule({ ...tempRule, min: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max Value"
-                      value={tempRule.max || ""}
-                      onChange={(e) =>
-                        setTempRule({ ...tempRule, max: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                    />
-                  </>
-                )}
+              <div className="mt-2">
+                <label className={label_style}>Min - Max Length</label>
+                <div className="mt-1">
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* STRING TYPES */}
+                    {["string", "alphabetic", "boolean"].includes(
+                      currentDataType,
+                    ) && (
+                      <>
+                        <input
+                          type="number"
+                          placeholder="Min Value"
+                          value={tempRule.min || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, min: e.target.value })
+                          }
+                          className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Max Value"
+                          value={tempRule.max || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, max: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                      </>
+                    )}
 
-                {/* NUMBER */}
-                {["integer", "float"].includes(currentDataType) && (
-                  <>
-                    <input
-                      type="number"
-                      placeholder="Min Length"
-                      value={tempRule.min || ""}
-                      onChange={(e) =>
-                        setTempRule({ ...tempRule, min: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max Length"
-                      value={tempRule.max || ""}
-                      onChange={(e) =>
-                        setTempRule({ ...tempRule, max: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                    />
-                  </>
-                )}
+                    {/* NUMBER */}
+                    {["integer", "float"].includes(currentDataType) && (
+                      <>
+                        <input
+                          type="number"
+                          placeholder="Min Length"
+                          value={tempRule.min || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, min: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                        <input
+                          type="number"
+                          placeholder="Max Length"
+                          value={tempRule.max || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, max: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                      </>
+                    )}
 
-                {/* DATE */}
-                {currentDataType === "date" && (
-                  <>
-                    <input
-                      type="date"
-                      value={tempRule.min || ""}
-                      onChange={(e) =>
-                        setTempRule({ ...tempRule, min: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                    />
-                    <input
-                      type="date"
-                      value={tempRule.max || ""}
-                      onChange={(e) =>
-                        setTempRule({ ...tempRule, max: e.target.value })
-                      }
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                    />
-                  </>
-                )}
+                    {/* DATE */}
+                    {currentDataType === "date" && (
+                      <>
+                        <input
+                          type="date"
+                          value={tempRule.min || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, min: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                        <input
+                          type="date"
+                          value={tempRule.max || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, max: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
             {/* FIXED */}
             {tempRule.length_mode === "fixed" && (
-              <div className="grid grid-cols-1 gap-3">
-                {/* STRING TYPES */}
-                {["string", "alphabetic", "boolean"].includes(
-                  currentDataType,
-                ) && (
-                  <input
-                    type="number"
-                    placeholder="Fixed Value"
-                    value={tempRule.fixed || ""}
-                    onChange={(e) =>
-                      setTempRule({ ...tempRule, fixed: e.target.value })
-                    }
-                    className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                  />
-                )}
+              <div>
+                <div className="">
+                  <div className="grid grid-cols-1 gap-3 mt-3">
+                    <label className={label_style}>Fixed Value</label>
+                    {/* STRING TYPES */}
+                    <div>
+                      {["string", "alphabetic", "boolean"].includes(
+                        currentDataType,
+                      ) && (
+                        <input
+                          type="number"
+                          placeholder="Fixed Value"
+                          value={tempRule.fixed || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, fixed: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                      )}
 
-                {/* NUMBER */}
-                {["integer", "float"].includes(currentDataType) && (
-                  <input
-                    type="number"
-                    placeholder="Fixed Number"
-                    value={tempRule.fixed || ""}
-                    onChange={(e) =>
-                      setTempRule({ ...tempRule, fixed: e.target.value })
-                    }
-                    className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                  />
-                )}
+                      {/* NUMBER */}
+                      {["integer", "float"].includes(currentDataType) && (
+                        <input
+                          type="number"
+                          placeholder="Fixed Number"
+                          value={tempRule.fixed || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, fixed: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                      )}
 
-                {/* DATE */}
-                {currentDataType === "date" && (
-                  <input
-                    type="date"
-                    value={tempRule.fixed || ""}
-                    onChange={(e) =>
-                      setTempRule({ ...tempRule, fixed: e.target.value })
-                    }
-                    className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
-                  />
-                )}
+                      {/* DATE */}
+                      {currentDataType === "date" && (
+                        <input
+                          type="date"
+                          value={tempRule.fixed || ""}
+                          onChange={(e) =>
+                            setTempRule({ ...tempRule, fixed: e.target.value })
+                          }
+                          className={textbox_style}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         )}
         {tempRule.type === "data_redundant" && (
-          <div className="px-6 py-4 border-t border-gray-50">
-            <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Redundancy Configuration
-            </label>
-            <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Redundant Value
-              </label>
-              <input
-                type="text"
-                value={tempRule.data_redundant_value || ""}
-                onChange={(e) =>
-                  setTempRule({
-                    ...tempRule,
-                    data_redundant_value: e.target.value,
-                  })
-                }
-                placeholder="Enter value"
-                className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
-              />
+          <div>
+            <div className={div_class_1}>
+              <label className={label_style}>Redundant Value</label>
+              <div className="mt-1">
+                <input
+                  type="text"
+                  value={tempRule.data_redundant_value || ""}
+                  onChange={(e) =>
+                    setTempRule({
+                      ...tempRule,
+                      data_redundant_value: e.target.value,
+                    })
+                  }
+                  placeholder="Enter value"
+                  className={textbox_style}
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Threshold
-              </label>
-              <input
-                type="number"
-                value={tempRule.data_redundant_threshold || ""}
-                onChange={(e) =>
-                  setTempRule({
-                    ...tempRule,
-                    data_redundant_threshold: e.target.value,
-                  })
-                }
-                placeholder="Enter threshold"
-                className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
-              />
+            <div className={div_class_1}>
+              <label className={label_style}>Threshold</label>
+              <div className="mt-1">
+                <input
+                  type="number"
+                  value={tempRule.data_redundant_threshold || ""}
+                  onChange={(e) =>
+                    setTempRule({
+                      ...tempRule,
+                      data_redundant_threshold: e.target.value,
+                    })
+                  }
+                  placeholder="Enter threshold"
+                  className={textbox_style}
+                />
+              </div>
             </div>
           </div>
         )}
         {tempRule.type === "regex" && (
-          <div className="px-6 py-4 border-t border-gray-50">
-            <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Pattern Configuration
-            </label>
-            <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Regular Expression
-              </label>
+          <div className={div_class_1}>
+            <label className={label_style}>Regex Pattern</label>
+            <div className="mt-1">
               <input
                 type="text"
                 value={tempRule.cell_contains_value || ""}
@@ -421,54 +417,59 @@ const RuleModal: React.FC<Props> = ({
                   })
                 }
                 placeholder="e.g. ^[A-Za-z]+$"
-                className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+                className={textbox_style}
               />
             </div>
           </div>
         )}
         {tempRule.type === "fixed_header" && (
-          <div className="px-6 py-4 border-t border-gray-50">
-            <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Fixed Value
-            </label>
-            <input
-              type="text"
-              value={tempRule.fixed_header || ""}
-              onChange={(e) =>
-                setTempRule({
-                  ...tempRule,
-                  fixed_header: e.target.value,
-                })
-              }
-              placeholder="Enter fixed value (e.g. India)"
-              className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
-            />
+          <div className={div_class_1}>
+            <label className={label_style}>Fixed Value</label>
+            <div className="mt-1">
+              <input
+                type="text"
+                value={tempRule.fixed_header || ""}
+                onChange={(e) =>
+                  setTempRule({
+                    ...tempRule,
+                    fixed_header: e.target.value,
+                  })
+                }
+                placeholder="Enter fixed value (e.g. India)"
+                className={textbox_style}
+              />
+            </div>
           </div>
         )}
         {tempRule.type === "cell_start_with" && (
-          <div className="px-6 py-4 border-t border-gray-50">
-            <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Cell start with
-            </label>
-            <input
-              type="text"
-              value={tempRule.cell_start_with || ""}
-              onChange={(e) =>
-                setTempRule({
-                  ...tempRule,
-                  cell_start_with: e.target.value,
-                })
-              }
-              placeholder="e.g. https://"
-              className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
-            />
+          <div className={div_class_1}>
+            <label className={label_style}>Cell start with</label>
+            <div className="mt-0">
+              <input
+                type="text"
+                value={tempRule.cell_start_with || ""}
+                onChange={(e) =>
+                  setTempRule({
+                    ...tempRule,
+                    cell_start_with: e.target.value,
+                  })
+                }
+                placeholder="e.g. https://"
+                className={textbox_style}
+              />
+            </div>
           </div>
         )}
         {tempRule.type === "cell_end_with" && (
           <TagInputRule
-            label="Cell end with  value"
+            label="Cell end with value"
             values={tempRule.cell_end_with || []}
             onChange={(val) => setTempRule({ ...tempRule, cell_end_with: val })}
+            label_style_title={label_style_title}
+            label_style={label_style}
+            dropdown_style={dropdown_style}
+            textbox_style={textbox_style}
+            div_class_1={div_class_1}
           />
         )}
         {tempRule.type === "not_match_found" && (
@@ -482,17 +483,12 @@ const RuleModal: React.FC<Props> = ({
         )}
         {tempRule.type === "dependency" && (
           <div className="px-6 py-4 border-t border-gray-50">
-            <label className="text-xs font-semibold tracking-wide text-gray-500 uppercase">
-              Dependency Configuration
-            </label>
             {/* MAIN */}
             <div>
-              <label className="text-sm font-semibold text-gray-700">
-                Main Dependency
-              </label>
+              <label className={label_style}>Main Dependency</label>
 
               <div className="flex gap-6 mt-3">
-                <label className="flex items-center gap-2 text-sm text-gray-700 transition-colors cursor-pointer hover:text-blue-600">
+                <label className="flex items-center gap-2 text-base text-gray-700 transition-colors cursor-pointer hover:text-blue-600">
                   <input
                     type="radio"
                     name="dependency_mode"
@@ -538,7 +534,7 @@ const RuleModal: React.FC<Props> = ({
                       other_value_main_dependency: e.target.value,
                     })
                   }
-                  className="w-full px-4 py-2.5 mt-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+                  className={textbox_style}
                 />
               )}
             </div>
@@ -557,13 +553,13 @@ const RuleModal: React.FC<Props> = ({
           {" "}
           <button
             onClick={onClose}
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
+            className="px-5 py-2.5 text-base font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
-            className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all duration-200"
+            className="px-5 py-2.5 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all duration-200"
           >
             {editingRule ? "Edit Rule" : "Add Rule"}
           </button>

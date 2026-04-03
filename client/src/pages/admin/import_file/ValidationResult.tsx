@@ -1,8 +1,7 @@
 import AppliedRules from "./AppliedRule";
-import { GoDotFill } from "react-icons/go";
+
 import { useState, useMemo, useCallback } from "react";
 import { FiCheckCircle } from "react-icons/fi";
-
 import { XCircle } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
@@ -288,11 +287,11 @@ const ValidationResult = () => {
   return (
     <div className="mt-6 space-y-6">
       <h1 className="text-4xl font-semibold text-gray-800"></h1>
-      <p className="text-base text-gray-500"></p>
+      <p className="text-lg text-gray-500"></p>
       <div className="flex items-center justify-end gap-4 mt-6">
         {/* File Name */}
         <div
-          className="max-w-xs text-base text-gray-600 truncate"
+          className="max-w-xs text-lg text-gray-600 truncate"
           title={fileName}
         >
           <span className="text-gray-400">Current file:</span>{" "}
@@ -307,7 +306,7 @@ const ValidationResult = () => {
           onClick={() => navigate("/admin/import_file")}
           className="flex items-center gap-2 bg-black text-white py-2.5 px-5 rounded-xl font-medium hover:bg-gray-700 transition"
         >
-          <FaUpload className="text-base" />
+          <FaUpload className="text-lg" />
           Upload New File
         </button>
       </div>
@@ -324,7 +323,7 @@ const ValidationResult = () => {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 text-white bg-blue-600 rounded-xl hover:bg-blue-700"
         >
-          <FiDownload className="text-base" />
+          <FiDownload className="text-lg" />
           Download Report
         </a>
       </div>
@@ -332,7 +331,7 @@ const ValidationResult = () => {
       <div className="bg-white border border-gray-200 shadow-sm rounded-2xl">
         {/* HEADER */}
         <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50 rounded-t-2xl">
-          <h2 className="text-base font-semibold text-gray-700">
+          <h2 className="text-xl font-semibold text-gray-700">
             Column Results ({filteredColumns.length})
           </h2>
         </div>
@@ -343,10 +342,10 @@ const ValidationResult = () => {
             // ✅ EMPTY STATE
             <div className="flex flex-col items-center justify-center py-10 text-center">
               <CheckCircle className="mb-2 text-green-500" size={32} />
-              <p className="text-base font-semibold text-green-600">
+              <p className="text-lg font-semibold text-green-600">
                 All validations passed
               </p>
-              <p className="mt-1 text-base text-gray-400">
+              <p className="mt-1 text-lg text-gray-400">
                 No issues were found in your uploaded data.
               </p>
             </div>
@@ -412,19 +411,19 @@ const ValidationResult = () => {
                     {/* 2️⃣ Valid / Invalid */}
                     <div className="flex flex-wrap items-center gap-2">
                       {/* ✅ Valid */}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-base font-medium text-green-700 bg-green-50 border border-green-200 rounded-full">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-lg font-medium text-green-700 bg-green-50 border border-green-200 rounded-full">
                         <CheckCircle size={14} />
                         {stats.valid_records ?? 0} Valid
                       </span>
 
                       {/* ❌ Invalid */}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-base font-medium text-red-700 bg-red-50 border border-red-200 rounded-full">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-lg font-medium text-red-700 bg-red-50 border border-red-200 rounded-full">
                         <XCircle size={14} />
                         {stats.invalid_records ?? 0} Invalid
                       </span>
 
                       {/* 📊 Rules */}
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-base font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 text-lg font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
                         <FiCheckCircle size={14} />
                         {issues.length} Rules Applied
                       </span>
@@ -438,7 +437,7 @@ const ValidationResult = () => {
                           {issues.map(([key, val]) => (
                             <span
                               key={key}
-                              className={`flex items-center gap-1 px-2.5 py-1 text-base font-medium text-red-600 bg-red-50 border border-red-100 rounded-full ${getErrorStyle(key)}`}
+                              className={`flex items-center gap-1 px-2.5 py-1 text-lg font-medium text-red-600 bg-red-50 border border-red-100 rounded-full ${getErrorStyle(key)}`}
                             >
                               <AlertCircle size={12} />
                               {key.replaceAll("_", " ")} ({val})
@@ -446,7 +445,7 @@ const ValidationResult = () => {
                           ))}
                         </>
                       ) : (
-                        <span className="flex items-center gap-1 text-base text-green-600">
+                        <span className="flex items-center gap-1 text-lg text-green-600">
                           <CheckCircle size={14} />
                           Clean
                         </span>
@@ -459,7 +458,7 @@ const ValidationResult = () => {
                         onClick={() =>
                           setExpandedColumn(expandedColumn === col ? null : col)
                         }
-                        className="flex items-center gap-1 px-3 py-1.5 text-base font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
+                        className="flex items-center gap-1 px-3 py-1.5 text-lg font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition"
                       >
                         {expandedColumn === col ? (
                           <>
@@ -479,7 +478,7 @@ const ValidationResult = () => {
                   {expandedColumn === col && (
                     <div className="px-5 pb-5 space-y-4 bg-gray-50">
                       <div className="p-4 bg-white border border-gray-200 shadow-sm rounded-xl">
-                        <p className="mb-3 text-base font-semibold text-gray-700">
+                        <p className="mb-3 text-lg font-semibold text-gray-700">
                           Applied Rules
                         </p>
 
@@ -496,7 +495,7 @@ const ValidationResult = () => {
                       </div>
                       {/* 🔹 SUMMARY BLOCK */}
                       <div className="p-4 bg-white border border-gray-200 shadow-sm rounded-xl">
-                        <p className="mb-2 text-base font-semibold text-gray-700">
+                        <p className="mb-2 text-lg font-semibold text-gray-700">
                           Column Errors
                         </p>
 
@@ -505,13 +504,13 @@ const ValidationResult = () => {
                             errors_for_coloms[col].map((err, i) => (
                               <span
                                 key={i}
-                                className={`px-2.5 py-1 text-base font-medium border rounded-full ${getErrorStyle(err)}`}
+                                className={`px-2.5 py-1 text-lg font-medium border rounded-full ${getErrorStyle(err)}`}
                               >
                                 {err}
                               </span>
                             ))
                           ) : (
-                            <span className="text-base text-green-600">
+                            <span className="text-lg text-green-600">
                               No issues found
                             </span>
                           )}
@@ -523,7 +522,7 @@ const ValidationResult = () => {
                         <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
                           {/* Header */}
                           <div className="sticky top-0 z-10 px-4 py-3 bg-white border-b rounded-t-xl">
-                            <p className="text-base font-semibold text-gray-700">
+                            <p className="text-lg font-semibold text-gray-700">
                               Error Details
                             </p>
                           </div>
@@ -534,7 +533,7 @@ const ValidationResult = () => {
                               {stats.error_msg.map((err, index) => (
                                 <div
                                   key={index}
-                                  className="grid grid-cols-[40px_150px_1fr] items-center gap-3 px-4 py-2 text-base hover:bg-gray-50"
+                                  className="grid grid-cols-[40px_150px_1fr] items-center gap-3 px-4 py-2 text-lg hover:bg-gray-50"
                                 >
                                   {/* Row */}
                                   <span className="font-semibold text-gray-600">
@@ -558,7 +557,7 @@ const ValidationResult = () => {
                             </div>
                           ) : (
                             <div className="px-4 py-6 text-center">
-                              <p className="text-base text-green-600">
+                              <p className="text-lg text-green-600">
                                 No errors found
                               </p>
                             </div>

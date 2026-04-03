@@ -8,9 +8,15 @@ type Props = {
   label: string;
   values: string[];
   onChange: (val: string[]) => void;
+  label_style?: string;
 };
 
-const TagInputRule: React.FC<Props> = ({ label, values, onChange }) => {
+const TagInputRule: React.FC<Props> = ({
+  label,
+  values,
+  onChange,
+  label_style,
+}) => {
   const [input, setInput] = useState("");
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -56,37 +62,41 @@ const TagInputRule: React.FC<Props> = ({ label, values, onChange }) => {
   };
 
   return (
-    <div className="px-6 py-5 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50/30">
+    <div className="px-6 py-1 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50/30">
       {/* INPUT */}
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={`Enter ${label}`}
-            className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white hover:border-gray-300 transition-all duration-200"
-          />
+      <div>
+        <label className={label_style}>{label}</label>
+        <div className="space-y-3 ">
+          <div className="flex items-center gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={`Enter ${label}`}
+              className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white hover:border-gray-300 transition-all duration-200"
+            />
 
-          <button
-            onClick={handleAdd}
-            className="p-2.5 text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 hover:shadow-md active:scale-95 transition-all duration-200"
-          >
-            <FaPlus className="w-4 h-4" />
-          </button>
-
-          {input && (
             <button
-              onClick={() => setInput("")}
-              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              onClick={handleAdd}
+              className="p-2.5 text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 hover:shadow-md active:scale-95 transition-all duration-200"
             >
-              <MdClear size={18} />
+              <FaPlus className="w-4 h-4" />
             </button>
-          )}
+
+            {input && (
+              <button
+                onClick={() => setInput("")}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              >
+                <MdClear size={18} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
       {/* LIST */}
       <div className="pt-6 space-y-2 overflow-y-auto mb-14 max-h-40">
         {" "}
+        <div>Added {label}</div>
         {values.map((item, idx) => (
           <div
             key={item}
