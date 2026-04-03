@@ -72,12 +72,12 @@ const TagInputRule: React.FC<Props> = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={`Enter ${label}`}
-              className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white hover:border-gray-300 transition-all duration-200"
+              className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebarSecondary focus:border-transparent bg-white hover:border-gray-300 transition-all duration-200"
             />
 
             <button
               onClick={handleAdd}
-              className="p-2.5 text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:from-blue-700 hover:to-blue-800 hover:shadow-md active:scale-95 transition-all duration-200"
+              className="p-2.5 text-white bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover rounded-xl hover:sidebarSecondaryHover  hover:shadow-md active:scale-95 transition-all duration-200"
             >
               <FaPlus className="w-4 h-4" />
             </button>

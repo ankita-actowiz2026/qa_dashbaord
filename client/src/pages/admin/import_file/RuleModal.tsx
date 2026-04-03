@@ -59,6 +59,8 @@ const RuleModal: React.FC<Props> = ({
   const textbox_style =
     "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
   const div_class_1 = "px-6 pt-1 pb-2 border-t border-gray-50";
+  const radioButtonStyle = "w-4 h-4 text-sidebar focus:ring-sidebarHover";
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 bg-black/60 backdrop-blur-base"
@@ -480,13 +482,13 @@ const RuleModal: React.FC<Props> = ({
           />
         )}
         {tempRule.type === "dependency" && (
-          <div className="px-6 py-4 border-t border-gray-50">
+          <div className="px-6 py-4  border-gray-50">
             {/* MAIN */}
             <div>
               <label className={label_style}>Main Dependency</label>
 
-              <div className="flex gap-6 mt-3">
-                <label className="flex items-center gap-2 text-base text-gray-700 transition-colors cursor-pointer hover:text-blue-600">
+              <div className="flex gap-6 mt-1">
+                <label className={"flex items-center gap-2 text-lg"}>
                   <input
                     type="radio"
                     name="dependency_mode"

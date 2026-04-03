@@ -236,12 +236,25 @@ const ImportFile: React.FC = () => {
 
             {/* Loader OUTSIDE */}
             {loading && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                <div className="flex flex-col items-center gap-4 p-8 bg-white shadow-2xl rounded-2xl">
-                  <div className="w-12 h-12 border-4 border-blue-200 rounded-full border-t-sidebar animate-spin"></div>
-                  <p className="text-sm font-medium text-gray-700">
-                    Processing your file...
-                  </p>
+              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <div className="flex flex-col items-center gap-4 pointer-events-auto">
+                  {/* Animated ring with custom colors */}
+                  <div className="relative w-12 h-12">
+                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#3F4D67] border-r-[#424649] animate-spin"></div>
+                    <div
+                      className="absolute inset-0 rounded-full border-4 border-transparent border-b-[#3F4D67] border-l-[#424649] animate-spin animation-delay-150"
+                      style={{ animationDuration: "0.8s" }}
+                    ></div>
+                    <div className="absolute inset-2 rounded-full bg-gradient-to-r from-[#3F4D67] to-[#424649] animate-pulse"></div>
+                  </div>
+
+                  {/* Pulsing text */}
+                  <div className="relative">
+                    <p className="text-sm font-semibold bg-gradient-to-r from-[#3F4D67] to-[#424649] bg-clip-text text-transparent animate-pulse">
+                      Processing...
+                    </p>
+                    <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#3F4D67] to-[#424649] rounded-full animate-pulse"></div>
+                  </div>
                 </div>
               </div>
             )}
