@@ -167,7 +167,7 @@ const AdminLayout = () => {
         <div className="flex flex-col flex-1">
           {/* Content */}
           <main className="flex-1 p-4 overflow-y-auto md:p-6 lg:p-8">
-            <div className="w-full mx-auto max-w-7xl">
+            <div className="">
               <Breadcrumb />
               <Outlet />
             </div>

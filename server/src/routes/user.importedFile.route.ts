@@ -3,11 +3,7 @@ import { importFileController } from "../controllers/user.importedFile.controlle
 import { upload } from "../middleware/upload.middleware";
 const importedFileRouter = express.Router();
 
-importedFileRouter.post(
-  "/",
-  upload.single("file"),
-  importFileController.addImportedFile,
-);
+importedFileRouter.post("/", importFileController.addImportedFile);
 
 importedFileRouter.post(
   "/read_header",

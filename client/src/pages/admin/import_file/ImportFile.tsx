@@ -35,6 +35,13 @@ const ImportFile: React.FC = () => {
   const navigate = useNavigate();
   const [validating, setValidating] = useState(false);
   const [rulesData, setRulesData] = useState<Record<string, any>>({});
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [headers, setHeaders] = useState<HeaderType[]>([]);
+  const [fileName, setFileName] = useState<string>("");
+  const [uploadedFileName, setUploadedFileName] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
+  const [requestData, setRequestData] = useState(null);
+  const [loading, setLoading] = useState(false);
   const {
     handleSubmit,
     reset,
@@ -51,20 +58,13 @@ const ImportFile: React.FC = () => {
 
   const handleReset = () => {
     setHeaders([]);
+    setUploadedFileName("");
     setRulesData({});
     setFile(null);
     setFileName("");
     setRequestData(null);
     reset(); // react-hook-form reset
   };
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [headers, setHeaders] = useState<HeaderType[]>([]);
-  const [fileName, setFileName] = useState<string>("");
-  const [file, setFile] = useState<File | null>(null);
-
-  const [requestData, setRequestData] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const validateFile = (file: File) => {
     return allowedTypes.includes(file.type);
@@ -92,12 +92,14 @@ const ImportFile: React.FC = () => {
 
       reset();
       setHeaders(response.data.data);
+      setUploadedFileName(response.data.filePath);
 
       setRequestData(null);
     } catch (error: any) {
       reset();
       setHeaders([]);
       setRulesData({});
+      setUploadedFileName("");
       toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
@@ -111,7 +113,7 @@ const ImportFile: React.FC = () => {
   const handleFile = async (selectedFile: File) => {
     setHeaders([]);
     setRulesData({});
-
+    setUploadedFileName("");
     if (!validateFile(selectedFile)) {
       toast.error("Invalid file type. Only .xlsx, .csv, .json, .xls allowed");
       handleReset();
@@ -126,6 +128,7 @@ const ImportFile: React.FC = () => {
     } catch {
       setHeaders([]);
       setRulesData({});
+      setUploadedFileName("");
       toast.error("Failed to read file");
     }
 
@@ -137,18 +140,16 @@ const ImportFile: React.FC = () => {
   const hasRules = Object.keys(rulesData).length > 0;
   const handleRunValidation = async () => {
     try {
-      const formData = new FormData();
       if (!file) {
         toast.error("Please select file");
         return;
       }
       setValidating(true);
 
-      formData.append("file", file);
-
-      // attach rules JSON
-      formData.append("columnConfig", JSON.stringify(rulesData));
-
+      const formData = {
+        columnConfig: JSON.stringify(rulesData),
+        fileName: uploadedFileName,
+      };
       const response = await apiClient.post(`admin/api/qa_file`, formData, {
         withCredentials: true,
       });
