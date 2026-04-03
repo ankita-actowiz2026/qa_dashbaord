@@ -94,9 +94,15 @@ const TagInputRule: React.FC<Props> = ({
         </div>
       </div>
       {/* LIST */}
-      <div className="pt-6 space-y-2 overflow-y-auto mb-14 max-h-40">
+      <div className="pt-0 space-y-2 overflow-y-auto mb-0 max-h-40">
         {" "}
-        <div>Added {label}</div>
+        {values && values.length > 0 && (
+          <div className="pt-1 pt-2 pb-0 border-t border-gray-50">
+            <label className={label_style}>
+              Existing {label.toLocaleLowerCase()}
+            </label>
+          </div>
+        )}
         {values.map((item, idx) => (
           <div
             key={item}

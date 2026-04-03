@@ -61,7 +61,9 @@ type Props = {
   onRulesChange?: (data: any) => void;
 };
 const ruleListClass =
-  "px-2.5 py-1 text-lg font-medium text-blue-500 bg-blue-50 border border-blue-200 rounded-full";
+  "px-2.5 py-1 text-lg font-medium text-sidebarSecondary bg-blue-50 border border-blue-200 rounded-full";
+const addButtonClass =
+  "inline-flex items-center gap-2 px-6 py-3 text-lg font-medium bg-sidebarSecondary  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-sidebarSecondaryHover active:scale-[0.98] transition-all duration-200";
 const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
@@ -422,7 +424,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             <h3 className="text-xl font-semibold tracking-wide text-gray-700 uppercase">
               Headers
             </h3>
-            <span className="px-2.5 py-1 text-base font-medium text-blue-600 bg-blue-50 rounded-full">
+            <span className="px-2.5 py-1 text-base font-medium text-sidebar bg-blue-50 rounded-full">
               {filteredData.length}
             </span>
           </div>
@@ -440,7 +442,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
               placeholder="Search headers..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 transition-all duration-200"
+              className="w-full pl-10 pr-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sidebar focus:border-transparent bg-gray-50 transition-all duration-200"
             />
           </div>
         </div>
@@ -508,7 +510,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           </div>
 
           <button
-            className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium bg-blue-500  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
+            className={addButtonClass}
             onClick={() => {
               setEditingRule(false);
               setTempRule({});
@@ -537,7 +539,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
               </p>
 
               <button
-                className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium bg-blue-500  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
+                className={addButtonClass}
                 onClick={() => {
                   setEditingRule(false);
                   setTempRule({});
@@ -734,7 +736,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           setTempRule(buildTempRule(rule));
                           setIsModalOpen(true);
                         }}
-                        className="p-2 text-sidebar transition-all duration-200 rounded-lg hover:text-blue-600 hover:bg-blue-50"
+                        className="p-2 text-sidebar transition-all duration-200 rounded-lg hover:text-sidebarSecondaryHover hover:bg-blue-50"
                       >
                         <FiEdit size={16} />
                       </button>

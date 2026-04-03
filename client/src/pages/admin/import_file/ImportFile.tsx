@@ -276,7 +276,7 @@ const ImportFile: React.FC = () => {
 
                     {/* Header Count */}
                     <div className="mt-1">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-base font-medium text-blue-500 bg-blue-50 rounded-full">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-base font-medium text-sidebarSecondary bg-blue-50 rounded-full">
                         <FiGrid className="text-xs" />
                         {headers.length} Headers
                       </span>

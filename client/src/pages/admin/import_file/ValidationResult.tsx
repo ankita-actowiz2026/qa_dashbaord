@@ -1,5 +1,4 @@
 import AppliedRules from "./AppliedRule";
-
 import { useState, useMemo, useCallback } from "react";
 import { FiCheckCircle } from "react-icons/fi";
 import { XCircle } from "lucide-react";

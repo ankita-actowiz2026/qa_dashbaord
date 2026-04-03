@@ -69,11 +69,9 @@ const RuleModal: React.FC<Props> = ({
         onClick={(e) => e.stopPropagation()}
         className="bg-white w-[580px] max-h-[80vh] overflow-y-auto rounded-2xl shadow-2xl relative animate-in zoom-in-95 duration-300"
       >
-        {/* CLOSE BUTTON */}
-
         <button
           onClick={onClose}
-          className="absolute z-10 flex items-center justify-center w-8 h-8 text-gray-400 transition-all duration-200 rounded-full top-4 right-4 hover:text-gray-600 hover:bg-gray-100"
+          className="absolute z-20 flex items-center justify-center w-8 h-8 text-gray-400 transition-all duration-200 rounded-full top-4 right-4 hover:text-gray-600 hover:bg-gray-100"
         >
           <MdClear size={18} />
         </button>
@@ -234,8 +232,8 @@ const RuleModal: React.FC<Props> = ({
             {tempRule.length_mode === "variable" && (
               <div className="mt-2">
                 <label className={label_style}>Min - Max Length</label>
-                <div className="mt-1">
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="mt-0">
+                  <div className="grid grid-cols-2 gap-2">
                     {/* STRING TYPES */}
                     {["string", "alphabetic", "boolean"].includes(
                       currentDataType,
@@ -248,7 +246,7 @@ const RuleModal: React.FC<Props> = ({
                           onChange={(e) =>
                             setTempRule({ ...tempRule, min: e.target.value })
                           }
-                          className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                          className={textbox_style}
                         />
                         <input
                           type="number"
@@ -315,10 +313,10 @@ const RuleModal: React.FC<Props> = ({
             {tempRule.length_mode === "fixed" && (
               <div>
                 <div className="">
-                  <div className="grid grid-cols-1 gap-3 mt-3">
+                  <div className="grid grid-cols-1 gap-0 mt-3">
                     <label className={label_style}>Fixed Value</label>
                     {/* STRING TYPES */}
-                    <div>
+                    <div className=" m-0 p-0">
                       {["string", "alphabetic", "boolean"].includes(
                         currentDataType,
                       ) && (
@@ -368,7 +366,7 @@ const RuleModal: React.FC<Props> = ({
           <div>
             <div className={div_class_1}>
               <label className={label_style}>Redundant Value</label>
-              <div className="mt-1">
+              <div className="mt-0">
                 <input
                   type="text"
                   value={tempRule.data_redundant_value || ""}
@@ -386,7 +384,7 @@ const RuleModal: React.FC<Props> = ({
 
             <div className={div_class_1}>
               <label className={label_style}>Threshold</label>
-              <div className="mt-1">
+              <div className="mt-0">
                 <input
                   type="number"
                   value={tempRule.data_redundant_threshold || ""}
@@ -406,7 +404,7 @@ const RuleModal: React.FC<Props> = ({
         {tempRule.type === "regex" && (
           <div className={div_class_1}>
             <label className={label_style}>Regex Pattern</label>
-            <div className="mt-1">
+            <div className="mt-0">
               <input
                 type="text"
                 value={tempRule.cell_contains_value || ""}
@@ -425,7 +423,7 @@ const RuleModal: React.FC<Props> = ({
         {tempRule.type === "fixed_header" && (
           <div className={div_class_1}>
             <label className={label_style}>Fixed Value</label>
-            <div className="mt-1">
+            <div className="mt-0">
               <input
                 type="text"
                 value={tempRule.fixed_header || ""}

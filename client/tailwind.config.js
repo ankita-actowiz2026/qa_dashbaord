@@ -4,11 +4,12 @@ export default {
   theme: {
     extend: {
       colors: {
-        sidebar: "#3F4D67",
-        accent: "#1dc4e9",
-        accentHover: "#15a8c8",
-
+        sidebar: "#3F4D67", //menu bg color
         sidebarHover: "#424649",
+        accent: "#1dc4e9", //active menu color
+        accentHover: "#15a8c8",
+        sidebarSecondary: "#3B82F6", //secondary text color
+        sidebarSecondaryHover: "#2563EB", //active menu color
       },
     },
   },
