@@ -10,68 +10,79 @@ export const validateRule = (tempRule, current) => {
       (rule) => rule.type === "data_type",
     );
 
-    const dataType = current?.tempDataType || dataTypeRule?.value || "string";
+    const dataTypeRaw = current?.tempDataType ||
+      dataTypeRule?.value || ["string"];
+
+    const dataTypes = Array.isArray(current?.tempDataType)
+      ? current.tempDataType
+      : current?.tempDataType
+        ? [current.tempDataType]
+        : ["string"];
+
+    const isDate = dataTypes.includes("date");
+    const isNonDate = dataTypes.some((t) =>
+      [
+        "string",
+        "alphabetic",
+        "boolean",
+        "integer",
+        "float",
+        "number",
+      ].includes(t),
+    );
 
     if (tempRule.length_mode === "fixed") {
-      if (!tempRule.fixed && tempRule.fixed !== 0) {
-        return dataType === "date"
-          ? "Please enter fixed date"
-          : "Please enter fixed value. Fixed value should be >= 0";
+      if (isDate) {
+        if (!tempRule.fixed_date) {
+          return "Please enter fixed date";
+        }
+
+        const fixedDate = new Date(tempRule.fixed_date);
+        if (isNaN(fixedDate.getTime())) {
+          return "Invalid fixed date";
+        }
       }
 
-      if (dataType === "date") {
-        const fixedDate = new Date(tempRule.fixed);
-
-        if (isNaN(fixedDate.getTime())) {
-          return "Invalid date";
-        }
-      } else {
-        // 🔢 NUMBER / LENGTH VALIDATION
-        const fixedVal = Number(tempRule.fixed);
-
-        if (isNaN(fixedVal)) {
-          return "Fixed value must be a number";
+      if (isNonDate) {
+        if (
+          tempRule.fixed_length === "" ||
+          tempRule.fixed_length === undefined
+        ) {
+          return "Please enter fixed value. Fixed value should be >= 0";
         }
 
-        if (fixedVal < 0) {
-          return "Fixed value cannot be negative";
+        const val = Number(tempRule.fixed_length);
+        if (isNaN(val) || val < 0) {
+          return "Fixed value must be >= 0";
         }
       }
     } else if (tempRule.length_mode === "variable") {
-      if (dataType === "date") {
-        const minDate = new Date(tempRule.min);
-        const maxDate = new Date(tempRule.max);
+      if (isDate) {
+        if (!tempRule.min_date) return "Please enter minimum date";
+        if (!tempRule.max_date) return "Please enter maximum date";
 
-        if (!tempRule.min) {
-          return "Please enter minimum date";
-        }
+        const minDate = new Date(tempRule.min_date);
+        const maxDate = new Date(tempRule.max_date);
 
-        if (!tempRule.max) {
-          return "Please enter maximum date";
-        }
-
-        if (isNaN(minDate.getTime())) {
-          return "Invalid minimum date";
-        }
-
-        if (isNaN(maxDate.getTime())) {
-          return "Invalid maximum date";
-        }
+        if (isNaN(minDate.getTime())) return "Invalid minimum date";
+        if (isNaN(maxDate.getTime())) return "Invalid maximum date";
 
         if (minDate > maxDate) {
           return "Minimum date cannot be greater than maximum date";
         }
-      } else {
-        const minVal = Number(tempRule.min);
-        const maxVal = Number(tempRule.max);
+      }
 
-        if (tempRule.min === "" || tempRule.min === undefined) {
+      if (isNonDate) {
+        if (tempRule.min_length === "" || tempRule.min_length === undefined) {
           return "Please enter minimum value. Minimum value should be >= 0";
         }
 
-        if (tempRule.max === "" || tempRule.max === undefined) {
+        if (tempRule.max_length === "" || tempRule.max_length === undefined) {
           return "Please enter maximum value. Maximum value should be >= 0";
         }
+
+        const minVal = Number(tempRule.min_length);
+        const maxVal = Number(tempRule.max_length);
 
         if (isNaN(minVal) || minVal < 0) {
           return "Minimum value must be >= 0";
@@ -80,6 +91,7 @@ export const validateRule = (tempRule, current) => {
         if (isNaN(maxVal) || maxVal < 0) {
           return "Maximum value must be >= 0";
         }
+
         if (minVal >= maxVal) {
           return "Minimum value cannot be same or greater than maximum value";
         }
@@ -134,7 +146,7 @@ export const validateRule = (tempRule, current) => {
     }
   }
 
-  if (tempRule.type === "fixed_header") {    
+  if (tempRule.type === "fixed_header") {
     if (!tempRule.fixed_header) {
       return "Please add at least one header value";
     }

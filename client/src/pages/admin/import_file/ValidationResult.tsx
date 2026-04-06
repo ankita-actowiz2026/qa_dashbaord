@@ -1,14 +1,13 @@
-import AppliedRules from "./AppliedRule";
 import ColumnDetailRow from "./ColumnDetailRow";
 
 import { useState, useMemo, useCallback } from "react";
 import { FiCheckCircle } from "react-icons/fi";
-import { XCircle } from "lucide-react";
+
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
-import { FiFileText, FiDownload } from "react-icons/fi";
-import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { FiDownload } from "react-icons/fi";
+import { CheckCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 const formatErrorMsg = (count, label) => {

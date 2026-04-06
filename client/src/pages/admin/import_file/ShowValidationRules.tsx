@@ -20,14 +20,17 @@ const defaultTempRule = {
 };
 type Rule =
   | { type: "required"; value: boolean }
-  | { type: "data_type"; value: string }
+  | { type: "data_type"; value: string[] }
   | {
       type: "data_length";
       value: {
         mode: "fixed" | "variable";
-        min?: number | string;
-        max?: number | string;
-        fixed?: number | string;
+        min_length?: number | string;
+        max_length?: number | string;
+        fixed_length?: number | string;
+        min_date?: string;
+        max_date?: string;
+        fixed_date?: string;
       };
     }
   | { type: "date_format"; value: string }
@@ -91,11 +94,14 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       | "dependency";
 
     required?: boolean;
-    data_type?: string;
+    data_type?: string[];
     length_mode?: "variable" | "fixed";
-    min?: number | string;
-    max?: number | string;
-    fixed?: number | string;
+    min_length?: number | string;
+    max_length?: number | string;
+    fixed_length?: number | string;
+    min_date?: string;
+    max_date?: string;
+    fixed_date?: string;
     date_format?: string;
     data_redundant_value?: string;
     data_redundant_threshold?: string;
@@ -140,27 +146,36 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
   const current = useMemo(() => data[selectedHeader], [data, selectedHeader]);
   const applyRule = () => {
+    const normalizeTypes = (val: any) =>
+      Array.isArray(val) ? val : val ? [val] : ["string"];
     const error = validateRule(tempRule, {
       ...current,
       tempDataType:
         tempRule.type === "data_type"
-          ? tempRule.data_type
-          : current.rules?.find((r) => r.type === "data_type")?.value,
+          ? normalizeTypes(tempRule.data_type)
+          : normalizeTypes(
+              current.rules?.find((r) => r.type === "data_type")?.value,
+            ),
     });
     if (error) return toast.error(error);
     const updated = data.map((h, i) =>
       i === selectedHeader ? { ...h, rules: [...h.rules] } : h,
     );
     const currentHeader = updated[selectedHeader];
-
+    alert(tempRule.data_type);
+    const selectedTypes = Array.isArray(tempRule.data_type)
+      ? tempRule.data_type
+      : tempRule.data_type
+        ? [tempRule.data_type]
+        : ["string"];
     // ✅ If editing → remove OLD rule (regardless of type)
     if (editingIndex !== null) {
       const removingType = currentHeader.rules[editingIndex]?.type;
 
       // ✅ If editing data_type → also remove date_format
       if (removingType === "data_type") {
-        const previousDataType = currentHeader.rules[editingIndex]?.value;
-        const newDataType = tempRule.data_type;
+        const previousDataType = currentHeader.rules[editingIndex]?.value || [];
+        const newDataType = tempRule.data_type || [];
 
         currentHeader.rules = currentHeader.rules.filter((r, i) => {
           if (i === editingIndex) return false;
@@ -169,9 +184,12 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           if (r.type === "date_format") return false;
 
           // ✅ FIXED condition
+          const isSameArray = (a: string[], b: string[]) =>
+            a.length === b.length && a.every((v) => b.includes(v));
+
           const isSwitchingWithDate =
-            previousDataType !== newDataType &&
-            (previousDataType === "date" || newDataType === "date");
+            !isSameArray(previousDataType, newDataType) &&
+            (previousDataType.includes("date") || newDataType.includes("date"));
 
           if (r.type === "data_length" && isSwitchingWithDate) {
             return false;
@@ -194,10 +212,13 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
       case "data_type":
         currentHeader.rules.push({
           type: "data_type",
-          value: tempRule.data_type || "string", // ✅ fallback
+          value: selectedTypes,
         });
 
-        if (tempRule.data_type == "date") {
+        if (
+          tempRule.data_type?.includes("date") &&
+          (tempRule.date_format || tempRule.custom_date_format)
+        ) {
           currentHeader.rules.push({
             type: "date_format",
             value:
@@ -207,17 +228,62 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           });
         }
         break;
-      case "data_length":
+      case "data_length": {
+        const normalizeTypes = (val: any) =>
+          Array.isArray(val) ? val : val ? [val] : ["string"];
+
+        // ✅ ALWAYS get from existing rule
+        const selectedTypes = normalizeTypes(
+          currentHeader.rules?.find((r) => r.type === "data_type")?.value,
+        );
+        const isDate = selectedTypes.includes("date");
+
+        const isNonDate = selectedTypes.some((t) =>
+          [
+            "string",
+            "alphabetic",
+            "number",
+            "integer",
+            "float",
+            "boolean",
+          ].includes(t),
+        );
+
+        const value: any = {
+          mode: tempRule.length_mode || "variable",
+        };
+
+        // ✅ VARIABLE MODE
+        if (value.mode === "variable") {
+          if (isNonDate) {
+            value.min_length = tempRule.min_length;
+            value.max_length = tempRule.max_length;
+          }
+          alert(isDate + "==" + isNonDate);
+          if (isDate) {
+            value.min_date = tempRule.min_date;
+            value.max_date = tempRule.max_date;
+          }
+        }
+
+        // ✅ FIXED MODE
+        if (value.mode === "fixed") {
+          if (isNonDate) {
+            value.fixed_length = tempRule.fixed_length;
+          }
+
+          if (isDate) {
+            value.fixed_date = tempRule.fixed_date;
+          }
+        }
+
         currentHeader.rules.push({
           type: "data_length",
-          value: {
-            mode: tempRule.length_mode || "variable",
-            min: tempRule.min,
-            max: tempRule.max,
-            fixed: tempRule.fixed,
-          },
+          value,
         });
+
         break;
+      }
       case "data_redundant":
         currentHeader.rules.push({
           type: "data_redundant",
@@ -291,7 +357,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
     const updated = [...data];
     const currentHeader = updated[selectedHeader];
-
+    const selectedTypes = tempRule.data_type?.length
+      ? tempRule.data_type
+      : ["string"];
     const deletedRule = currentHeader.rules[deleteIndex];
     currentHeader.rules.splice(deleteIndex, 1);
 
@@ -311,8 +379,10 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
   );
   const formatText = (text: string) =>
     text ? text.charAt(0).toUpperCase() + text.slice(1) : "-";
-  const currentDataType =
-    (appliedRuleDataType?.[0]?.value as string) || "string";
+  const currentDataType = (appliedRuleDataType?.[0]?.value as string[]) || [
+    "string",
+  ];
+
   useEffect(() => {
     if (headers.length > 0) {
       setData(
@@ -333,7 +403,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         };
 
       case "data_type": {
-        const dataType = rule.value as string;
+        const dataType = rule.value as string[];
+
+        const isDate = dataType.includes("date");
         const dateFormatRule = current.rules.find(
           (r) => r.type === "date_format",
         );
@@ -343,7 +415,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         return {
           type: "data_type",
           data_type: dataType,
-          ...(dataType === "date" && {
+          ...(isDate && {
             date_format: isPredefined ? dateValue : "custom",
             custom_date_format: isPredefined ? "" : dateValue,
           }),
@@ -366,9 +438,12 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         return {
           type: "data_length",
           length_mode: val.mode || "variable",
-          min: val.min ?? "",
-          max: val.max ?? "",
-          fixed: val.fixed ?? "",
+          min_length: val.min_length ?? "",
+          max_length: val.max_length ?? "",
+          fixed_length: val.fixed_length ?? "",
+          min_date: val.min_date ?? "",
+          max_date: val.max_date ?? "",
+          fixed_date: val.fixed_date ?? "",
         };
       }
 
@@ -567,6 +642,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
+              [[[[{JSON.stringify(current)}]]]
               {current.rules
                 .filter((rule) => rule.type !== "date_format")
                 .map((rule, idx) => (
@@ -617,11 +693,13 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
                           {/* Data Type Badge */}
                           <span className={ruleListClass}>
-                            {formatText(rule.value as string)}
+                            {Array.isArray(rule.value)
+                              ? rule.value.map((v) => formatText(v)).join(", ")
+                              : formatText(rule.value)}
                           </span>
 
                           {/* ✅ If DATE → show format */}
-                          {rule.value === "date" &&
+                          {rule.value.includes("date") &&
                             (() => {
                               const dateFormatRule = current.rules.find(
                                 (r) => r.type === "date_format",
@@ -642,29 +720,73 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                             {RULE_LABELS[rule.type]}
                           </span>
 
-                          {/* Mode Badge */}
+                          {/* Mode */}
                           <span className={ruleListClass}>
                             {formatText(rule.value?.mode)}
                           </span>
 
-                          {/* Values */}
-                          {rule.value?.mode === "fixed" && (
-                            <span className={ruleListClass}>
-                              {rule.value?.fixed || "-"}
-                            </span>
-                          )}
+                          {/* Detect if it's DATE or LENGTH */}
+                          {(() => {
+                            const hasDate =
+                              rule.value?.min_date ||
+                              rule.value?.max_date ||
+                              rule.value?.fixed_date;
 
-                          {rule.value?.mode === "variable" && (
-                            <>
-                              <span className={ruleListClass}>
-                                {rule.value?.min || "-"}
-                              </span>
-                              <span className="font-semibold">To</span>
-                              <span className={ruleListClass}>
-                                {rule.value?.max || "-"}
-                              </span>
-                            </>
-                          )}
+                            const hasLength =
+                              rule.value?.min_length !== undefined ||
+                              rule.value?.max_length !== undefined ||
+                              rule.value?.fixed_length !== undefined;
+
+                            if (rule.value?.mode === "fixed") {
+                              return (
+                                <>
+                                  {hasLength && (
+                                    <span className={ruleListClass}>
+                                      {rule.value?.fixed_length ?? "-"}
+                                    </span>
+                                  )}
+
+                                  {hasDate && (
+                                    <span className={ruleListClass}>
+                                      {rule.value?.fixed_date ?? "-"}
+                                    </span>
+                                  )}
+                                </>
+                              );
+                            }
+
+                            if (rule.value?.mode === "variable") {
+                              return (
+                                <>
+                                  {hasLength && (
+                                    <>
+                                      <span className={ruleListClass}>
+                                        {rule.value?.min_length ?? "-"}
+                                      </span>
+                                      <span className="font-semibold">To</span>
+                                      <span className={ruleListClass}>
+                                        {rule.value?.max_length ?? "-"}
+                                      </span>
+                                    </>
+                                  )}
+
+                                  {hasDate && (
+                                    <>
+                                      <span className={ruleListClass}>
+                                        {rule.value?.min_date ?? "-"}
+                                      </span>
+                                      <span className="font-semibold">To</span>
+                                      <span className={ruleListClass}>
+                                        {rule.value?.max_date ?? "-"}
+                                      </span>
+                                    </>
+                                  )}
+                                </>
+                              );
+                            }
+
+                            return null;
+                          })()}
                         </div>
                       )}
 
