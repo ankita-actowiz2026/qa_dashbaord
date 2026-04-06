@@ -57,9 +57,7 @@ const errorKeyMap = {
 };
 const buildRulesArray = (colRules, issueMap = {}) => {
   const arr = [];
-  console.log("+++++++++++");
-  console.log(issueMap);
-  console.log("+++++++++++");
+
   if (!colRules) return arr;
 
   // ✅ Length
@@ -267,8 +265,7 @@ const ValidationResult = () => {
   const requestData = location.state?.requestData;
   const fileName = location.state?.fileName;
   // console.log(responseData);
-  console.log("==========");
-  console.log(requestData);
+
   const [expandedColumn, setExpandedColumn] = useState<string | null>(null);
 
   if (!responseData) {
@@ -311,7 +308,6 @@ const ValidationResult = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className=" mx-auto ">
-        {JSON.stringify(requestData)}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>

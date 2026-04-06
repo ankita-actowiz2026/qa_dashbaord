@@ -253,7 +253,6 @@ const ColumnDetailRow = ({
             </>
           ) : (
             <span className="text-green-600 text-base whitespace-nowrap flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
               All valid
             </span>
           )}
