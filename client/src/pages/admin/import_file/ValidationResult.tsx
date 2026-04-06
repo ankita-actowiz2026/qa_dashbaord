@@ -174,20 +174,19 @@ const formatValue = (value) => {
   if (value === false) return "No";
   return String(value);
 };
+const ignoreColumns = [
+  "total_records",
+  "valid_records",
+  "invalid_records",
+  "error_msg",
+  "unique_values",
+  "unique_records",
+  "invalid_row_numbers",
+  "error_rows",
+];
 const getFilteredColumns = (columnStats: any) => {
   return Object.entries(columnStats).filter(([_, stats]: any) =>
-    Object.entries(stats).some(
-      ([key, value]) =>
-        ![
-          "total_records",
-          "valid_records",
-          "invalid_records",
-          "error_msg",
-          "unique_values",
-          "unique_records",
-          "invalid_row_numbers",
-        ].includes(key),
-    ),
+    Object.entries(stats).some(([key, value]) => !ignoreColumns.includes(key)),
   );
 };
 type ColumnError = {
@@ -289,34 +288,42 @@ const ValidationResult = () => {
     [column_wise_stats],
   );
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 ">
-      <div className="   space-y-6">
-        <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-          Records Summary
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className=" mx-auto ">
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent mb-2">
+                Validation Results
+              </h1>
+              <p className="text-slate-500 flex items-center gap-2">
+                <FiCheckCircle className="text-green-500" />
+                Data quality report for your uploaded file
+              </p>
+            </div>
 
-        <p className="text-lg text-gray-500"></p>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 shadow-sm">
-            <div className="flex items-center gap-2 text-base text-gray-500">
-              <FiFileText className="text-gray-400" />
-              <span>Current file:</span>
-              <span
-                className="font-medium text-gray-800 truncate max-w-[200px]"
-                title={fileName}
+            {/* File info badge - make it more visual */}
+            <div className="flex items-center gap-3">
+              <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm border border-slate-200">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-base text-slate-600">
+                    {fileName || "No file selected"}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => navigate("/admin/import_file")}
+                className="group relative inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-200 rounded-full hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                {fileName || "No file selected"}
-              </span>
+                <FaUpload className="text-slate-500 group-hover:text-blue-500 transition-colors" />
+                <span className="font-medium text-slate-700 group-hover:text-blue-600">
+                  Upload New
+                </span>
+              </button>
             </div>
           </div>
-
-          <button
-            onClick={() => navigate("/admin/import_file")}
-            className="flex items-center gap-2 bg-gradient-to-r from-gray-800 to-gray-700 text-white px-6 py-3 rounded-xl font-medium hover:from-gray-700 hover:to-gray-600 transition-all duration-200 shadow-md hover:shadow-lg"
-          >
-            <FaUpload className="text-lg" />
-            Upload New File
-          </button>
         </div>
         {/* 🔹 TOP SUMMARY */}
         <div className="mt-8">
@@ -341,125 +348,108 @@ const ValidationResult = () => {
             href={result_file}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 text-white bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+            className="group relative inline-flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl text-white font-medium overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            <FiDownload className="text-lg" />
-            Download Full Report
+            <div className="absolute inset-0 bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover"></div>
+            <FiDownload className="relative z-10 text-lg group-hover:scale-110 transition-transform" />
+            <span className="relative z-10">Download Full Report</span>
           </a>
         </div>
         {/* 🔹 COLUMN LIST */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-gray-50 to-white px-6 py-5 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
-              Column Analysis Results
-              <span className="ml-2 text-base font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                {filteredColumns.length} columns
-              </span>
-            </h2>
+          <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-5 border-b border-slate-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                  <div className="w-1.5 h-7 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+                  Column Analysis
+                </h2>
+                <p className="text-slate-500 text-base mt-1">
+                  Detailed validation results for each column
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-base font-medium">
+                  {filteredColumns.length} columns analyzed
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* BODY */}
-          <div className="grid grid-cols-11 gap-2 bg-gray-100 p-3 rounded-t-lg font-semibold text-sm text-gray-700 border">
-            <div>ID</div>
-            <div>Headers</div>
-            <div>Total</div>
-            <div>QC Pass</div>
-            <div>QC Fail</div>
-            <div>Blank Rows</div>
-            <div>Reasons</div>
-            <div>Unique %</div>
-            <div>Status</div>
-            <div>QC Fail %</div>
-            <div>No of Row ID</div>
-          </div>
-          <div className="divide-y">
-            {filteredColumns.length === 0 ? (
-              // ✅ EMPTY STATE
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <div className="bg-green-50 rounded-full p-4 mb-4">
-                  <CheckCircle className="text-green-500" size={48} />
-                </div>
-                <p className="text-xl font-bold text-green-600 mb-2">
-                  🎉 All validations passed!
-                </p>
-                <p className="text-gray-500">
-                  No issues were found in your uploaded data. Your file looks
-                  great!
-                </p>
-              </div>
-            ) : (
-              filteredColumns.map(([col, stats]: any, index: number) => {
-                const issues = Object.entries(stats).filter(
-                  ([key, val]) =>
-                    ![
-                      "total_records",
-                      "valid_records",
-                      "invalid_records",
-                      "error_msg",
-                      "unique_values",
-                      "unique_records",
-                      "invalid_row_numbers",
-                    ].includes(key),
-                );
-                const colRules = requestData?.[col] || {};
-
-                const issueMap = Object.fromEntries(issues);
-                const rulesArray = buildRulesArray(colRules, issueMap);
-                const dependencyMap = {};
-
-                Object.entries(requestData || {}).forEach(
-                  ([parentCol, rules]: any) => {
-                    if (!rules.dependency) return;
-
-                    const entries = Object.entries(rules.dependency);
-
-                    for (let i = 0; i < entries.length - 1; i++) {
-                      const [currentKey, currentValue] = entries[i];
-                      const [nextKey, nextValue] = entries[i + 1];
-
-                      const currentCols = currentKey
-                        .split(",")
-                        .map((c) => c.trim());
-                      const nextCols = nextKey.split(",").map((c) => c.trim());
-
-                      nextCols.forEach((childCol) => {
-                        if (!dependencyMap[childCol]) {
-                          dependencyMap[childCol] = [];
-                        }
-
-                        dependencyMap[childCol].push({
-                          parentGroup: currentCols, // ✅ correct parent
-                          parentValue: currentValue,
-                          expected: nextValue,
-                        });
-                      });
-                    }
-                  },
-                );
-                return (
-                  <ColumnDetailRow
-                    key={col}
-                    col={col}
-                    stats={stats}
-                    issues={issues}
-                    colRules={colRules}
-                    issueMap={issueMap}
-                    errors_for_coloms={errors_for_coloms}
-                    dependencyMap={dependencyMap}
-                    formatErrorMsg={formatErrorMsg}
-                    FIELD_LABELS={FIELD_LABELS}
-                    column_wise_stats={column_wise_stats}
-                    expandedColumn={expandedColumn}
-                    setExpandedColumn={setExpandedColumn}
-                    AppliedRulesComponent={AppliedRules}
-                    getErrorStyle={getErrorStyle}
-                    index={index}
-                    total_rows={total_rows}
-                  />
-                );
-              })
-            )}
+          {/* Grid Header */}
+          <div className="overflow-x-auto">
+            <table className="min-w-[800px] w-full border-collapse">
+              <thead className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-200">
+                <tr>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[5%]">
+                    ID
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[15%]">
+                    Headers
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[6%]">
+                    Total
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                    QC Pass
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                    QC Fail
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[6%]">
+                    Blank Rows
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[15%]">
+                    Reasons
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                    Unique %
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                    Status
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                    QC Fail %
+                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[13%]">
+                    No. of Row ID
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredColumns.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="px-4 py-16 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="bg-green-50 rounded-full p-4 mb-4">
+                          <CheckCircle className="text-green-500" size={48} />
+                        </div>
+                        <p className="text-xl font-bold text-green-600 mb-2">
+                          🎉 All validations passed!
+                        </p>
+                        <p className="text-gray-500">
+                          No issues were found in your uploaded data. Your file
+                          looks great!
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredColumns.map(([col, stats]: any, index: number) => (
+                    <ColumnDetailRow
+                      key={col}
+                      col={col}
+                      stats={stats}
+                      index={index}
+                      total_rows={total_rows}
+                      colRules={requestData?.[col] || {}}
+                      // ... other props
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>

@@ -436,8 +436,8 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         {/* HEADER */}
         <div className="px-5 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold tracking-wide text-gray-700 uppercase">
-              Headers
+            <h3 className="text-2xl font-semibold tracking-wide text-gray-700 ">
+              Columns
             </h3>
             <span className="px-2.5 py-1 text-base font-medium text-sidebar bg-blue-50 rounded-full">
               {filteredData.length}
@@ -516,7 +516,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         {/* HEADER */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50 rounded-t-2xl">
           <div>
-            <h2 className="text-xl font-semibold text-sidebar">
+            <h2 className="text-2xl font-semibold text-sidebar">
               {current.name}
             </h2>
             <p className="text-base text-gray-400 mt-0.5">

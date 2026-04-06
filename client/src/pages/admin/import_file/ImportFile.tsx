@@ -186,18 +186,6 @@ const ImportFile: React.FC = () => {
   };
   return (
     <div className="mt-6 space-y-6">
-      {/* Title */}
-      <span className="px-3 py-1 text-sm font-medium text-white bg-[#3B82F6] rounded-md hover:bg-[#2563EB] transition-colors duration-200 cursor-pointer">
-        Label
-      </span>{" "}
-      {"   "}
-      <span className="px-3 py-1 text-sm font-medium text-white bg-[#4F46E5] rounded-md hover:bg-[#4338CA] transition-colors duration-200 cursor-pointer">
-        Label
-      </span>{" "}
-      {"   "}
-      <span className="px-3 py-1 text-sm font-medium text-white bg-[#5C6AC4] rounded-md hover:bg-[#4C51BF] transition-colors duration-200 cursor-pointer">
-        Label
-      </span>
       <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
         {/* Upload Box */}
         {headers.length === 0 ? (

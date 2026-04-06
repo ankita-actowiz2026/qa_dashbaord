@@ -21,7 +21,7 @@ export default function Breadcrumb() {
         {/* Home */}
 
         {pathnames
-          .filter((v) => v != "admin")
+          // .filter((v) => v != "admin")
           .map((value, index) => {
             const to = "/" + pathnames.slice(0, index + 1).join("/");
             const isLast = index === pathnames.length - 1;
