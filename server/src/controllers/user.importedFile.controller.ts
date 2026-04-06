@@ -155,6 +155,7 @@ class ImportFileController {
         "total_records",
         "valid_records",
         "invalid_records",
+        "unique_records",
         "error_msg",
       ];
 

@@ -71,7 +71,7 @@ const ShowImportedData: React.FC = () => {
       navigate("/admin/import_file/validation_result", {
         state: {
           responseData: response.data,
-          requestData: rulesData,
+          requestData: cleanedRules,
           fileName,
         },
       });

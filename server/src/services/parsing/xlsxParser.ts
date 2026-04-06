@@ -3,6 +3,7 @@ import { ErrorBuffer } from "../../utils/errorBuffer";
 import {
   ColumnRule,
   ColumnStats,
+  error_rows,
 } from "../../interface/importedFile.interface";
 import {
   validateRow,
@@ -61,11 +62,18 @@ export const xlsxParser = async (
 
             headers.forEach((header) => {
               if (!header || typeof header !== "string") return;
+
               const ruleConfig = columnConfig[header] || {};
-              columnStats[header] = createColumnStatsFromRules(
+
+              const stats = createColumnStatsFromRules(
                 ruleConfig,
                 "not_add_dependency",
               );
+
+              // ✅ initialize Set here
+              stats.unique_values = new Set();
+              stats.invalid_row_numbers = [];
+              columnStats[header] = stats;
             });
             const dependencyColumns = extractDependencyColumns(columnConfig);
 

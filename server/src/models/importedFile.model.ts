@@ -38,6 +38,10 @@ const importedFileSchema = new Schema<IImportedFile>(
       type: Number,
       default: 0,
     },
+    unique_records: {
+      type: Number,
+      default: 0,
+    },
     valid_records: {
       type: Number,
       default: 0,

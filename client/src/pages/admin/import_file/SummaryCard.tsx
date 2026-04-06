@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, Info } from "lucide-react";
+import { CheckCircle, XCircle, List } from "lucide-react";
 
 const SummaryCard = ({ title, value, success, error }: any) => {
   const isSuccess = success;
@@ -16,7 +16,7 @@ const SummaryCard = ({ title, value, success, error }: any) => {
       ? "text-red-600"
       : "text-gray-800";
 
-  const Icon = isSuccess ? CheckCircle : isError ? XCircle : Info;
+  const Icon = isSuccess ? CheckCircle : isError ? XCircle : List;
 
   return (
     <div
@@ -32,10 +32,9 @@ const SummaryCard = ({ title, value, success, error }: any) => {
       {/* Content */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-lg text-gray-500">{title}</p>
+          <p className="text-lg text-sidebar">{title}</p>
           <p className={`text-2xl font-bold mt-1 ${textColor}`}>{value}</p>
         </div>
-
         {/* Icon */}
         <div
           className={`p-2 rounded-xl ${

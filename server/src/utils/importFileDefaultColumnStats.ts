@@ -30,6 +30,8 @@ export const importFileDefaultColumnStats: ColumnStats = {
   total_records: 0,
   valid_records: 0,
   invalid_records: 0,
+  unique_records: 0,
+
   datatype_error_count: 0,
   empty_count: 0,
   regex_pattern_error_count: 0,
@@ -41,7 +43,21 @@ export const importFileDefaultColumnStats: ColumnStats = {
   cell_end_with_error_count: 0,
   blocked_word_error_count: 0,
   dependancy_error_count: 0,
+  unique_values: new Set(),
+  invalid_row_numbers: [],
   error_msg: [],
+  error_rows: {
+    empty: [],
+    datatype: [],
+    regex: [],
+    redundant: [],
+    fixed_header: [],
+    start_with: [],
+    end_with: [],
+    length: [],
+    blocked: [],
+    dependency: [],
+  },
 };
 export const createColumnStats = (): ColumnStats => {
   return {
