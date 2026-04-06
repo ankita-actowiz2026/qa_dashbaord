@@ -10,6 +10,7 @@ import { FaUpload } from "react-icons/fa";
 import { FiFileText, FiDownload } from "react-icons/fi";
 import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "react-router-dom";
+
 const formatErrorMsg = (count, label) => {
   if (!count || count === 0) {
     return "No validation errors found";
@@ -287,9 +288,30 @@ const ValidationResult = () => {
     () => getFilteredColumns(column_wise_stats),
     [column_wise_stats],
   );
+  const dependencyColumnSet = useMemo(() => {
+    const set = new Set();
+
+    Object.values(requestData || {}).forEach((rule: any) => {
+      if (!rule?.dependency) return;
+
+      const keys = Object.keys(rule.dependency);
+
+      // ❌ ignore first key (parent)
+      const childKeys = keys.slice(1);
+
+      childKeys.forEach((key) => {
+        key.split(",").forEach((col: string) => {
+          set.add(col.trim());
+        });
+      });
+    });
+
+    return set;
+  }, [requestData]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className=" mx-auto ">
+        {JSON.stringify(requestData)}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -328,19 +350,9 @@ const ValidationResult = () => {
         {/* 🔹 TOP SUMMARY */}
         <div className="mt-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <SummaryCard title="Total Records" value={total_rows} icon="📊" />
-            <SummaryCard
-              title="Valid Records"
-              value={valid_rows}
-              success
-              icon="✅"
-            />
-            <SummaryCard
-              title="Invalid Records"
-              value={invalid_rows}
-              error
-              icon="❌"
-            />
+            <SummaryCard title="Total Records" value={total_rows} />
+            <SummaryCard title="Valid Records" value={valid_rows} success />
+            <SummaryCard title="Invalid Records" value={invalid_rows} error />
           </div>
         </div>
         <div className="flex justify-end mb-6">
@@ -444,6 +456,7 @@ const ValidationResult = () => {
                       index={index}
                       total_rows={total_rows}
                       colRules={requestData?.[col] || {}}
+                      dependencyColumnSet={dependencyColumnSet}
                       // ... other props
                     />
                   ))

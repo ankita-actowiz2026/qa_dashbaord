@@ -59,6 +59,12 @@ const getMergedErrorRows = (errorRows) => {
 
   return Array.from(merged).sort((a, b) => a - b);
 };
+const RULE_LABEL_MAP = {
+  length_validation_type: "length_validation",
+  data_redundant_value: "data_redundant_value",
+  cell_contains: "regex",
+  not_match_found: "blocked_word",
+};
 const ColumnDetailRow = ({
   col,
   stats,
@@ -76,6 +82,7 @@ const ColumnDetailRow = ({
   getErrorStyle,
   index,
   total_rows,
+  dependencyColumnSet,
 }) => {
   const qcFailPercentage =
     total_rows > 0
@@ -92,7 +99,7 @@ const ColumnDetailRow = ({
     <tr className="hover:bg-slate-50 transition-colors border-b border-slate-100">
       {/* ID */}
       <td className="px-3 py-3">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-bold flex items-center justify-center shadow-sm">
+        <div className="w-7 h-7 rounded-lg  text-slate-800   text-base font-bold flex items-center justify-center shadow-sm">
           {index + 1}
         </div>
       </td>
@@ -100,7 +107,7 @@ const ColumnDetailRow = ({
       {/* Headers */}
       <td className="px-3 py-3">
         <div
-          className="font-semibold text-slate-800 text-sm truncate"
+          className="font-semibold text-slate-800 text-base truncate"
           title={col}
         >
           {col}
@@ -109,7 +116,7 @@ const ColumnDetailRow = ({
 
       {/* Total */}
       <td className="px-3 py-3">
-        <div className="font-bold text-slate-700 text-sm whitespace-nowrap">
+        <div className="font-bold text-slate-700 text-base whitespace-nowrap">
           {stats.total_records ?? 0}
         </div>
       </td>
@@ -117,7 +124,7 @@ const ColumnDetailRow = ({
       {/* QC Pass */}
       <td className="px-3 py-3">
         <div className="flex flex-col gap-1">
-          <span className="text-green-600 font-semibold text-sm whitespace-nowrap">
+          <span className="text-green-600 font-semibold text-base whitespace-nowrap">
             {stats.valid_records ?? 0}
           </span>
         </div>
@@ -126,7 +133,7 @@ const ColumnDetailRow = ({
       {/* QC Fail */}
       <td className="px-3 py-3">
         <div className="flex flex-col gap-1">
-          <span className="text-red-600 font-semibold text-sm whitespace-nowrap">
+          <span className="text-red-600 font-semibold text-base whitespace-nowrap">
             {stats.invalid_records ?? 0}
           </span>
         </div>
@@ -134,38 +141,68 @@ const ColumnDetailRow = ({
 
       {/* Blank Rows */}
       <td className="px-3 py-3">
-        <span className=" font-medium text-sm whitespace-nowrap">
+        <span className=" font-medium text-base whitespace-nowrap">
           {stats.blank_rows ?? 0}
         </span>
       </td>
 
       {/* Reasons */}
       <td className="px-3 py-3">
-        {Object.keys(colRules || {}).length > 0 ? (
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-base px-2 py-0.5 bg-red-50 text-red-600 rounded-full whitespace-nowrap">
-              {Object.keys(colRules).slice(0, 2).join(", ")}
-            </span>
-            {Object.keys(colRules).length > 2 && (
-              <div className="relative inline-block group">
-                <span className="text-base px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full cursor-help whitespace-nowrap">
-                  +{Object.keys(colRules).length - 2}
-                </span>
-                <div className="invisible group-hover:visible absolute z-50 bottom-full left-0 mb-2 p-2 bg-gray-900 text-white text-base rounded-lg shadow-xl min-w-[200px]">
-                  <div className="font-semibold mb-1 text-gray-300">
-                    All Rules:
+        {(() => {
+          const hiddenKeys = [
+            "min_length",
+            "max_length",
+            "data_redundant_threshold",
+            "cell_contains_value",
+          ];
+
+          const ruleKeys = Object.keys(colRules || {}).filter(
+            (key) => !hiddenKeys.includes(key),
+          );
+
+          // ✅ Add dependency if:
+          // 1. Column is part of dependency chain
+          // 2. OR dependency error exists
+          if (
+            (dependencyColumnSet?.has(col) ||
+              stats?.dependancy_error_count > 0) &&
+            !ruleKeys.includes("dependency")
+          ) {
+            ruleKeys.push("dependency");
+          }
+
+          const displayKeys = ruleKeys.map((key) => RULE_LABEL_MAP[key] || key);
+
+          return displayKeys.length > 0 ? (
+            <div className="flex items-center gap-1 flex-wrap">
+              <span className="text-base px-2 py-0.5 bg-red-50 text-red-600 rounded-full whitespace-nowrap">
+                {displayKeys.slice(0, 2).join(", ")}
+              </span>
+
+              {displayKeys.length > 2 && (
+                <div className="relative inline-block group">
+                  <span className="text-base px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full cursor-help whitespace-nowrap">
+                    +{displayKeys.length - 2}
+                  </span>
+
+                  <div className="invisible group-hover:visible absolute z-50 bottom-full left-0 mb-2 p-2 bg-gray-900 text-white text-base rounded-lg shadow-xl min-w-[200px]">
+                    <div className="font-semibold mb-1 text-gray-300">
+                      All Rules:
+                    </div>
+
+                    <div className="text-gray-200">
+                      {displayKeys.join(", ")}
+                    </div>
+
+                    <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
                   </div>
-                  <div className="text-gray-200">
-                    {Object.keys(colRules).join(", ")}
-                  </div>
-                  <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
                 </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <span className="text-base text-gray-400">—</span>
-        )}
+              )}
+            </div>
+          ) : (
+            <span className="text-base text-gray-400">—</span>
+          );
+        })()}
       </td>
 
       {/* Unique Percentage */}
@@ -183,16 +220,13 @@ const ColumnDetailRow = ({
           className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-base font-semibold whitespace-nowrap
           ${stats.invalid_records > 0 ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"}`}
         >
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${stats.invalid_records > 0 ? "bg-red-500" : "bg-green-500"}`}
-          />
           {stats.invalid_records > 0 ? "QA FAIL" : "QA PASS"}
         </span>
       </td>
 
       {/* QC Fail Percentage */}
       <td className="px-3 py-3">
-        <span className={`text-sm font-bold whitespace-nowrap }`}>
+        <span className={`text-base font-bold whitespace-nowrap }`}>
           {qcFailPercentage}%
         </span>
       </td>
@@ -214,7 +248,7 @@ const ColumnDetailRow = ({
                 className="p-1 rounded-lg hover:bg-red-100 transition-all"
                 title="Download error details"
               >
-                <FileDown className="w-3.5 h-3.5 text-blue-600 hover:scale-110 transition-transform" />
+                <FileDown className="w-6 h-6 text-blue-600 hover:scale-110 transition-transform" />
               </button>
             </>
           ) : (
