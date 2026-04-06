@@ -226,6 +226,7 @@ const ImportFile: React.FC = () => {
                 ref={fileInputRef}
                 type="file"
                 accept=".xlsx,.xls,.csv,.json"
+                disabled={loading}
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
@@ -236,7 +237,7 @@ const ImportFile: React.FC = () => {
 
             {/* Loader OUTSIDE */}
             {loading && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
                 <div className="flex flex-col items-center gap-4 pointer-events-auto">
                   {/* Animated ring with custom colors */}
                   <div className="relative w-12 h-12">
