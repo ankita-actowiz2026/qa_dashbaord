@@ -793,12 +793,35 @@ export const validateRow = (
 ) => {
   let rowValid = true;
 
+  const dependentColumns = new Set<string>();
+
+  Object.values(ruleMap).forEach((rule: any) => {
+    if (!rule?.dependency) return;
+
+    const entries = Object.entries(rule.dependency);
+
+    if (entries.length < 2) return;
+
+    const parentKey = entries[0][0];
+    const childKey = entries[1][0];
+
+    childKey.split(",").forEach((col: string) => {
+      dependentColumns.add(col.trim());
+    });
+  });
+  console.log("+++++++++++++++++++++");
+  console.log(dependentColumns);
+
   for (let i = 0; i < headers.length; i++) {
     let datatype_validation_checked = 0;
     const columnName = headers[i];
     const rule = ruleMap[columnName];
-    if (!rule) continue;
-    const dataType = rule.data_type;
+    const isDependent = dependentColumns.has(columnName);
+
+    const shouldProcess = rule || isDependent;
+    console.log("===>" + shouldProcess);
+    if (!shouldProcess) continue;
+    const dataType = rule?.data_type;
     const columnStat = columnStats[columnName];
 
     if (!columnStat) continue;
@@ -826,124 +849,124 @@ export const validateRow = (
     }
 
     //has_empty
+    if (rule) {
+      if (rule.is_required) {
+        validateRequired({
+          strValue,
+          columnName,
+          rowNumber,
+          rule,
+          columnStat,
+          markInvalid,
+          errorBuffer,
+        });
+      }
 
-    if (rule.is_required) {
-      validateRequired({
-        strValue,
-        columnName,
-        rowNumber,
-        rule,
-        columnStat,
-        markInvalid,
-        errorBuffer,
-      });
-    }
+      if (rule.cellContainsRegex) {
+        validateRegex({
+          strValue,
+          columnName,
+          rowNumber,
+          rule,
+          columnStat,
+          markInvalid,
+          errorBuffer,
+        });
+      }
 
-    if (rule.cellContainsRegex) {
-      validateRegex({
-        strValue,
-        columnName,
-        rowNumber,
-        rule,
-        columnStat,
-        markInvalid,
-        errorBuffer,
-      });
-    }
+      if (dataType != undefined) {
+        validateDataType({
+          dataType,
+          strValue,
+          rawValue,
+          strValueOriginal,
+          fileType,
+          rule,
+          columnName,
+          rowNumber,
+          columnStat,
+          markInvalid,
+          errorBuffer,
+        });
+      }
 
-    if (dataType != undefined) {
-      validateDataType({
-        dataType,
-        strValue,
-        rawValue,
-        strValueOriginal,
-        fileType,
-        rule,
-        columnName,
-        rowNumber,
-        columnStat,
-        markInvalid,
-        errorBuffer,
-      });
-    }
+      //for number type, also check min/max length if specified
+      if (
+        rule.length_validation_type != null &&
+        rule.length_validation_type != undefined
+      ) {
+        validateLength({
+          rule,
+          strValue,
+          strValueOriginal,
+          dataType,
+          columnName,
+          rowNumber,
+          columnStat,
+          errorBuffer,
+          debug,
+          markInvalid,
+          parseDateByFormat,
+        });
+      }
 
-    //for number type, also check min/max length if specified
-    if (
-      rule.length_validation_type != null &&
-      rule.length_validation_type != undefined
-    ) {
-      validateLength({
-        rule,
-        strValue,
-        strValueOriginal,
-        dataType,
-        columnName,
-        rowNumber,
-        columnStat,
-        errorBuffer,
-        debug,
-        markInvalid,
-        parseDateByFormat,
-      });
-    }
+      if (rule.fixed_header_value !== undefined) {
+        validateFixedHeader({
+          rule,
+          strValue,
+          columnName,
+          rowNumber,
+          columnStat,
+          errorBuffer,
+          debug,
+          markInvalid,
+        });
+      }
 
-    if (rule.fixed_header_value !== undefined) {
-      validateFixedHeader({
-        rule,
-        strValue,
-        columnName,
-        rowNumber,
-        columnStat,
-        errorBuffer,
-        debug,
-        markInvalid,
-      });
-    }
+      if (rule.cell_start_with_value !== undefined) {
+        validateStartWith({
+          rule,
+          strValue,
+          normalizedValue,
+          columnName,
+          rowNumber,
+          columnStat,
+          errorBuffer,
+          debug,
+          markInvalid,
+        });
+      }
 
-    if (rule.cell_start_with_value !== undefined) {
-      validateStartWith({
-        rule,
-        strValue,
-        normalizedValue,
-        columnName,
-        rowNumber,
-        columnStat,
-        errorBuffer,
-        debug,
-        markInvalid,
-      });
+      //end with
+      if (rule.cell_end_with_normalized?.length) {
+        validateEndWith({
+          rule,
+          normalizedValue,
+          strValue,
+          columnName,
+          rowNumber,
+          columnStat,
+          errorBuffer,
+          debug,
+          markInvalid,
+        });
+      }
+      if (rule.not_match_found_normalized?.length) {
+        validateBlockedWords({
+          rule,
+          normalizedValue,
+          strValue,
+          columnName,
+          rowNumber,
+          columnStat,
+          errorBuffer,
+          debug,
+          markInvalid,
+        });
+      }
     }
-
-    //end with
-    if (rule.cell_end_with_normalized?.length) {
-      validateEndWith({
-        rule,
-        normalizedValue,
-        strValue,
-        columnName,
-        rowNumber,
-        columnStat,
-        errorBuffer,
-        debug,
-        markInvalid,
-      });
-    }
-    if (rule.not_match_found_normalized?.length) {
-      validateBlockedWords({
-        rule,
-        normalizedValue,
-        strValue,
-        columnName,
-        rowNumber,
-        columnStat,
-        errorBuffer,
-        debug,
-        markInvalid,
-      });
-    }
-
     // DUPLICATE
-    if (rule.data_redundant_threshold && rule.redundantCounter) {
+    if (rule && rule.data_redundant_threshold && rule.redundantCounter) {
       const threshold = Number(rule.data_redundant_threshold);
 
       // Determine if we should track this value
@@ -999,6 +1022,7 @@ export const validateRow = (
     if (!rule?.dependency) continue;
 
     const dependencyEntries = Object.entries(rule.dependency);
+
     for (let i = 0; i < dependencyEntries.length - 1; i++) {
       const [currentKey, currentCondition] = dependencyEntries[i];
       const [nextKey, nextCondition] = dependencyEntries[i + 1];
@@ -1008,6 +1032,7 @@ export const validateRow = (
 
       let conditionMatched = false;
 
+      // ✅ Check parent condition
       if (currentCondition === true) {
         conditionMatched = currentValue !== "";
       } else {
@@ -1016,6 +1041,7 @@ export const validateRow = (
 
       if (!conditionMatched) break;
 
+      // ✅ Validate dependent columns
       for (const col of nextColumns) {
         const value = String(rowData[col] ?? "").trim();
         const columnStat = columnStats[col];
@@ -1032,25 +1058,47 @@ export const validateRow = (
         if (!valid) {
           rowValid = false;
 
-          columnStat.invalid_records++;
+          // ✅ prevent duplicate counting per row
+          if (!columnStat.invalid_row_numbers.includes(rowNumber)) {
+            columnStat.invalid_records++;
+
+            if (columnStat.valid_records > 0) {
+              columnStat.valid_records--;
+            }
+
+            columnStat.invalid_row_numbers.push(rowNumber);
+          }
+
           columnStat.dependancy_error_count++;
+
+          // ✅ track dependency error rows
+          if (!columnStat.error_rows.dependency.includes(rowNumber)) {
+            columnStat.error_rows.dependency.push(rowNumber);
+          }
+
           errorBuffer.add([
             rowNumber,
-            columnName,
+            col,
             "Dependency Error",
             `${col} must be ${
               nextCondition === true ? "not empty" : nextCondition
-            } because ${currentKey} is ${currentCondition == true ? "required" : currentCondition}`,
+            } because ${currentKey} is ${
+              currentCondition === true ? "required" : currentCondition
+            }`,
           ]);
-          if (debug == 1)
+
+          if (debug == 1) {
             columnStat.error_msg.push({
               row: rowNumber,
               column: col,
               error_type: "Dependency Error",
               error_description: `${col} must be ${
                 nextCondition === true ? "not empty" : nextCondition
-              }  because ${currentKey} is ${currentCondition == true ? "required" : currentCondition}`,
+              } because ${currentKey} is ${
+                currentCondition === true ? "required" : currentCondition
+              }`,
             });
+          }
         }
       }
     }
