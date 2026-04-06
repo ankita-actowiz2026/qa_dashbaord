@@ -80,14 +80,16 @@ const RuleModal: React.FC<Props> = ({
         {/* HEADER */}
         <div className="sticky top-0 z-10 px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+            <div className="w-1 h-6 rounded-full bg-sidebarSecondary"></div>
             <h2 className="text-2xl font-semibold text-gray-800">
               {editingRule ? "Edit Rule" : "Add Rule"}
             </h2>
           </div>
           <p className="pl-3 mt-2 text-base text-gray-500">
             Configure validation rules for{" "}
-            <span className="font-medium text-blue-600">{currentHeader}</span>
+            <span className="font-medium text-sidebarSecondary">
+              {currentHeader}
+            </span>
           </p>
         </div>
         {/* RULE TYPE */}
@@ -318,7 +320,7 @@ const RuleModal: React.FC<Props> = ({
                   <div className="grid grid-cols-1 gap-0 mt-3">
                     <label className={label_style}>Fixed Value</label>
                     {/* STRING TYPES */}
-                    <div className=" m-0 p-0">
+                    <div className="p-0 m-0 ">
                       {["string", "alphabetic", "boolean"].includes(
                         currentDataType,
                       ) && (
@@ -482,7 +484,7 @@ const RuleModal: React.FC<Props> = ({
           />
         )}
         {tempRule.type === "dependency" && (
-          <div className="px-6 py-4  border-gray-50">
+          <div className="px-6 py-4 border-gray-50">
             {/* MAIN */}
             <div>
               <label className={label_style}>Main Dependency</label>
@@ -559,7 +561,7 @@ const RuleModal: React.FC<Props> = ({
           </button>
           <button
             onClick={onSubmit}
-            className="px-5 py-2.5 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md hover:shadow-lg hover:from-blue-700 hover:to-blue-800 active:scale-[0.98] transition-all duration-200"
+            className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium bg-sidebar  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-sidebarHover active:scale-[0.98] transition-all duration-200"
           >
             {editingRule ? "Edit Rule" : "Add Rule"}
           </button>

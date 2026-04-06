@@ -23,6 +23,8 @@ type Props = {
 };
 const radioButtonStyle = "w-4 h-4 text-sidebar focus:ring-sidebarHover";
 const label_style = "text-base font-semibold tracking-wide text-sidebar ";
+const textbox_style =
+  "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
 const SubDependencySection: React.FC<Props> = ({
   tempRule,
   setTempRule,
@@ -89,7 +91,7 @@ const SubDependencySection: React.FC<Props> = ({
   }, [tempRule, editingIndex, setTempRule]);
 
   return (
-    <div className="pt-5 mt-2 space-y-5 border-t border-gray-100">
+    <div className="">
       <div className="flex items-center gap-2 mb-4">
         <div className={label_style}>Sub Dependencies</div>
         <span className="px-2 py-0.5 text-xs font-medium text-sidebarSecondary bg-blue-50 rounded-full">
@@ -98,7 +100,7 @@ const SubDependencySection: React.FC<Props> = ({
       </div>
 
       {/* MULTISELECT */}
-      <label className="block text-base font-medium text-sidebar  tracking-wide mb-1.5">
+      <label className="block mb-2 text-base font-medium tracking-wide text-sidebar">
         Select Headers
       </label>
       <select
@@ -110,7 +112,7 @@ const SubDependencySection: React.FC<Props> = ({
             sub_headers: Array.from(e.target.selectedOptions, (o) => o.value),
           });
         }}
-        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 h-32 focus:outline-none focus:ring-1 focus:ring-sidebarSecondary focus:border-transparent bg-gray-50 hover:bg-white transition-all duration-200"
+        className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer"
       >
         {availableHeaders.map((h: string) => (
           <option key={h} value={h}>
@@ -118,11 +120,11 @@ const SubDependencySection: React.FC<Props> = ({
           </option>
         ))}
       </select>
-      <label className="block mb-0 text-xs font-medium tracking-wide text-gray-500 ">
+      <label className="block mt-2 mb-2 text-base font-medium tracking-wide text-sidebar">
         Condition Type
       </label>
       {/* RADIO */}
-      <div className="flex gap-6 border border-gray-100 bg-gray-50 rounded-xl">
+      <div className="flex gap-6 pt-2 border-gray-100 order rounded-xl ">
         <label className="flex items-center gap-2 text-lg">
           <input
             type="radio"
@@ -130,7 +132,7 @@ const SubDependencySection: React.FC<Props> = ({
             onChange={() => setTempRule({ ...tempRule, sub_mode: "required" })}
             className={radioButtonStyle}
           />
-          <span className="font-medium">Required</span>
+          <span className="font-base">Required</span>
         </label>
 
         <label className="flex items-center gap-2 text-lg">
@@ -141,15 +143,12 @@ const SubDependencySection: React.FC<Props> = ({
             className={radioButtonStyle}
           />
 
-          <span className="font-medium"> Other Value</span>
+          <span className="font-base"> Other Value</span>
         </label>
       </div>
 
       {tempRule.sub_mode === "other" && (
         <div className="mt-3 duration-200 animate-in slide-in-from-top-2">
-          <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-            Value
-          </label>
           <input
             type="text"
             value={tempRule.sub_value || ""}
@@ -157,14 +156,14 @@ const SubDependencySection: React.FC<Props> = ({
               setTempRule({ ...tempRule, sub_value: e.target.value })
             }
             placeholder="Enter value"
-            className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-transparent bg-gray-50 hover:bg-white transition-all duration-200"
+            className={textbox_style}
           />
         </div>
       )}
       <div className="flex gap-3 pt-2">
         <button
           onClick={handleAdd}
-          className="flex-1 px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover rounded-xl shadow-md hover:shadow-lg hover:from-sidebarSecondaryHover hover:to-sidebarSecondaryHover active:scale-[0.98] transition-all duration-200"
+          className="flex-1 gap-2 px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover rounded-xl shadow-md hover:shadow-lg hover:from-sidebarSecondaryHover hover:to-sidebarSecondaryHover active:scale-[0.98] transition-all duration-200"
         >
           {editingIndex !== null
             ? "Update Sub Dependency"

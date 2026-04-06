@@ -15,13 +15,6 @@ export default {
   },
   plugins: [],
 };
-/* <div className="w-64 h-screen bg-sidebar text-white p-4">
-  Sidebar Content
-</div>
-
-<button className="w-full text-left px-4 py-2 rounded-lg hover:bg-sidebar-hover">
-  Dashboard
-</button>
-<button className="w-full text-left px-4 py-2 rounded-lg bg-sidebar-active">
-  Active Menu
-</button> */
+/* bg-gradient-to-r from-[#3F4D67] to-[#424649]
+bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover
+ */

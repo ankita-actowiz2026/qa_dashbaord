@@ -4,6 +4,7 @@ const routeNameMap: Record<string, string> = {
   admin: "Admin",
   dashboard: "Dashboard",
   import_file: "Upload File",
+  show_imported_data: "Validation rules",
   validation_result: "Validation Result",
   update_profile: "Update Profile",
   change_password: "Change Password",

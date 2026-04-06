@@ -91,8 +91,15 @@ const ImportFile: React.FC = () => {
       );
 
       reset();
-      setHeaders(response.data.data);
-      setUploadedFileName(response.data.filePath);
+      // setHeaders(response.data.data);
+      // setUploadedFileName(response.data.filePath);
+      navigate("/admin/import_file/show_imported_data", {
+        state: {
+          headers: response.data.data,
+          filePath: response.data.filePath,
+          fileName: file.name,
+        },
+      });
 
       setRequestData(null);
     } catch (error: any) {
@@ -265,7 +272,7 @@ const ImportFile: React.FC = () => {
             )}
 
             {fileName && (
-              <p className="px-2 mt-3 text-base text-center text-sidebar break-all">
+              <p className="px-2 mt-3 text-base text-center break-all text-sidebar">
                 Uploaded: {fileName}
               </p>
             )}
@@ -288,7 +295,7 @@ const ImportFile: React.FC = () => {
                   <div className="min-w-0">
                     <p className="text-base text-gray-500">Uploaded File</p>
 
-                    <p className="font-semibold text-gray-900 truncate text-lg">
+                    <p className="text-lg font-semibold text-gray-900 truncate">
                       {fileName}
                     </p>
 
@@ -308,7 +315,7 @@ const ImportFile: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium text-sidebar transition-all duration-200 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 active:scale-95"
+                    className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium transition-all duration-200 bg-white border border-gray-300 rounded-lg text-sidebar hover:bg-gray-50 hover:border-gray-400 active:scale-95"
                   >
                     <FiRefreshCw className="text-2xl" />
                     <span>Change File</span>

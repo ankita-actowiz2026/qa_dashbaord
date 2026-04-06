@@ -47,13 +47,23 @@ const Login = () => {
       toast.error(error.response?.data?.message || "Login failed"); // ✅ error toast
     }
   };
-
+  useEffect(() => {
+    if (errors) {
+      const firstError = Object.values(errors)[0];
+      if (firstError?.message) {
+        toast.error(firstError.message as string);
+      }
+    }
+  }, [errors]);
+  const label_style = "text-base font-semibold tracking-wide text-sidebar ";
+  const textbox_style =
+    "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-300 to-gray-200">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-white via-gray-300 to-gray-200">
       {/* Card */}
-      <div className="w-full max-w-md backdrop-blur-lg bg-white/90 p-8 rounded-2xl shadow-2xl border border-white/20">
+      <div className="w-full max-w-md p-8 border shadow-2xl backdrop-blur-lg bg-white/90 rounded-2xl border-white/20">
         {/* Title */}
-        <div className="text-center mb-6">
+        <div className="mb-6 text-center">
           <h2 className="text-3xl font-bold text-gray-800">Login</h2>
         </div>
 
@@ -61,34 +71,30 @@ const Login = () => {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           {/* Email */}
           <div>
-            <label className="text-sm font-medium text-gray-600">Email</label>
+            <label className={label_style}>Email</label>
             <input
               type="email"
               placeholder="Email"
               {...register("email")}
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
+              className={textbox_style}
             />
-            <p className="text-sm text-red-500">{errors.email?.message}</p>
           </div>
 
           {/* Password */}
           <div>
-            <label className="text-sm font-medium text-gray-600">
-              Password
-            </label>
+            <label className={label_style}>Password</label>
             <input
               type="password"
               placeholder="Password"
               {...register("password")}
-              className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition"
+              className={textbox_style}
             />
-            <p className="text-sm text-red-500">{errors.password?.message}</p>
           </div>
 
           {/* Button */}
           <button
             type="submit"
-            className="w-full py-2.5 text-white font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:opacity-90 transition duration-200 shadow-md"
+            className="w-full py-2.5 text-white font-semibold bg-gradient-to-r from-[#3F4D67] to-[#424649]  rounded-lg hover:opacity-90 transition duration-200 shadow-md"
           >
             Login
           </button>

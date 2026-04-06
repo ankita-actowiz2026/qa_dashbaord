@@ -12,6 +12,7 @@ import PageNotFound from "../../pages/admin/PageNotFound";
 import ValidationResult from "../../pages/admin/import_file/ValidationResult";
 import ChangePassword from "../../pages/admin/ChangePassword";
 import UpdateProfile from "../../pages/admin/UpdateProfile";
+import ShowImportedData from "../../pages/admin/import_file/ShowImportedData";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -36,7 +37,12 @@ const AppRoutes = () => {
           path="import_file/validation_result"
           element={<ValidationResult />}
         />
+        <Route
+          path="import_file/show_imported_data"
+          element={<ShowImportedData />}
+        />
         <Route path="change_password" element={<ChangePassword />} />
+
         <Route path="update_profile" element={<UpdateProfile />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="user" element={<UserList />} />

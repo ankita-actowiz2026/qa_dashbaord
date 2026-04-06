@@ -23,7 +23,7 @@ const TagInputRule: React.FC<Props> = ({
 
   const handleAdd = useCallback(() => {
     if (!input.trim()) {
-      toast.error(`Please enter ${label}`);
+      toast.error(`Please enter ${label.toLowerCase()}`);
       return;
     }
 
@@ -44,7 +44,7 @@ const TagInputRule: React.FC<Props> = ({
     const updated = [...values];
     updated.splice(idx, 1);
     onChange(updated);
-    toast.success(`${label} Deleted`);
+    toast.success(`${label} deleted`);
   };
 
   const handleSaveEdit = (idx: number) => {
@@ -52,15 +52,27 @@ const TagInputRule: React.FC<Props> = ({
       toast.error("Value cannot be empty");
       return;
     }
+    if (input.length > 100) {
+      toast.error("Max 100 characters allowed");
+      return;
+    }
+    const trimmed = editValue;
 
+    const isDuplicate = values.some((val, i) => i !== idx && val === trimmed);
+
+    if (isDuplicate) {
+      toast.error(`${label} already exists`);
+      return;
+    }
     const updated = [...values];
     updated[idx] = editValue.trim();
     onChange(updated);
 
     setEditIndex(null);
-    toast.success("Updated");
+    toast.success(`${label} updated`);
   };
-
+  const textbox_style =
+    "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
   return (
     <div className="px-6 py-1 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50/30">
       {/* INPUT */}
@@ -72,7 +84,7 @@ const TagInputRule: React.FC<Props> = ({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={`Enter ${label}`}
-              className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebarSecondary focus:border-transparent bg-white hover:border-gray-300 transition-all duration-200"
+              className={textbox_style}
             />
 
             <button
@@ -94,7 +106,7 @@ const TagInputRule: React.FC<Props> = ({
         </div>
       </div>
       {/* LIST */}
-      <div className="pt-0 space-y-2 overflow-y-auto mb-0 max-h-40">
+      <div className="pt-0 mb-0 space-y-2 overflow-y-auto max-h-40">
         {" "}
         {values && values.length > 0 && (
           <div className="pt-1 pt-2 pb-0 border-t border-gray-50">
@@ -106,14 +118,14 @@ const TagInputRule: React.FC<Props> = ({
         {values.map((item, idx) => (
           <div
             key={item}
-            className="flex items-center justify-between px-3 py-2 border rounded-lg bg-gray-50"
+            className="flex items-center justify-between px-3 py-3 border rounded-lg bg-gray-50"
           >
             {editIndex === idx ? (
               <div className="flex w-full gap-2">
                 <input
                   value={editValue}
                   onChange={(e) => setEditValue(e.target.value)}
-                  className="flex-1 px-2 py-1 text-base border rounded"
+                  className={textbox_style}
                 />
 
                 <button
@@ -140,7 +152,7 @@ const TagInputRule: React.FC<Props> = ({
                       setEditIndex(idx);
                       setEditValue(item);
                     }}
-                    className="text-base text-blue-600"
+                    className="text-base text-sidebarSecondary"
                   >
                     <FiEdit size={18} />
                   </button>
