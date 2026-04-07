@@ -72,7 +72,7 @@ const TagInputRule: React.FC<Props> = ({
     toast.success(`${label} updated`);
   };
   const textbox_style =
-    "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
+    "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebarSecondary focus:border-sidebarSecondary bg-gray-50 transition-all duration-200";
   return (
     <div className="px-6 py-1 border-t border-gray-100 bg-gradient-to-b from-white to-gray-50/30">
       {/* INPUT */}

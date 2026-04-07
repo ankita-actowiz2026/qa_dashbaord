@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from "react";
 import { ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
+import Select from "react-select";
 type SubDependency = {
   headers: string[];
   mode: "required" | "other";
@@ -24,7 +25,7 @@ type Props = {
 const radioButtonStyle = "w-4 h-4 text-sidebar focus:ring-sidebarHover";
 const label_style = "text-base font-semibold tracking-wide text-sidebar ";
 const textbox_style =
-  "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
+  "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebarSecondary focus:border-sidebarSecondary bg-gray-50 transition-all duration-200";
 const SubDependencySection: React.FC<Props> = ({
   tempRule,
   setTempRule,
@@ -89,7 +90,10 @@ const SubDependencySection: React.FC<Props> = ({
 
     setEditingIndex(null); // reset edit mode
   }, [tempRule, editingIndex, setTempRule]);
-
+  const headerOptions = availableHeaders.map((h: string) => ({
+    value: h,
+    label: h,
+  }));
   return (
     <div className="">
       <div className="flex items-center gap-2 mb-4">
@@ -103,23 +107,38 @@ const SubDependencySection: React.FC<Props> = ({
       <label className="block mb-2 text-base font-medium tracking-wide text-sidebar">
         Select Headers
       </label>
-      <select
-        multiple
-        value={tempRule.sub_headers || []}
-        onChange={(e) => {
-          setTempRule({
-            ...tempRule,
-            sub_headers: Array.from(e.target.selectedOptions, (o) => o.value),
-          });
+      <Select
+        isMulti
+        options={headerOptions}
+        value={headerOptions.filter((opt) =>
+          (tempRule.sub_headers || []).includes(opt.value),
+        )}
+        onChange={(selected) => {
+          const selectedValues = selected
+            ? selected.map((opt) => opt.value)
+            : [];
+
+          setTempRule((prev) => ({
+            ...prev,
+            sub_headers: selectedValues,
+          }));
         }}
-        className="w-full px-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer"
-      >
-        {availableHeaders.map((h: string) => (
-          <option key={h} value={h}>
-            {h}
-          </option>
-        ))}
-      </select>
+        placeholder="Select Headers"
+        menuPortalTarget={document.body} // 🔥 fix popup cut issue
+        menuPosition="fixed"
+        styles={{
+          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+          control: (base) => ({
+            ...base,
+            borderRadius: "0.75rem",
+            borderColor: "#e5e7eb", // gray-200
+            minHeight: "42px",
+            backgroundColor: "#f9fafb", // gray-50
+          }),
+        }}
+        className="w-full"
+        classNamePrefix="react-select"
+      />
       <label className="block mt-2 mb-2 text-base font-medium tracking-wide text-sidebar">
         Condition Type
       </label>

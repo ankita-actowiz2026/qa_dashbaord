@@ -1,4 +1,6 @@
 import React from "react";
+import Select from "react-select";
+
 import { ToggleRight } from "lucide-react";
 import TagInputRule from "./TagInputRule";
 import SubDependencySection from "./SubDependencySection";
@@ -51,13 +53,17 @@ const RuleModal: React.FC<Props> = ({
     };
   }, [onClose]);
   if (!isOpen) return null;
+  const options = DATA_TYPE_OPTIONS.map((opt) => ({
+    value: opt.value,
+    label: opt.label,
+  }));
   const label_style = "text-base font-semibold tracking-wide text-sidebar ";
   const label_style_title =
     "text-xs font-semibold tracking-wide text-gray-500 uppercase";
   const dropdown_style =
-    "w-full px-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer";
+    "w-full px-4 py-2.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebarSecondary focus:border-sidebarSecondary bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer";
   const textbox_style =
-    "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
+    "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebarSecondary focus:border-sidebarSecondary bg-gray-50 transition-all duration-200";
   const div_class_1 = "px-6 pt-1 pb-2 border-t border-gray-50";
   const radioButtonStyle = "w-4 h-4 text-sidebar focus:ring-sidebarHover";
   const effectiveDataType =
@@ -104,9 +110,9 @@ const RuleModal: React.FC<Props> = ({
                 setTempRule((prev) => ({
                   ...prev,
                   type,
-                  ...(type === "data_type" && { data_type: ["string"] }),
+                  ...(type === "data_type" && { data_type: [] }),
                   ...(type === "data_length" && {
-                    data_type: ["string"],
+                    data_type: [],
                     length_mode: "variable",
                   }),
                   ...(type === "date_format" && { date_format: "YYYY-MM-DD" }),
@@ -149,17 +155,19 @@ const RuleModal: React.FC<Props> = ({
               <label className={label_style}>Data Type</label>
 
               <div className="mt-1">
-                <select
-                  multiple
-                  value={tempRule.data_type || []}
-                  onChange={(e) => {
-                    const selectedValues = Array.from(
-                      e.target.selectedOptions,
-                      (opt) => opt.value,
-                    );
+                <Select
+                  isMulti
+                  options={options}
+                  value={options.filter((opt) =>
+                    (tempRule.data_type || []).includes(opt.value),
+                  )}
+                  onChange={(selected) => {
+                    const selectedValues = selected
+                      ? selected.map((opt) => opt.value)
+                      : [];
 
                     setTempRule((prev) => {
-                      const updated = {
+                      const updated: any = {
                         ...prev,
                         data_type: selectedValues,
                       };
@@ -173,14 +181,14 @@ const RuleModal: React.FC<Props> = ({
                       return updated;
                     });
                   }}
-                  className={dropdown_style + " h-32"} // height for multi-select
-                >
-                  {DATA_TYPE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  menuPortalTarget={document.body} // 🔥 important
+                  menuPosition="fixed" // 🔥 important
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ensure on top
+                  }}
+                  className="w-full text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1  bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer"
+                  classNamePrefix="react-select"
+                />
               </div>
             </div>
           </>
