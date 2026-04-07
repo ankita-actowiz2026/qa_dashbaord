@@ -572,7 +572,6 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
-              [[{JSON.stringify(current.rules)}]]
               {current.rules.map((rule, idx) => (
                 <div
                   key={idx}
