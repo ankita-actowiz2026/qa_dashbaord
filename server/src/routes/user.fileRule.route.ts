@@ -1,4 +1,5 @@
 import express from "express";
+import { authentication } from "../middleware/auth.middleware";
 import { body, param, validationResult } from "express-validator";
 import {
   createFileRules,
@@ -9,7 +10,6 @@ import {
 } from "../controllers/user.fileRules.controller";
 
 const router = express.Router();
-
 
 // ✅ VALIDATION HANDLER
 const validateRequest = (req, res, next) => {
@@ -25,10 +25,8 @@ const validateRequest = (req, res, next) => {
 
 // ✅ CREATE VALIDATOR
 const createValidator = [
-  body("user_id").notEmpty().withMessage("user_id is required"),
-  body("file_name")
-    .notEmpty()
-    .withMessage("file_name is required"),
+  body("feed_name").notEmpty().withMessage("feed name is required"),
+  body("file_name").notEmpty().withMessage("file name is required"),
   body("rules").notEmpty().withMessage("rules is required"),
 ];
 
@@ -42,26 +40,47 @@ const updateValidator = [
 ];
 
 // ✅ ID VALIDATOR
-const idValidator = [
-  param("id").isMongoId().withMessage("Invalid ID"),
-];
-
+const idValidator = [param("id").isMongoId().withMessage("Invalid ID")];
 
 // 🔥 ROUTES
 
 // CREATE
-router.post("/", createValidator, validateRequest, createFileRules);
+router.post(
+  "/",
+  authentication,
+  createValidator,
+  validateRequest,
+  createFileRules,
+);
 
 // GET ALL
-router.get("/", getAllFileRules);
+router.get("/", authentication, getAllFileRules);
 
 // GET BY ID
-router.get("/:id", idValidator, validateRequest, getFileRulesById);
+router.get(
+  "/:id",
+  authentication,
+  idValidator,
+  validateRequest,
+  getFileRulesById,
+);
 
 // UPDATE
-router.put("/:id", updateValidator, validateRequest, updateFileRules);
+router.put(
+  "/:id",
+  authentication,
+  updateValidator,
+  validateRequest,
+  updateFileRules,
+);
 
 // DELETE
-router.delete("/:id", idValidator, validateRequest, deleteFileRules);
+router.delete(
+  "/:id",
+  authentication,
+  idValidator,
+  validateRequest,
+  deleteFileRules,
+);
 
 export default router;

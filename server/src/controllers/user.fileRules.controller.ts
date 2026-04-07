@@ -5,22 +5,22 @@ import { FileRules } from "../models/fileRules.model";
 export const createFileRules = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
-    const { user_id, feed_name, file_name, rules } = req.body;
+    const { feed_name, file_name, rules } = req.body;
 
-    const response = await FileRules.create({
-      user_id,
-      feed_name: feed_name || null,
-      file_name,
-      rules,
+    await FileRules.create({
+      user_id: req?.user?.id,
+      feed_name: feed_name,
+      file_name: file_name,
+      rules: rules,
     });
-
+    const rule_data = await FileRules.find().sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       message: "File rules created successfully",
-      data: response,
+      data: rule_data,
     });
   } catch (error: any) {
     next(error);
@@ -31,7 +31,7 @@ export const createFileRules = async (
 export const getAllFileRules = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const response = await FileRules.find().sort({ createdAt: -1 });
@@ -50,7 +50,7 @@ export const getAllFileRules = async (
 export const getFileRulesById = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { id } = req.params;
@@ -78,7 +78,7 @@ export const getFileRulesById = async (
 export const updateFileRules = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { id } = req.params;
@@ -88,7 +88,7 @@ export const updateFileRules = async (
       {
         ...req.body,
       },
-      { new: true }
+      { new: true },
     );
 
     if (!response) {
@@ -112,7 +112,7 @@ export const updateFileRules = async (
 export const deleteFileRules = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { id } = req.params;

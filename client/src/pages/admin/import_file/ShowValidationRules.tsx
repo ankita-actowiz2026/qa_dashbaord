@@ -64,12 +64,17 @@ type HeaderItem = {
 type Props = {
   headers: string[];
   onRulesChange?: (data: any) => void;
+  rulesData?: Record<string, any>;
 };
 const ruleListClass =
   "px-2.5 py-1 text-lg font-medium text-sidebarSecondary bg-blue-50 border border-blue-200 rounded-full";
 const addButtonClass =
   "inline-flex items-center gap-2 px-6 py-3 text-lg font-medium bg-sidebarSecondary  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-sidebarSecondaryHover active:scale-[0.98] transition-all duration-200";
-const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
+const ShowValidationRules: React.FC<Props> = ({
+  headers,
+  onRulesChange,
+  rulesData,
+}) => {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -149,84 +154,41 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           ? tempRule.data_type
           : dataTypeRule?.value,
     });
+
     if (error) return toast.error(error);
-    const updated = data.map((h, i) =>
-      i === selectedHeader ? { ...h, rules: [...h.rules] } : h,
-    );
-    const currentHeader = updated[selectedHeader];
 
-    // ✅ If editing → remove OLD rule (regardless of type)
-    if (editingIndex !== null) {
-      const removingType = currentHeader.rules[editingIndex]?.type;
+    let newRule: Rule | null = null;
 
-      // ✅ If editing data_type → also remove date_format
-      if (editingIndex !== null) {
-        currentHeader.rules.splice(editingIndex, 1);
-      }
-      // if (removingType === "data_type") {
-      //   if (editingIndex !== null) {
-      //     currentHeader.rules.splice(editingIndex, 1);
-      //   }
-
-      //   currentHeader.rules = currentHeader.rules.filter((r, i) => {
-      //     if (i === editingIndex) return false;
-
-      //     // keep your existing logic
-      //     /// if (r.type === "date_format") return false;
-
-      //     // ✅ FIXED condition
-      //     const isSwitchingWithDate =
-      //       previousDataType !== newDataType &&
-      //       (previousDataType === "date" || newDataType === "date");
-
-      //     if (r.type === "data_length" && isSwitchingWithDate) {
-      //       return false;
-      //     }
-
-      //     return true;
-      //   });
-      // } else {
-      //   console.log("Else");
-      //   currentHeader.rules.splice(editingIndex, 1);
-      // }
-    }
+    // ✅ STEP 1: Create new rule
     switch (tempRule.type) {
       case "required":
-        currentHeader.rules.push({
-          type: "required",
-          value: true,
-        });
+        newRule = { type: "required", value: true };
         break;
+
       case "data_type": {
         const dataTypes = Array.isArray(tempRule.data_type)
           ? tempRule.data_type
           : [];
 
-        // 🔥 REMOVE date_format if date not selected
-        if (!dataTypes.includes("date")) {
-          currentHeader.rules = currentHeader.rules.filter(
-            (r) => r.type !== "date_format",
-          );
-        }
-
-        currentHeader.rules.push({
+        newRule = {
           type: "data_type",
           value: dataTypes,
-        });
-
+        };
         break;
       }
+
       case "date_format":
-        currentHeader.rules.push({
+        newRule = {
           type: "date_format",
           value:
             tempRule.date_format === "custom"
               ? tempRule.custom_date_format
               : tempRule.date_format || "YYYY-MM-DD",
-        });
+        };
         break;
+
       case "data_length":
-        currentHeader.rules.push({
+        newRule = {
           type: "data_length",
           value: {
             mode: tempRule.length_mode || "variable",
@@ -234,49 +196,56 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             max: tempRule.max,
             fixed: tempRule.fixed,
           },
-        });
+        };
         break;
+
       case "data_redundant":
-        currentHeader.rules.push({
+        newRule = {
           type: "data_redundant",
           value: {
             data_redundant_value: tempRule.data_redundant_value,
             data_redundant_threshold: Number(tempRule.data_redundant_threshold),
           },
-        });
+        };
         break;
+
       case "regex":
-        currentHeader.rules.push({
+        newRule = {
           type: "regex",
           value: tempRule.cell_contains_value,
-        });
+        };
         break;
+
       case "fixed_header":
-        currentHeader.rules.push({
+        newRule = {
           type: "fixed_header",
           value: tempRule.fixed_header,
-        });
+        };
         break;
+
       case "cell_start_with":
-        currentHeader.rules.push({
+        newRule = {
           type: "cell_start_with",
           value: tempRule.cell_start_with,
-        });
+        };
         break;
+
       case "cell_end_with":
-        currentHeader.rules.push({
+        newRule = {
           type: "cell_end_with",
           value: tempRule.cell_end_with,
-        });
+        };
         break;
+
       case "not_match_found":
-        currentHeader.rules.push({
+        newRule = {
           type: "not_match_found",
           value: tempRule.not_match_found,
-        });
+        };
         break;
+
       case "dependency":
-        currentHeader.rules.push({
+        newRule = {
           type: "dependency",
           value: {
             mode: tempRule.dependency_mode,
@@ -286,10 +255,42 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 : null,
             sub_dependencies: tempRule.sub_dependencies,
           },
-        });
+        };
         break;
     }
 
+    // ✅ STEP 2: Update state IMMUTABLY
+    const updated = data.map((h, i) => {
+      if (i !== selectedHeader) return h;
+
+      let rules = [...h.rules];
+
+      // ✅ remove old rule if editing
+      if (editingIndex !== null) {
+        rules = rules.filter((_, idx) => idx !== editingIndex);
+      }
+
+      // ✅ special case for data_type
+      if (tempRule.type === "data_type" && newRule) {
+        const types = (newRule.value as string[]) || [];
+
+        if (!types.includes("date")) {
+          rules = rules.filter((r) => r.type !== "date_format");
+        }
+      }
+
+      // ✅ add new rule
+      if (newRule) {
+        rules = [...rules, newRule];
+      }
+
+      return {
+        ...h,
+        rules,
+      };
+    });
+
+    // ✅ FINAL SET
     setData(updated);
     onRulesChange?.(generateRulesJSON(updated));
 
@@ -297,6 +298,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     setTempRule({});
     setEditingIndex(null);
     setEditingRule(false);
+
     const rule = getRuleName(tempRule.type || "");
     toast.success(`${rule} rule applied`);
   };
@@ -332,17 +334,17 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
   const currentDataType = (appliedRuleDataType?.[0]?.value as string[]) || [
     "string",
   ];
-  useEffect(() => {
-    if (headers.length > 0) {
-      setData(
-        headers.map((h, i) => ({
-          id: i,
-          name: h,
-          rules: [],
-        })),
-      );
-    }
-  }, [headers]);
+  // useEffect(() => {
+  //   if (headers.length > 0) {
+  //     setData(
+  //       headers.map((h, i) => ({
+  //         id: i,
+  //         name: h,
+  //         rules: [],
+  //       })),
+  //     );
+  //   }
+  // }, [headers]);
   const buildTempRule = (rule: Rule): any => {
     console.log("EDIT RULE VALUE:", rule.value);
     switch (rule.type) {
@@ -436,7 +438,125 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         return {};
     }
   };
+  useEffect(() => {
+    if (!headers.length) return;
+    //if (data.length > 0 && data.some((d) => d.rules.length > 0)) return;
+    const mappedData = headers.map((header, index) => {
+      const saved = rulesData?.[header];
 
+      let rules: Rule[] = [];
+
+      if (saved) {
+        // Required
+        if (saved.is_required) {
+          rules.push({ type: "required", value: true });
+        }
+
+        // Data type
+        if (saved.data_type) {
+          rules.push({
+            type: "data_type",
+            value: Array.isArray(saved.data_type)
+              ? saved.data_type
+              : [saved.data_type],
+          });
+        }
+        if (saved.cell_start_with) {
+          rules.push({
+            type: "cell_start_with",
+            value: saved.cell_start_with,
+          });
+        }
+        // Length
+        if (saved.length_validation_type) {
+          rules.push({
+            type: "data_length",
+            value: {
+              mode: saved.length_validation_type,
+              min: saved.min_length,
+              max: saved.max_length,
+              fixed: saved.min_length,
+            },
+          });
+        }
+
+        // Date format
+        if (saved.date_format) {
+          rules.push({
+            type: "date_format",
+            value: saved.date_format,
+          });
+        }
+
+        // Regex
+        if (saved.cell_contains) {
+          rules.push({
+            type: "regex",
+            value: saved.cell_contains_value,
+          });
+          console.log(rules);
+        }
+
+        if (saved.dependency) {
+          const keys = Object.keys(saved.dependency);
+
+          rules.push({
+            type: "dependency",
+            value: {
+              mode: "required",
+              main_value: null,
+              sub_dependencies: keys.map((k) => ({
+                headers: k.split(","), // convert "A,B,C" → ["A","B","C"]
+                mode: "required",
+              })),
+            },
+          });
+        }
+        if (saved.not_match_found) {
+          rules.push({
+            type: "not_match_found",
+            value: Array.isArray(saved.not_match_found)
+              ? saved.not_match_found
+              : [saved.not_match_found],
+          });
+        }
+        if (saved.cell_end_with) {
+          rules.push({
+            type: "cell_end_with",
+            value: Array.isArray(saved.cell_end_with)
+              ? saved.cell_end_with
+              : [saved.cell_end_with],
+          });
+        }
+        if (saved.data_redundant_value || saved.data_redundant_threshold) {
+          rules.push({
+            type: "data_redundant",
+            value: {
+              data_redundant_value: saved.data_redundant_value || "",
+              data_redundant_threshold: Number(
+                saved.data_redundant_threshold || 0,
+              ),
+            },
+          });
+        }
+        if (saved.fixed_header) {
+          rules.push({
+            type: "fixed_header",
+            value: saved.fixed_header,
+          });
+        }
+      }
+
+      return {
+        id: index,
+        name: header,
+        rules,
+      };
+    });
+    console.log("rulesData", rulesData);
+    console.log("mappedData", mappedData);
+    setData(mappedData);
+  }, [headers, rulesData]);
   return (
     <div className="flex flex-col gap-5 mt-2 md:flex-row">
       {/* LEFT PANEL */}
@@ -545,7 +665,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         {/* CONTENT */}
         <div className="flex-1 min-h-0 p-6 overflow-y-auto">
           {/* EMPTY STATE */}
-
+          [[[{JSON.stringify(current.rules)}]]]]
           {current.rules.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="flex items-center justify-center w-20 h-20 mb-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl">

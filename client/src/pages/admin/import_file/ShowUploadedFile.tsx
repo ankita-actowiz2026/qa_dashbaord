@@ -61,8 +61,8 @@ const ShowUploadedFile: React.FC<Props> = ({
             <FiRefreshCw className="text-xl" />
             <span>Change File</span>
           </button>
-
           {/* Validate Data */}
+          [[{!hasRules}]]
           <button
             type="button"
             onClick={onValidate}

@@ -293,7 +293,7 @@ const RuleModal: React.FC<Props> = ({
                     )}
 
                     {/* NUMBER */}
-                    {currentDataType.some((type) =>
+                    {/* {currentDataType.some((type) =>
                       ["integer", "float"].includes(type),
                     ) && (
                       <>
@@ -316,7 +316,7 @@ const RuleModal: React.FC<Props> = ({
                           className={textbox_style}
                         />
                       </>
-                    )}
+                    )} */}
 
                     {/* DATE */}
                     {currentDataType.some((type) =>
@@ -368,7 +368,7 @@ const RuleModal: React.FC<Props> = ({
                       )}
 
                       {/* NUMBER */}
-                      {currentDataType.some((type) =>
+                      {/* {currentDataType.some((type) =>
                         ["integer", "float"].includes(type),
                       ) && (
                         <input
@@ -380,7 +380,7 @@ const RuleModal: React.FC<Props> = ({
                           }
                           className={textbox_style}
                         />
-                      )}
+                      )} */}
 
                       {/* DATE */}
                       {currentDataType.includes("date") && (

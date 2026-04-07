@@ -7,7 +7,8 @@ import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
 const debug = 1;
-const dateTimeRegex = /^(\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4})(\s+(\d{1,2}:\d{1,2}(:\d{1,2})?(\s*[AP]M)?))?$/i;
+const dateTimeRegex =
+  /^(\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4})(\s+(\d{1,2}:\d{1,2}(:\d{1,2})?(\s*[AP]M)?))?$/i;
 const stringRegex = /^.*$/s;
 const alphabeticsRegex = /^[a-zA-Z ]*$/;
 const integerRegex = /^-?\d+$/;
@@ -187,11 +188,7 @@ export const getCellValue = (cell: any, dataType?: string): string => {
     return formatDate(jsDate);
   }
 
-if (typeof cell === "object") {
-    console.log("~~~~~~~~~~~~");
-    console.log(cell);
-    console.log("~~~~~~~~~~~~");
-
+  if (typeof cell === "object") {
     // 🔥 1. ExcelJS evaluated value
     if (cell.value !== undefined) {
       if (typeof cell.value === "boolean") {
@@ -215,7 +212,6 @@ if (typeof cell === "object") {
       // fallback
       return formula;
     }
-
 
     if (cell.richText) {
       return cell.richText
@@ -454,11 +450,11 @@ export const validateDateFormat = ({
   errorBuffer,
 }: any) => {
   let isError = false;
-  let errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;      
-    const isValid = rule.dateRegex.test(strValue);            
-    if (!isValid) {
-      isError = true;      
-    }
+  let errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;
+  const isValid = rule.dateRegex.test(strValue);
+  if (!isValid) {
+    isError = true;
+  }
   // 🔥 FINAL ERROR HANDLING
   if (isError) {
     columnStat.date_format_error_count++;
@@ -496,29 +492,26 @@ export const validateDataType = ({
 }: any) => {
   let isError = false;
 
-  // ✅ Ensure 
-  
+  // ✅ Ensure
+
   const dataTypes = Array.isArray(dataType) ? dataType : [dataType];
-console.log(dataTypes)
+
   // ✅ OR validation (any type should pass)
   const isValid = dataTypes.some((type) => {
     switch (type) {
-      case "string":        
+      case "string":
         return stringRegex.test(strValue);
 
-      case "alphabetic":        
+      case "alphabetic":
         return alphabeticsRegex.test(strValue);
 
-      case "boolean":        
+      case "boolean":
         return validBooleanValues.has(strValue.toLowerCase());
 
-      case "date":
-        {
-        
-        return  dateTimeRegex.test(strValue);
-        }
+      case "date": {
+        return dateTimeRegex.test(strValue);
+      }
       case "integer":
-        
         // Excel special case
         if (
           ["csv", "xls", "xlsx"].includes(fileType) &&
@@ -526,11 +519,10 @@ console.log(dataTypes)
         ) {
           return false;
         }
-        
+
         return integerRegex.test(strValue);
 
       case "float":
-        
         if (
           ["csv", "xls", "xlsx"].includes(fileType) &&
           typeof rawValue !== "number"
@@ -546,11 +538,10 @@ console.log(dataTypes)
 
   // ❌ If NONE matched → error
   if (!isValid) {
-    isError = true;   
+    isError = true;
     var errorMsg = `${
-        strValueOriginal ?? strValue
-      } does not match allowed data types (${dataTypes.join(", ")})`;
-   
+      strValueOriginal ?? strValue
+    } does not match allowed data types (${dataTypes.join(", ")})`;
   }
 
   // 🔥 FINAL ERROR HANDLING
@@ -560,12 +551,7 @@ console.log(dataTypes)
 
     pushError({ columnStat, ruleKey: "datatype", rowNumber });
 
-    errorBuffer.add([
-      rowNumber,
-      columnName,
-      "Datatype Error",
-      errorMsg,
-    ]);
+    errorBuffer.add([rowNumber, columnName, "Datatype Error", errorMsg]);
 
     if (debug == 1) {
       columnStat.error_msg.push({
@@ -611,7 +597,7 @@ console.log(dataTypes)
 //         : dataType === "alphabetic"
 //           ? alphabeticsRegex.test(strValue)
 //           : dataType === "boolean"
-//             ? validBooleanValues.has(strValue.toLowerCase())            
+//             ? validBooleanValues.has(strValue.toLowerCase())
 //             : rule.dateTimeRegex.test(strValue);
 //             //: rule.dateRegex.test(strValue);
 //     if (!isValid) {
@@ -681,11 +667,11 @@ function validateLength({
   let is_error = 0;
   let error_msg = "";
   const numValue = +strValue;
-const dataTypes = Array.isArray(dataType)
-  ? dataType
-  : dataType
-  ? [dataType]
-  : [];
+  const dataTypes = Array.isArray(dataType)
+    ? dataType
+    : dataType
+      ? [dataType]
+      : [];
   const isInvalidNumber = Number.isNaN(numValue);
 
   if (dataTypes.includes("float") || dataTypes.includes("integer")) {
@@ -709,11 +695,9 @@ const dataTypes = Array.isArray(dataType)
       }
     }
   } else if (
-  dataTypes.length === 0 ||
-  ["string", "boolean", "alphabetic"].some((t) =>
-    dataTypes.includes(t)
-  )
-) {
+    dataTypes.length === 0 ||
+    ["string", "boolean", "alphabetic"].some((t) => dataTypes.includes(t))
+  ) {
     const strLen = strValue.length;
 
     if (rule.length_validation_type === "variable") {
@@ -731,8 +715,11 @@ const dataTypes = Array.isArray(dataType)
       }
     }
   } else if (dataTypes.includes("date")) {
-    const currentDate = parseDateByFormat(strValue, rule.date_format);
-
+    const currentDate = parseDateByFormat(
+      strValue,
+      rule.date_format || "DD-MM-YYYY",
+    );
+    console.log(strValue + "===============" + currentDate);
     if (
       currentDate &&
       rule.min_length &&
@@ -751,26 +738,33 @@ const dataTypes = Array.isArray(dataType)
       };
 
       if (rule.length_validation_type === "fixed") {
-        const fixedDate = rule.min_length
-          ? parseFixedDate(rule.min_length)
-          : null;
+        if (strValue == "") {
+          is_error = 1;
+          error_msg = `${strValueOriginal ?? "Value"} must be exactly ++ ${rule.min_length}`;
+        } else {
+          const fixedDate = rule.min_length
+            ? parseFixedDate(rule.min_length)
+            : null;
 
-        if (fixedDate) {
-          const inputDate = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth(),
-            currentDate.getDate(),
-          );
+          if (fixedDate) {
+            const inputDate = new Date(
+              currentDate.getFullYear(),
+              currentDate.getMonth(),
+              currentDate.getDate(),
+            );
 
-          const compareDate = new Date(
-            fixedDate.getFullYear(),
-            fixedDate.getMonth(),
-            fixedDate.getDate(),
-          );
-
-          if (inputDate.getTime() !== compareDate.getTime()) {
-            is_error = 1;
-            error_msg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length}`;
+            const compareDate = new Date(
+              fixedDate.getFullYear(),
+              fixedDate.getMonth(),
+              fixedDate.getDate(),
+            );
+            console.log("Fixed date->" + fixedDate);
+            console.log("compareDate>" + compareDate);
+            console.log(inputDate.getTime() + "!==" + compareDate.getTime());
+            if (inputDate.getTime() !== compareDate.getTime()) {
+              is_error = 1;
+              error_msg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length}`;
+            }
           }
         }
       } else if (rule.length_validation_type === "variable") {
@@ -985,7 +979,7 @@ export const validateRow = (
       dependentColumns.add(col.trim());
     });
   });
-  
+
   for (let i = 0; i < headers.length; i++) {
     let datatype_validation_checked = 0;
     const columnName = headers[i];
@@ -993,7 +987,7 @@ export const validateRow = (
     const isDependent = dependentColumns.has(columnName);
 
     const shouldProcess = rule || isDependent;
-    
+
     if (!shouldProcess) continue;
     const dataType = rule?.data_type;
     const columnStat = columnStats[columnName];
@@ -1010,20 +1004,18 @@ export const validateRow = (
     };
     let rawValue = rowData[columnName];
 
-    const primaryType = Array.isArray(dataType)
-  ? dataType[0]
-  : dataType;
+    const primaryType = Array.isArray(dataType) ? dataType[0] : dataType;
 
-const displayValue = getCellValue(rawValue, primaryType);
+    const displayValue = getCellValue(rawValue, primaryType);
     //const displayValue = getCellValue(rawValue, dataType);
     //const strValue = String(displayValue).trim();
     const strValue = String(displayValue);
     const strValueOriginal = rawValue;
 
-    console.log("+++++++++++")
-  console.log(strValue)
-  console.log(strValueOriginal)
-  console.log("+++++++++++")
+    // console.log("+++++++++++");
+    // console.log(strValue);
+    // console.log(strValueOriginal);
+    // console.log("+++++++++++");
     const normalizedValue = strValue;
 
     if (strValue !== "") {
@@ -1073,9 +1065,8 @@ const displayValue = getCellValue(rawValue, primaryType);
           errorBuffer,
         });
       }
-      if(rule.date_format !=undefined)
-      {
-          validateDateFormat({
+      if (rule.date_format != undefined) {
+        validateDateFormat({
           dataType,
           strValue,
           rawValue,
@@ -1088,7 +1079,6 @@ const displayValue = getCellValue(rawValue, primaryType);
           markInvalid,
           errorBuffer,
         });
-      
       }
       //for number type, also check min/max length if specified
       if (

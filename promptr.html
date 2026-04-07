@@ -1,0 +1,19 @@
+{savedRules.length === 0 && hasRules && (
+<button onClick="{()" ="">
+  setShowSaveInput(true)} className="flex items-center gap-1 rounded-lg
+  bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600" >
+  <Save size="{14}" />
+  Add Rule
+</button>
+)} when click on "Add Rule" button, 1)it will show model box 2) in model box
+show input type text with name feed. 3) below this show file name as lable and
+show file name which is already uploaded. 4) feed name is mandatory 5) show save
+and cancel button. when i click on save button it will save feed name and file
+name in database and setSavedRules. 7) after save it will show success message
+and close the model box. 8) for save API :
+http://localhost:5001/admin/api/file_rule const response = await
+apiClient.post(`admin/api/file_rule`, { withCredentials: true, }); here pass
+file_name, feed_name,rulesData,currentRules after save I want
+setSavedRules(response.data.data); i will send list of rules in response and i
+want to set this rules in savedRules state. and after that it will show in
+dropdown.

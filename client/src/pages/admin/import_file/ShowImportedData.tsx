@@ -50,14 +50,14 @@ const ShowImportedData: React.FC = () => {
       setValidating(true);
 
       // remove unnecessary "name" field
-
+      console.log(rulesData);
       const cleanedRules = Object.fromEntries(
         Object.entries(rulesData).map(([key, value]: any) => {
           const { name, ...rest } = value;
           return [key, rest];
         }),
       );
-
+      console.log(cleanedRules);
       const payload = {
         columnConfig: JSON.stringify(cleanedRules),
         fileName: filePath,
@@ -103,12 +103,29 @@ const ShowImportedData: React.FC = () => {
         fileName={fileName}
         currentRules={rulesData}
         onRuleSelect={(selectedRules) => {
-          setRulesData(selectedRules);
+          // const updatedRules = Object.fromEntries(
+          //   Object.entries(selectedRules).map(([key, value]: any) => [
+          //     key,
+          //     {
+          //       name: key, // ✅ add name
+          //       ...value,
+          //     },
+          //   ]),
+          // );
+          console.log(selectedRules);
+          setRulesData(selectedRules); // ✅ use transformed data
           toast.success("Rules loaded successfully");
         }}
       />
+      [[ {JSON.stringify(setRulesData)}]]
       {/* 🔹 Validation Rules UI */}
-      {<ShowValidationRules headers={headers} onRulesChange={setRulesData} />}
+      {
+        <ShowValidationRules
+          headers={headers}
+          onRulesChange={setRulesData}
+          rulesData={rulesData} // ✅ ADD THIS
+        />
+      }
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
           <div className="flex flex-col items-center gap-4 pointer-events-auto">
