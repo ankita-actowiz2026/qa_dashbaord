@@ -665,7 +665,6 @@ const ShowValidationRules: React.FC<Props> = ({
         {/* CONTENT */}
         <div className="flex-1 min-h-0 p-6 overflow-y-auto">
           {/* EMPTY STATE */}
-          [[[{JSON.stringify(current.rules)}]]]]
           {current.rules.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <div className="flex items-center justify-center w-20 h-20 mb-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl">

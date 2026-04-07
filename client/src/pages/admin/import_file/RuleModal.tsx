@@ -186,7 +186,7 @@ const RuleModal: React.FC<Props> = ({
                   styles={{
                     menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ensure on top
                   }}
-                  className="w-full text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1  bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer"
+                  className="w-full text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-1  bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer"
                   classNamePrefix="react-select"
                 />
               </div>

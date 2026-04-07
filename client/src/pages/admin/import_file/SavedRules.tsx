@@ -121,7 +121,6 @@ const SavedRules: React.FC<SavedRulesProps> = ({
         `admin/api/file_rule/${selectedRuleId}`,
         {
           file_name: fileName,
-          feed_name: ruleName || "Updated Rule",
           rules: currentRules,
         },
         { withCredentials: true },
