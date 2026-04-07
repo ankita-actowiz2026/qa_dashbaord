@@ -131,14 +131,14 @@ class ImportFileController {
 
       //save repsonse to db
 
-      const response = await this.saveRulesToDB(
-        req.user._id,
-        req.body.columnConfig,
-      );
-      let file_saved = true;
-      if (!response.success) {
-        file_saved = false;
-      }
+      // const response = await this.saveRulesToDB(
+      //   req.user._id,
+      //   req.body.columnConfig,
+      // );
+      // let file_saved = true;
+      // if (!response.success) {
+      //   file_saved = false;
+      // }
 
       // start storing in excel first sheet
 
@@ -181,9 +181,9 @@ class ImportFileController {
 
       finalColumns.forEach((col) => {
         Object.keys(column_wise_stats[col] || {}).forEach((key) => {
-          if (key !== "error_msg") {
-            metricsSet.add(key);
-          }
+          if (!["error_msg", "error_rows", "invalid_row_numbers","unique_values"].includes(key)) {
+  metricsSet.add(key);
+}
         });
       });
 
@@ -288,7 +288,7 @@ class ImportFileController {
         result_file: publicUrl,
         data: result,
         errors_for_coloms: errors_for_coloms,
-        file_saved: file_saved,
+        // file_saved: file_saved,
       });
     } catch (error) {
       next(error);

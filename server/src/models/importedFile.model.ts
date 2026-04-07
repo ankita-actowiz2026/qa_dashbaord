@@ -62,7 +62,10 @@ const importedFileSchema = new Schema<IImportedFile>(
       type: Number,
       default: 0,
     },
-
+    date_formate_error_count: {
+      type: Number,
+      default: 0,
+    },
     error_msg: [ErrorSchema],
     rules: [RuleSchema],
   },

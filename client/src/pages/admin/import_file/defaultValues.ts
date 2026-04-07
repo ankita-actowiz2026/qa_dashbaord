@@ -26,7 +26,8 @@ export const RULE_OPTIONS = [
   {
     value: "date_format",
     label: "Date Format",
-    show: (ctx) => ctx.currentDataType === "date",
+    show: (ctx) =>
+    ctx.currentDataType?.includes("date"),
   },
   { value: "data_redundant", label: "Data Redundant & Threshold" },
   { value: "regex", label: "Pattern Configuration" },

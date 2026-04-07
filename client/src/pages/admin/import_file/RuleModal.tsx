@@ -36,12 +36,6 @@ const RuleModal: React.FC<Props> = ({
   headers,
   currentHeader,
 }) => {
-  console.log("+++");
-  console.log(typeof currentDataType);
-  console.log("-----");
-  console.log(currentDataType);
-  console.log("-----");
-  console.log("+++");
   const modalRef = useRef(null);
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -66,9 +60,8 @@ const RuleModal: React.FC<Props> = ({
     "w-full px-4 py-2.5 mt-1.5 text-base border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-sidebar focus:border-sidebar bg-gray-50 transition-all duration-200";
   const div_class_1 = "px-6 pt-1 pb-2 border-t border-gray-50";
   const radioButtonStyle = "w-4 h-4 text-sidebar focus:ring-sidebarHover";
-  const types = Array.isArray(currentDataType)
-    ? currentDataType
-    : [currentDataType];
+  const effectiveDataType =
+    tempRule.data_type?.length > 0 ? tempRule.data_type : currentDataType || [];
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 bg-black/60 backdrop-blur-base"
@@ -108,42 +101,43 @@ const RuleModal: React.FC<Props> = ({
               value={tempRule.type || ""}
               onChange={(e) => {
                 const type = e.target.value as any;
-
-                setTempRule({
+                setTempRule((prev) => ({
+                  ...prev,
                   type,
-                  ...(type === "data_type" && { data_type: "string" }),
+                  ...(type === "data_type" && { data_type: ["string"] }),
                   ...(type === "data_length" && {
-                    data_type: "string",
+                    data_type: ["string"],
                     length_mode: "variable",
                   }),
-                  ...(type === "date_format" && {
-                    date_format: "YYYY-MM-DD",
-                  }),
+                  ...(type === "date_format" && { date_format: "YYYY-MM-DD" }),
                   ...(type === "dependency" && {
                     dependency_mode: "required",
                     sub_headers: [],
                     sub_mode: "required",
                     sub_dependencies: [],
                   }),
-                });
+                }));
               }}
               className={dropdown_style}
             >
+              {" "}
               <option value="" disabled hidden>
-                Select Rule
-              </option>
-
+                {" "}
+                Select Rule{" "}
+              </option>{" "}
               {RULE_OPTIONS.filter(
-                (opt) => !opt.show || opt.show({ currentDataType }),
+                (opt) =>
+                  !opt.show || opt.show({ currentDataType: effectiveDataType }),
               ).map((opt) => (
                 <option
                   key={opt.value}
                   value={opt.value}
                   disabled={appliedRuleTypes.includes(opt.value)}
                 >
-                  {opt.label}
+                  {" "}
+                  {opt.label}{" "}
                 </option>
-              ))}
+              ))}{" "}
             </select>
           </div>
         </div>
@@ -153,29 +147,33 @@ const RuleModal: React.FC<Props> = ({
             {/* Data Type */}
             <div className={div_class_1}>
               <label className={label_style}>Data Type</label>
+
               <div className="mt-1">
                 <select
                   multiple
-                  value={tempRule.data_type || ["string"]}
+                  value={tempRule.data_type || []}
                   onChange={(e) => {
                     const selectedValues = Array.from(
                       e.target.selectedOptions,
-                    ).map((opt) => opt.value);
+                      (opt) => opt.value,
+                    );
 
-                    setTempRule((prev) => ({
-                      ...prev,
-                      data_type: selectedValues,
-                      ...(selectedValues.includes("date")
-                        ? {
-                            date_format: prev.date_format || "YYYY-MM-DD",
-                          }
-                        : {
-                            date_format: undefined,
-                            custom_date_format: undefined,
-                          }),
-                    }));
+                    setTempRule((prev) => {
+                      const updated = {
+                        ...prev,
+                        data_type: selectedValues,
+                      };
+
+                      // 🔥 instant cleanup
+                      if (!selectedValues.includes("date")) {
+                        delete updated.date_format;
+                        delete updated.custom_date_format;
+                      }
+
+                      return updated;
+                    });
                   }}
-                  className={dropdown_style}
+                  className={dropdown_style + " h-32"} // height for multi-select
                 >
                   {DATA_TYPE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -185,53 +183,56 @@ const RuleModal: React.FC<Props> = ({
                 </select>
               </div>
             </div>
-            {/* ✅ Show only if date selected */}
-            {tempRule.data_type?.includes("date") && (
+          </>
+        )}
+
+        {tempRule.type === "date_format" && (
+          <>
+            <div className={div_class_1}>
+              <label className={label_style}>Date Format</label>
+              <div className="mt-1">
+                <select
+                  value={tempRule.date_format || ""}
+                  onChange={(e) =>
+                    setTempRule({
+                      ...tempRule,
+                      date_format: e.target.value,
+                    })
+                  }
+                  className={dropdown_style}
+                >
+                  {date_format_options.map((format) => (
+                    <option key={format} value={format}>
+                      {format}
+                    </option>
+                  ))}
+                  <option value="custom">Custom Date...</option>
+                </select>
+              </div>
+            </div>
+
+            {tempRule.date_format === "custom" && (
               <div className={div_class_1}>
-                <label className={label_style}>Date Format</label>
+                <label className={label_style}>Add custom date</label>
                 <div className="mt-1">
-                  <select
-                    value={tempRule.date_format || ""}
+                  <input
+                    type="text"
+                    value={tempRule.custom_date_format || ""}
                     onChange={(e) =>
                       setTempRule({
                         ...tempRule,
-                        date_format: e.target.value,
+                        custom_date_format: e.target.value,
                       })
                     }
-                    className={dropdown_style}
-                  >
-                    {date_format_options.map((format) => (
-                      <option key={format} value={format}>
-                        {format}
-                      </option>
-                    ))}
-                    <option value="custom">Custom Date...</option>
-                  </select>
+                    placeholder="Enter custom format (e.g. YYYY-DD-MM)"
+                    className={textbox_style}
+                  />
                 </div>
               </div>
             )}
-            {tempRule.data_type?.includes("date") &&
-              tempRule.date_format === "custom" && (
-                <div className={div_class_1}>
-                  <label className={label_style}>Add custom date</label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      value={tempRule.custom_date_format || ""}
-                      onChange={(e) =>
-                        setTempRule({
-                          ...tempRule,
-                          custom_date_format: e.target.value,
-                        })
-                      }
-                      placeholder="Enter custom format (e.g. YYYY-DD-MM)"
-                      className={textbox_style}
-                    />
-                  </div>
-                </div>
-              )}
           </>
         )}
+
         {tempRule.type === "data_length" && (
           <div className={div_class_1}>
             <label className={label_style}>Length Type</label>
@@ -250,45 +251,33 @@ const RuleModal: React.FC<Props> = ({
                 <option value="fixed">Fixed</option>
               </select>
             </div>
-            {/* VARIABLE */}
 
+            {/* VARIABLE */}
             {tempRule.length_mode === "variable" && (
               <div className="mt-2">
                 <label className={label_style}>Min - Max Length</label>
                 <div className="mt-0">
                   <div className="grid grid-cols-2 gap-2">
                     {/* STRING TYPES */}
-                    {types.some((t) =>
-                      [
-                        "string",
-                        "alphabetic",
-                        "boolean",
-                        "integer",
-                        "float",
-                      ].includes(t),
+                    {currentDataType.some((type) =>
+                      ["string", "alphabetic", "boolean"].includes(type),
                     ) && (
                       <>
                         <input
                           type="number"
                           placeholder="Min Value"
-                          value={tempRule.min_length || ""}
+                          value={tempRule.min || ""}
                           onChange={(e) =>
-                            setTempRule({
-                              ...tempRule,
-                              min_length: e.target.value,
-                            })
+                            setTempRule({ ...tempRule, min: e.target.value })
                           }
                           className={textbox_style}
                         />
                         <input
                           type="number"
                           placeholder="Max Value"
-                          value={tempRule.max_length || ""}
+                          value={tempRule.max || ""}
                           onChange={(e) =>
-                            setTempRule({
-                              ...tempRule,
-                              max_length: e.target.value,
-                            })
+                            setTempRule({ ...tempRule, max: e.target.value })
                           }
                           className={textbox_style}
                         />
@@ -296,7 +285,9 @@ const RuleModal: React.FC<Props> = ({
                     )}
 
                     {/* NUMBER */}
-                    {/* {types.some((t) => ["integer", "float"].includes(t)) && (
+                    {currentDataType.some((type) =>
+                      ["integer", "float"].includes(type),
+                    ) && (
                       <>
                         <input
                           type="number"
@@ -317,42 +308,26 @@ const RuleModal: React.FC<Props> = ({
                           className={textbox_style}
                         />
                       </>
-                    )} */}
+                    )}
 
                     {/* DATE */}
-                    {types.includes("date") && (
+                    {currentDataType.some((type) =>
+                      ["integer", "float"].includes(type),
+                    ) && (
                       <>
                         <input
                           type="date"
+                          value={tempRule.min || ""}
                           onChange={(e) =>
-                            setTempRule({
-                              ...tempRule,
-                              ...(types.includes("date")
-                                ? { min_date: e.target.value }
-                                : { min_length: e.target.value }),
-                            })
-                          }
-                          value={
-                            types.includes("date")
-                              ? tempRule.min_date || ""
-                              : tempRule.min_length || ""
+                            setTempRule({ ...tempRule, min: e.target.value })
                           }
                           className={textbox_style}
                         />
                         <input
                           type="date"
+                          value={tempRule.max || ""}
                           onChange={(e) =>
-                            setTempRule({
-                              ...tempRule,
-                              ...(types.includes("date")
-                                ? { max_date: e.target.value }
-                                : { max_length: e.target.value }),
-                            })
-                          }
-                          value={
-                            types.includes("date")
-                              ? tempRule.max_date || ""
-                              : tempRule.max_length || ""
+                            setTempRule({ ...tempRule, max: e.target.value })
                           }
                           className={textbox_style}
                         />
@@ -370,37 +345,24 @@ const RuleModal: React.FC<Props> = ({
                     <label className={label_style}>Fixed Value</label>
                     {/* STRING TYPES */}
                     <div className="p-0 m-0 ">
-                      {types.some((t) =>
-                        [
-                          "string",
-                          "alphabetic",
-                          "boolean",
-                          "integer",
-                          "float",
-                        ].includes(t),
+                      {currentDataType.some((type) =>
+                        ["string", "alphabetic", "boolean"].includes(type),
                       ) && (
                         <input
                           type="number"
                           placeholder="Fixed Value"
+                          value={tempRule.fixed || ""}
                           onChange={(e) =>
-                            setTempRule({
-                              ...tempRule,
-                              ...(types.includes("date")
-                                ? { fixed_date: e.target.value }
-                                : { fixed_length: e.target.value }),
-                            })
-                          }
-                          value={
-                            types.includes("date")
-                              ? tempRule.fixed_date || ""
-                              : tempRule.fixed_length || ""
+                            setTempRule({ ...tempRule, fixed: e.target.value })
                           }
                           className={textbox_style}
                         />
                       )}
 
                       {/* NUMBER */}
-                      {/* {types.some((t) => ["integer", "float"].includes(t)) && (
+                      {currentDataType.some((type) =>
+                        ["integer", "float"].includes(type),
+                      ) && (
                         <input
                           type="number"
                           placeholder="Fixed Number"
@@ -410,10 +372,10 @@ const RuleModal: React.FC<Props> = ({
                           }
                           className={textbox_style}
                         />
-                      )} */}
+                      )}
 
                       {/* DATE */}
-                      {types.includes("date") && (
+                      {currentDataType.includes("date") && (
                         <input
                           type="date"
                           value={tempRule.fixed || ""}

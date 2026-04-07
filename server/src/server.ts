@@ -13,7 +13,7 @@ import connectDB from "./config/db.config";
 
 import adminAuthRouter from "./routes/admin.auth.route";
 import adminUserRouter from "./routes/admin.user.route";
-
+import fileRule from "./routes/user.fileRule.route";
 import importedFileRouter from "./routes/user.importedFile.route";
 // import authRouter from "./routes/user.auth.route";
 // import reportRouter from "./routes/user.report.route";
@@ -37,6 +37,8 @@ app.use("/admin/auth", adminAuthRouter);
 app.use("/admin/user", adminUserRouter);
 
 app.use("/admin/api/qa_file", importedFileRouter);
+app.use("/admin/api/file_rule", fileRule);
+
 // app.use("/api/auth", authRouter);
 // app.use("/api/report", reportRouter);
 //app.use("/api", uploadRoutes);

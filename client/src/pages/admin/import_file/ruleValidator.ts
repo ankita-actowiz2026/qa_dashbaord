@@ -1,8 +1,10 @@
 export const validateRule = (tempRule, current) => {
   if (!tempRule.type) return "Please select a rule";
 
-  if (tempRule.type === "data_type" && !tempRule.data_type) {
-    return "Please select data type";
+
+
+  if (tempRule.type === "data_type" && (!tempRule.data_type || tempRule.data_type.length === 0)) {
+    return "Please add at least one data type";
   }
 
   if (tempRule.type === "data_length") {
@@ -10,79 +12,68 @@ export const validateRule = (tempRule, current) => {
       (rule) => rule.type === "data_type",
     );
 
-    const dataTypeRaw = current?.tempDataType ||
-      dataTypeRule?.value || ["string"];
-
-    const dataTypes = Array.isArray(current?.tempDataType)
-      ? current.tempDataType
-      : current?.tempDataType
-        ? [current.tempDataType]
-        : ["string"];
-
-    const isDate = dataTypes.includes("date");
-    const isNonDate = dataTypes.some((t) =>
-      [
-        "string",
-        "alphabetic",
-        "boolean",
-        "integer",
-        "float",
-        "number",
-      ].includes(t),
-    );
-
+    const dataTypes = current?.tempDataType || dataTypeRule?.value || ["string"];
+const isDateType = dataTypes.includes("date");
     if (tempRule.length_mode === "fixed") {
-      if (isDate) {
-        if (!tempRule.fixed_date) {
-          return "Please enter fixed date";
-        }
-
-        const fixedDate = new Date(tempRule.fixed_date);
-        if (isNaN(fixedDate.getTime())) {
-          return "Invalid fixed date";
-        }
+      if (!tempRule.fixed && tempRule.fixed !== 0) {
+        return isDateType
+          ? "Please enter fixed date"
+          : "Please enter fixed value. Fixed value should be >= 0";
       }
 
-      if (isNonDate) {
-        if (
-          tempRule.fixed_length === "" ||
-          tempRule.fixed_length === undefined
-        ) {
-          return "Please enter fixed value. Fixed value should be >= 0";
+      if (dataTypes.includes("date")) {
+        const fixedDate = new Date(tempRule.fixed);
+
+        if (isNaN(fixedDate.getTime())) {
+          return "Invalid date";
+        }
+      } else {
+        // 🔢 NUMBER / LENGTH VALIDATION
+        const fixedVal = Number(tempRule.fixed);
+
+        if (isNaN(fixedVal)) {
+          return "Fixed value must be a number";
         }
 
-        const val = Number(tempRule.fixed_length);
-        if (isNaN(val) || val < 0) {
-          return "Fixed value must be >= 0";
+        if (fixedVal < 0) {
+          return "Fixed value cannot be negative";
         }
       }
     } else if (tempRule.length_mode === "variable") {
-      if (isDate) {
-        if (!tempRule.min_date) return "Please enter minimum date";
-        if (!tempRule.max_date) return "Please enter maximum date";
+      if (isDateType) {
+        const minDate = new Date(tempRule.min);
+        const maxDate = new Date(tempRule.max);
 
-        const minDate = new Date(tempRule.min_date);
-        const maxDate = new Date(tempRule.max_date);
+        if (!tempRule.min) {
+          return "Please enter minimum date";
+        }
 
-        if (isNaN(minDate.getTime())) return "Invalid minimum date";
-        if (isNaN(maxDate.getTime())) return "Invalid maximum date";
+        if (!tempRule.max) {
+          return "Please enter maximum date";
+        }
+
+        if (isNaN(minDate.getTime())) {
+          return "Invalid minimum date";
+        }
+
+        if (isNaN(maxDate.getTime())) {
+          return "Invalid maximum date";
+        }
 
         if (minDate > maxDate) {
           return "Minimum date cannot be greater than maximum date";
         }
-      }
+      } else {
+        const minVal = Number(tempRule.min);
+        const maxVal = Number(tempRule.max);
 
-      if (isNonDate) {
-        if (tempRule.min_length === "" || tempRule.min_length === undefined) {
+        if (tempRule.min === "" || tempRule.min === undefined) {
           return "Please enter minimum value. Minimum value should be >= 0";
         }
 
-        if (tempRule.max_length === "" || tempRule.max_length === undefined) {
+        if (tempRule.max === "" || tempRule.max === undefined) {
           return "Please enter maximum value. Maximum value should be >= 0";
         }
-
-        const minVal = Number(tempRule.min_length);
-        const maxVal = Number(tempRule.max_length);
 
         if (isNaN(minVal) || minVal < 0) {
           return "Minimum value must be >= 0";
@@ -91,7 +82,6 @@ export const validateRule = (tempRule, current) => {
         if (isNaN(maxVal) || maxVal < 0) {
           return "Maximum value must be >= 0";
         }
-
         if (minVal >= maxVal) {
           return "Minimum value cannot be same or greater than maximum value";
         }
@@ -104,20 +94,20 @@ export const validateRule = (tempRule, current) => {
     return "Please select date format";
   }
   ///
-  if (tempRule.type === "data_type" && tempRule.date_format === "custom") {
-    // ✅ CUSTOM VALIDATION
+  // if (tempRule.type === "data_type" && tempRule.date_format === "custom") {
+  //   // ✅ CUSTOM VALIDATION
 
-    if (!tempRule.custom_date_format) {
-      return "Please enter custom date format";
-    }
+  //   if (!tempRule.custom_date_format) {
+  //     return "Please enter custom date format";
+  //   }
 
-    // basic format validation (production safe)
-    const validPattern = /^[YMDHhms:\-/\sA]+$/;
+  //   // basic format validation (production safe)
+  //   const validPattern = /^[YMDHhms:\-/\sA]+$/;
 
-    if (!validPattern.test(tempRule.custom_date_format)) {
-      return "Invalid custom date format";
-    }
-  }
+  //   if (!validPattern.test(tempRule.custom_date_format)) {
+  //     return "Invalid custom date format";
+  //   }
+  // }
   ///
   if (tempRule.type === "data_redundant") {
     if (!tempRule.data_redundant_value) {
@@ -127,18 +117,16 @@ export const validateRule = (tempRule, current) => {
     if (!tempRule.data_redundant_threshold) {
       return "Please enter threshold. Threshold value should be >= 0";
     }
-    if (tempRule.data_redundant_threshol < 0) {
+    if (tempRule.data_redundant_threshold < 0) {
       return "Threshold value must be >= 0";
     }
   }
 
   // ✅ Regex Validation
-  if (tempRule.type === "regex") {
-    if (tempRule.type === "regex") {
-      if (!tempRule.cell_contains_value) {
-        return "Please enter regex value";
-      }
-    }
+if (tempRule.type === "regex") {
+    if (!tempRule.cell_contains_value) {
+      return "Please enter regex value";
+    }  
     try {
       new RegExp(tempRule.cell_contains_value);
     } catch {
@@ -146,7 +134,7 @@ export const validateRule = (tempRule, current) => {
     }
   }
 
-  if (tempRule.type === "fixed_header") {
+  if (tempRule.type === "fixed_header") {    
     if (!tempRule.fixed_header) {
       return "Please add at least one header value";
     }

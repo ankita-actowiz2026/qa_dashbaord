@@ -6,8 +6,8 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 0;
-
+const debug = 1;
+const dateTimeRegex = /^(\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4})(\s+(\d{1,2}:\d{1,2}(:\d{1,2})?(\s*[AP]M)?))?$/i;
 const stringRegex = /^.*$/s;
 const alphabeticsRegex = /^[a-zA-Z ]*$/;
 const integerRegex = /^-?\d+$/;
@@ -129,8 +129,10 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
     if (rule.data_redundant_threshold) {
       rule.redundantCounter = new Map<string, number>();
     }
-
-    if (rule.data_type === "date" && rule.date_format) {
+    const dataTypes = Array.isArray(rule.data_type)
+      ? rule.data_type
+      : [rule.data_type];
+    if (dataTypes.includes("date") && rule.date_format) {
       rule.dateRegex = buildDateRegex(rule.date_format);
     }
     if (rule.cell_contains && rule.cell_contains_value) {
@@ -185,7 +187,36 @@ export const getCellValue = (cell: any, dataType?: string): string => {
     return formatDate(jsDate);
   }
 
-  if (typeof cell === "object") {
+if (typeof cell === "object") {
+    console.log("~~~~~~~~~~~~");
+    console.log(cell);
+    console.log("~~~~~~~~~~~~");
+
+    // 🔥 1. ExcelJS evaluated value
+    if (cell.value !== undefined) {
+      if (typeof cell.value === "boolean") {
+        return cell.value ? "true" : "false";
+      }
+      return String(cell.value);
+    }
+
+    // 🔥 2. FORMULA (your case)
+    if (cell.formula) {
+      const formula = String(cell.formula).toLowerCase();
+
+      if (formula === "false()" || formula === "false") {
+        return "false";
+      }
+
+      if (formula === "true()" || formula === "true") {
+        return "true";
+      }
+
+      // fallback
+      return formula;
+    }
+
+
     if (cell.richText) {
       return cell.richText
         .map((t: any) => t.text)
@@ -409,7 +440,47 @@ export const validateRegex = ({
   }
   return false;
 };
+export const validateDateFormat = ({
+  dataType,
+  strValue,
+  rawValue,
+  strValueOriginal,
+  fileType,
+  rule,
+  columnName,
+  rowNumber,
+  columnStat,
+  markInvalid,
+  errorBuffer,
+}: any) => {
+  let isError = false;
+  let errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;      
+    const isValid = rule.dateRegex.test(strValue);            
+    if (!isValid) {
+      isError = true;      
+    }
+  // 🔥 FINAL ERROR HANDLING
+  if (isError) {
+    columnStat.date_format_error_count++;
+    markInvalid();
+    pushError({ columnStat, ruleKey: "datatype", rowNumber });
 
+    errorBuffer.add([rowNumber, columnName, "Date Format Error", errorMsg]);
+
+    if (debug == 1) {
+      columnStat.error_msg.push({
+        row: rowNumber,
+        column: columnName,
+        error_type: "Date Format Error",
+        error_description: errorMsg,
+      });
+    }
+
+    return true;
+  }
+
+  return false;
+};
 export const validateDataType = ({
   dataType,
   strValue,
@@ -424,60 +495,77 @@ export const validateDataType = ({
   errorBuffer,
 }: any) => {
   let isError = false;
-  let errorMsg = `${strValue} does not match ${dataType} format`;
-  let datatypeValidationChecked = 0;
 
-  // 🔹 STRING / ALPHABETIC
-  if (
-    dataType === "string" ||
-    dataType === "alphabetic" ||
-    dataType === "boolean" ||
-    dataType === "date"
-  ) {
-    const isValid =
-      dataType === "string"
-        ? stringRegex.test(strValue)
-        : dataType === "alphabetic"
-          ? alphabeticsRegex.test(strValue)
-          : dataType === "boolean"
-            ? validBooleanValues.has(strValue.toLowerCase())
-            : rule.dateRegex.test(strValue);
-    if (!isValid) {
-      isError = true;
-      if (dataType == "date") {
-        errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;
-      }
+  // ✅ Ensure 
+  
+  const dataTypes = Array.isArray(dataType) ? dataType : [dataType];
+console.log(dataTypes)
+  // ✅ OR validation (any type should pass)
+  const isValid = dataTypes.some((type) => {
+    switch (type) {
+      case "string":        
+        return stringRegex.test(strValue);
+
+      case "alphabetic":        
+        return alphabeticsRegex.test(strValue);
+
+      case "boolean":        
+        return validBooleanValues.has(strValue.toLowerCase());
+
+      case "date":
+        {
+        
+        return  dateTimeRegex.test(strValue);
+        }
+      case "integer":
+        
+        // Excel special case
+        if (
+          ["csv", "xls", "xlsx"].includes(fileType) &&
+          typeof rawValue !== "number"
+        ) {
+          return false;
+        }
+        
+        return integerRegex.test(strValue);
+
+      case "float":
+        
+        if (
+          ["csv", "xls", "xlsx"].includes(fileType) &&
+          typeof rawValue !== "number"
+        ) {
+          return false;
+        }
+        return numberRegex.test(strValue);
+
+      default:
+        return false;
     }
-  }
+  });
 
-  // 🔹 INTEGER / FLOAT
-  else if (dataType === "integer" || dataType === "float") {
-    if (
-      ["csv", "xls", "xlsx"].includes(fileType) &&
-      typeof rawValue !== "number"
-    ) {
-      datatypeValidationChecked = 1;
-      isError = true;
-      errorMsg = `${strValueOriginal || "Value"} must be a ${dataType}, but got string`;
-    }
-
-    if (datatypeValidationChecked === 0) {
-      const isValid =
-        dataType === "integer"
-          ? integerRegex.test(strValue)
-          : numberRegex.test(strValue);
-
-      if (!isValid) isError = true;
-    }
+  // ❌ If NONE matched → error
+  if (!isValid) {
+    isError = true;   
+    var errorMsg = `${
+        strValueOriginal ?? strValue
+      } does not match allowed data types (${dataTypes.join(", ")})`;
+   
   }
 
   // 🔥 FINAL ERROR HANDLING
   if (isError) {
     columnStat.datatype_error_count++;
     markInvalid();
+
     pushError({ columnStat, ruleKey: "datatype", rowNumber });
 
-    errorBuffer.add([rowNumber, columnName, "Datatype Error", errorMsg]);
+    errorBuffer.add([
+      rowNumber,
+      columnName,
+      "Datatype Error",
+      errorMsg,
+    ]);
 
     if (debug == 1) {
       columnStat.error_msg.push({
@@ -488,11 +576,95 @@ export const validateDataType = ({
       });
     }
 
-    return true;
+    return true; // ❗ error occurred
   }
 
-  return false;
+  return false; // ✅ valid
 };
+// export const validateDataType = ({
+//   dataType,
+//   strValue,
+//   rawValue,
+//   strValueOriginal,
+//   fileType,
+//   rule,
+//   columnName,
+//   rowNumber,
+//   columnStat,
+//   markInvalid,
+//   errorBuffer,
+// }: any) => {
+//   let isError = false;
+//   let errorMsg = `${strValue} does not match ${dataType} format`;
+//   let datatypeValidationChecked = 0;
+
+//   // 🔹 STRING / ALPHABETIC
+//   if (
+//     dataType === "string" ||
+//     dataType === "alphabetic" ||
+//     dataType === "boolean" ||
+//     dataType === "date"
+//   ) {
+//     const isValid =
+//       dataType === "string"
+//         ? stringRegex.test(strValue)
+//         : dataType === "alphabetic"
+//           ? alphabeticsRegex.test(strValue)
+//           : dataType === "boolean"
+//             ? validBooleanValues.has(strValue.toLowerCase())            
+//             : rule.dateTimeRegex.test(strValue);
+//             //: rule.dateRegex.test(strValue);
+//     if (!isValid) {
+//       isError = true;
+//       if (dataType == "date") {
+//         errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;
+//       }
+//     }
+//   }
+
+//   // 🔹 INTEGER / FLOAT
+//   else if (dataType === "integer" || dataType === "float") {
+//     if (
+//       ["csv", "xls", "xlsx"].includes(fileType) &&
+//       typeof rawValue !== "number"
+//     ) {
+//       datatypeValidationChecked = 1;
+//       isError = true;
+//       errorMsg = `${strValueOriginal || "Value"} must be a ${dataType}, but got string`;
+//     }
+
+//     if (datatypeValidationChecked === 0) {
+//       const isValid =
+//         dataType === "integer"
+//           ? integerRegex.test(strValue)
+//           : numberRegex.test(strValue);
+
+//       if (!isValid) isError = true;
+//     }
+//   }
+
+//   // 🔥 FINAL ERROR HANDLING
+//   if (isError) {
+//     columnStat.datatype_error_count++;
+//     markInvalid();
+//     pushError({ columnStat, ruleKey: "datatype", rowNumber });
+
+//     errorBuffer.add([rowNumber, columnName, "Datatype Error", errorMsg]);
+
+//     if (debug == 1) {
+//       columnStat.error_msg.push({
+//         row: rowNumber,
+//         column: columnName,
+//         error_type: "Datatype Error",
+//         error_description: errorMsg,
+//       });
+//     }
+
+//     return true;
+//   }
+
+//   return false;
+// };
 function validateLength({
   rule,
   strValue,
@@ -509,10 +681,14 @@ function validateLength({
   let is_error = 0;
   let error_msg = "";
   const numValue = +strValue;
-
+const dataTypes = Array.isArray(dataType)
+  ? dataType
+  : dataType
+  ? [dataType]
+  : [];
   const isInvalidNumber = Number.isNaN(numValue);
 
-  if (dataType === "float" || dataType === "integer") {
+  if (dataTypes.includes("float") || dataTypes.includes("integer")) {
     if (isInvalidNumber) {
       is_error = 1;
       error_msg = `${strValueOriginal ?? "Value"}  must be between ${rule.min_length} and ${rule.max_length}`;
@@ -533,28 +709,28 @@ function validateLength({
       }
     }
   } else if (
-    dataType === undefined ||
-    dataType === "string" ||
-    dataType === "boolean" ||
-    dataType === "alphabetic"
-  ) {
+  dataTypes.length === 0 ||
+  ["string", "boolean", "alphabetic"].some((t) =>
+    dataTypes.includes(t)
+  )
+) {
     const strLen = strValue.length;
 
     if (rule.length_validation_type === "variable") {
       if (rule.min_length !== null && strLen < rule.min_length) {
         is_error = 1;
-        error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and  ${rule.max_length} characters`;
+        error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length} in length`;
       } else if (rule.max_length !== null && strLen > rule.max_length) {
         is_error = 1;
-        error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and  ${rule.max_length} characters`;
+        error_msg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and  ${rule.max_length} length`;
       }
     } else if (rule.length_validation_type === "fixed") {
       if (rule.min_length !== null && strLen !== Number(rule.min_length)) {
         is_error = 1;
-        error_msg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length} characters`;
+        error_msg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length} length`;
       }
     }
-  } else if (dataType === "date") {
+  } else if (dataTypes.includes("date")) {
     const currentDate = parseDateByFormat(strValue, rule.date_format);
 
     if (
@@ -809,9 +985,7 @@ export const validateRow = (
       dependentColumns.add(col.trim());
     });
   });
-  console.log("+++++++++++++++++++++");
-  console.log(dependentColumns);
-
+  
   for (let i = 0; i < headers.length; i++) {
     let datatype_validation_checked = 0;
     const columnName = headers[i];
@@ -819,7 +993,7 @@ export const validateRow = (
     const isDependent = dependentColumns.has(columnName);
 
     const shouldProcess = rule || isDependent;
-    console.log("===>" + shouldProcess);
+    
     if (!shouldProcess) continue;
     const dataType = rule?.data_type;
     const columnStat = columnStats[columnName];
@@ -836,10 +1010,20 @@ export const validateRow = (
     };
     let rawValue = rowData[columnName];
 
-    const displayValue = getCellValue(rawValue, dataType);
+    const primaryType = Array.isArray(dataType)
+  ? dataType[0]
+  : dataType;
+
+const displayValue = getCellValue(rawValue, primaryType);
+    //const displayValue = getCellValue(rawValue, dataType);
     //const strValue = String(displayValue).trim();
     const strValue = String(displayValue);
     const strValueOriginal = rawValue;
+
+    console.log("+++++++++++")
+  console.log(strValue)
+  console.log(strValueOriginal)
+  console.log("+++++++++++")
     const normalizedValue = strValue;
 
     if (strValue !== "") {
@@ -889,7 +1073,23 @@ export const validateRow = (
           errorBuffer,
         });
       }
-
+      if(rule.date_format !=undefined)
+      {
+          validateDateFormat({
+          dataType,
+          strValue,
+          rawValue,
+          strValueOriginal,
+          fileType,
+          rule,
+          columnName,
+          rowNumber,
+          columnStat,
+          markInvalid,
+          errorBuffer,
+        });
+      
+      }
       //for number type, also check min/max length if specified
       if (
         rule.length_validation_type != null &&

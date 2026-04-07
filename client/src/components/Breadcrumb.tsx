@@ -13,7 +13,10 @@ const routeNameMap: Record<string, string> = {
 export default function Breadcrumb() {
   const location = useLocation();
 
-  const pathnames = location.pathname.split("/").filter(Boolean);
+  const pathnames = location.pathname
+    .split("/")
+    .filter(Boolean)
+    .filter((v) => v !== "admin");
 
   return (
     <nav className="flex items-center mb-4 text-lg text-gray-500">

@@ -1,9 +1,17 @@
 // ColumnDetailRow.jsx
-import React from "react";
-import { CheckCircle, XCircle, ChevronUp, ChevronDown } from "lucide-react";
-import { FiCheckCircle } from "react-icons/fi";
 import { FileDown } from "lucide-react";
-
+const RULE_LABELS: Record<string, string> = {
+  empty: "Empty data",
+  datatype: "Data type Error",
+  regex: "Regex pattern mismatch",
+  redundant: "Redundant data",
+  fixed_header: "Fixed data",
+  start_with: "Start with data",
+  end_with: "End with",
+  length: "Data Length",
+  blocked: "Blocked value",
+  dependency: "Dependency data",
+};
 const buildErrorSummary = (columnName, errorRows) => {
   const rows = [];
 
@@ -25,10 +33,11 @@ const downloadCSV = (data, fileName = "errors.csv") => {
 
   const csvRows = [
     header.join(","),
-    ...data.map(
-      (row) =>
-        `${row.column},${row.rule},${row.count},"[${row.rows.join(", ")}]"`,
-    ),
+    ...data.map((row) => {
+      const ruleLabel = RULE_LABELS[row.rule] || row.rule;
+
+      return `${row.column},${ruleLabel},${row.count},"[${row.rows.join(", ")}]"`;
+    }),
   ];
 
   const blob = new Blob([csvRows.join("\n")], {
@@ -96,10 +105,10 @@ const ColumnDetailRow = ({
   const mergedRows = getMergedErrorRows(stats.error_rows || {});
   const { visible, hidden } = getDisplayRows(mergedRows, 3);
   return (
-    <tr className="hover:bg-slate-50 transition-colors border-b border-slate-100">
+    <tr className="transition-colors border-b hover:bg-slate-50 border-slate-100">
       {/* ID */}
       <td className="px-3 py-3">
-        <div className="w-7 h-7 rounded-lg  text-slate-800   text-base font-bold flex items-center justify-center shadow-sm">
+        <div className="flex items-center justify-center text-base font-bold rounded-lg shadow-sm w-7 h-7 text-slate-800">
           {index + 1}
         </div>
       </td>
@@ -107,7 +116,7 @@ const ColumnDetailRow = ({
       {/* Headers */}
       <td className="px-3 py-3">
         <div
-          className="font-semibold text-slate-800 text-base truncate"
+          className="text-base font-semibold truncate text-slate-800"
           title={col}
         >
           {col}
@@ -116,15 +125,15 @@ const ColumnDetailRow = ({
 
       {/* Total */}
       <td className="px-3 py-3">
-        <div className="font-bold text-slate-700 text-base whitespace-nowrap">
-          {stats.total_records ?? 0}
+        <div className="text-base font-bold text-slate-700 whitespace-nowrap">
+          {total_rows ?? 0}
         </div>
       </td>
 
       {/* QC Pass */}
       <td className="px-3 py-3">
         <div className="flex flex-col gap-1">
-          <span className="text-green-600 font-semibold text-base whitespace-nowrap">
+          <span className="text-base font-semibold text-green-600 whitespace-nowrap">
             {stats.valid_records ?? 0}
           </span>
         </div>
@@ -133,7 +142,7 @@ const ColumnDetailRow = ({
       {/* QC Fail */}
       <td className="px-3 py-3">
         <div className="flex flex-col gap-1">
-          <span className="text-red-600 font-semibold text-base whitespace-nowrap">
+          <span className="text-base font-semibold text-red-600 whitespace-nowrap">
             {stats.invalid_records ?? 0}
           </span>
         </div>
@@ -141,8 +150,8 @@ const ColumnDetailRow = ({
 
       {/* Blank Rows */}
       <td className="px-3 py-3">
-        <span className=" font-medium text-base whitespace-nowrap">
-          {stats.blank_rows ?? 0}
+        <span className="text-base font-medium whitespace-nowrap">
+          {stats.empty_count ?? 0}
         </span>
       </td>
 
@@ -174,7 +183,7 @@ const ColumnDetailRow = ({
           const displayKeys = ruleKeys.map((key) => RULE_LABEL_MAP[key] || key);
 
           return displayKeys.length > 0 ? (
-            <div className="flex items-center gap-1 flex-wrap">
+            <div className="flex flex-wrap items-center gap-1">
               <span className="text-base px-2 py-0.5 bg-red-50 text-red-600 rounded-full whitespace-nowrap">
                 {displayKeys.slice(0, 2).join(", ")}
               </span>
@@ -186,7 +195,7 @@ const ColumnDetailRow = ({
                   </span>
 
                   <div className="invisible group-hover:visible absolute z-50 bottom-full left-0 mb-2 p-2 bg-gray-900 text-white text-base rounded-lg shadow-xl min-w-[200px]">
-                    <div className="font-semibold mb-1 text-gray-300">
+                    <div className="mb-1 font-semibold text-gray-300">
                       All Rules:
                     </div>
 
@@ -194,7 +203,7 @@ const ColumnDetailRow = ({
                       {displayKeys.join(", ")}
                     </div>
 
-                    <div className="absolute top-full left-4 border-4 border-transparent border-t-gray-900"></div>
+                    <div className="absolute border-4 border-transparent top-full left-4 border-t-gray-900"></div>
                   </div>
                 </div>
               )}
@@ -236,7 +245,7 @@ const ColumnDetailRow = ({
         <div className="flex items-center gap-1">
           {mergedRows.length > 0 ? (
             <>
-              <div className="text-base bg-red-50 px-2 py-1 rounded-md font-mono whitespace-nowrap">
+              <div className="px-2 py-1 font-mono text-base rounded-md bg-red-50 whitespace-nowrap">
                 [{visible.slice(0, 3).join(", ")}
                 {visible.length > 3 ? ", ..." : ""}]
               </div>
@@ -245,14 +254,14 @@ const ColumnDetailRow = ({
                   const data = buildErrorSummary(col, stats.error_rows);
                   downloadCSV(data, `${col}_errors.csv`);
                 }}
-                className="p-1 rounded-lg hover:bg-red-100 transition-all"
+                className="p-1 transition-all rounded-lg hover:bg-red-100"
                 title="Download error details"
               >
-                <FileDown className="w-6 h-6 text-blue-600 hover:scale-110 transition-transform" />
+                <FileDown className="w-6 h-6 text-blue-600 transition-transform hover:scale-110" />
               </button>
             </>
           ) : (
-            <span className="text-green-600 text-base whitespace-nowrap flex items-center gap-1">
+            <span className="flex items-center gap-1 text-base text-green-600 whitespace-nowrap">
               All valid
             </span>
           )}

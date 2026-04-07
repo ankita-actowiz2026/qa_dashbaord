@@ -23,31 +23,13 @@ export const generateRulesJSON = (data: HeaderItem[]) => {
 
           obj.length_validation_type = val.mode;
 
-          // ✅ VARIABLE MODE
-          if (val.mode === "variable") {
-            if (val.min_length !== undefined) {
-              obj.min_length = val.min_length;
-              obj.max_length = val.max_length;
-            }
-
-            if (val.min_date !== undefined) {
-              obj.min_date = val.min_date;
-              obj.max_date = val.max_date;
-            }
-          }
-
-          // ✅ FIXED MODE
           if (val.mode === "fixed") {
-            if (val.fixed_length !== undefined) {
-              obj.min_length = val.fixed_length;
-              obj.max_length = val.fixed_length;
-            }
-
-            if (val.fixed_date !== undefined) {
-              obj.fixed_date = val.fixed_date;
-            }
+            obj.min_length = val.fixed;
+            obj.max_length = val.fixed;
+          } else {
+            obj.min_length = val.min;
+            obj.max_length = val.max;
           }
-
           break;
         }
 

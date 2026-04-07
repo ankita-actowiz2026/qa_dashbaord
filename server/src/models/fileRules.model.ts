@@ -12,6 +12,15 @@ const FileRulesSchema = new Schema<IFileRules>(
       type: Schema.Types.Mixed, // flexible JSON
       required: true,
     },
+    feed_name: {
+      type: String,
+      default: null,
+    },
+    file_name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
   },
   {
     timestamps: true, // auto adds createdAt & updatedAt

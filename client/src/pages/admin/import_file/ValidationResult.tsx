@@ -2,12 +2,12 @@ import ColumnDetailRow from "./ColumnDetailRow";
 
 import { useState, useMemo, useCallback } from "react";
 import { FiCheckCircle } from "react-icons/fi";
-
+import { XCircle } from "lucide-react";
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
-import { FiDownload } from "react-icons/fi";
-import { CheckCircle } from "lucide-react";
+import { FiFileText, FiDownload } from "react-icons/fi";
+import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 const formatErrorMsg = (count, label) => {
@@ -306,14 +306,14 @@ const ValidationResult = () => {
   }, [requestData]);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className=" mx-auto ">
+      <div className="mx-auto ">
         <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent mb-2">
+              <h1 className="mb-2 text-4xl font-bold text-transparent md:text-5xl bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text">
                 Validation Results
               </h1>
-              <p className="text-slate-500 flex items-center gap-2">
+              <p className="flex items-center gap-2 text-slate-500">
                 <FiCheckCircle className="text-green-500" />
                 Data quality report for your uploaded file
               </p>
@@ -321,7 +321,7 @@ const ValidationResult = () => {
 
             {/* File info badge - make it more visual */}
             <div className="flex items-center gap-3">
-              <div className="bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-sm border border-slate-200">
+              <div className="px-4 py-2 border rounded-full shadow-sm bg-white/80 backdrop-blur-sm border-slate-200">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-base text-slate-600">
@@ -334,7 +334,7 @@ const ValidationResult = () => {
                 onClick={() => navigate("/admin/import_file")}
                 className="group relative inline-flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-slate-200 rounded-full hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                <FaUpload className="text-slate-500 group-hover:text-blue-500 transition-colors" />
+                <FaUpload className="transition-colors text-slate-500 group-hover:text-blue-500" />
                 <span className="font-medium text-slate-700 group-hover:text-blue-600">
                   Upload New
                 </span>
@@ -344,7 +344,7 @@ const ValidationResult = () => {
         </div>
         {/* 🔹 TOP SUMMARY */}
         <div className="mt-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 gap-6 mb-8 md:grid-cols-3">
             <SummaryCard title="Total Records" value={total_rows} />
             <SummaryCard title="Valid Records" value={valid_rows} success />
             <SummaryCard title="Invalid Records" value={invalid_rows} error />
@@ -355,28 +355,28 @@ const ValidationResult = () => {
             href={result_file}
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl text-white font-medium overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
+            className="relative inline-flex items-center gap-3 px-8 py-3 overflow-hidden font-medium text-white transition-all duration-300 shadow-lg group bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:shadow-xl"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover"></div>
-            <FiDownload className="relative z-10 text-lg group-hover:scale-110 transition-transform" />
+            <FiDownload className="relative z-10 text-lg transition-transform group-hover:scale-110" />
             <span className="relative z-10">Download Full Report</span>
           </a>
         </div>
         {/* 🔹 COLUMN LIST */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-50 to-white px-6 py-5 border-b border-slate-200">
+        <div className="overflow-hidden bg-white border border-gray-100 shadow-lg rounded-2xl">
+          <div className="px-6 py-5 border-b bg-gradient-to-r from-slate-50 to-white border-slate-200">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <h2 className="flex items-center gap-3 text-2xl font-bold text-slate-800">
                   <div className="w-1.5 h-7 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
                   Column Analysis
                 </h2>
-                <p className="text-slate-500 text-base mt-1">
+                <p className="mt-1 text-base text-slate-500">
                   Detailed validation results for each column
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <div className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-base font-medium">
+                <div className="px-3 py-1 text-base font-medium text-blue-700 rounded-full bg-blue-50">
                   {filteredColumns.length} columns analyzed
                 </div>
               </div>
@@ -387,39 +387,39 @@ const ValidationResult = () => {
           {/* Grid Header */}
           <div className="overflow-x-auto">
             <table className="min-w-[800px] w-full border-collapse">
-              <thead className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-200">
+              <thead className="border-b-2 bg-gradient-to-r from-slate-100 to-slate-50 border-slate-200">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[5%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[5%]">
                     ID
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[15%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%]">
                     Headers
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[6%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%]">
                     Total
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
                     QC Pass
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
                     QC Fail
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[6%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%]">
                     Blank Rows
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[15%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%]">
                     Reasons
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
                     Unique %
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
                     Status
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
                     QC Fail %
                   </th>
-                  <th className="px-3 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider w-[13%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[13%]">
                     No. of Row ID
                   </th>
                 </tr>
@@ -429,10 +429,10 @@ const ValidationResult = () => {
                   <tr>
                     <td colSpan={11} className="px-4 py-16 text-center">
                       <div className="flex flex-col items-center justify-center">
-                        <div className="bg-green-50 rounded-full p-4 mb-4">
+                        <div className="p-4 mb-4 rounded-full bg-green-50">
                           <CheckCircle className="text-green-500" size={48} />
                         </div>
-                        <p className="text-xl font-bold text-green-600 mb-2">
+                        <p className="mb-2 text-xl font-bold text-green-600">
                           🎉 All validations passed!
                         </p>
                         <p className="text-gray-500">

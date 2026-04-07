@@ -25,12 +25,9 @@ type Rule =
       type: "data_length";
       value: {
         mode: "fixed" | "variable";
-        min_length?: number | string;
-        max_length?: number | string;
-        fixed_length?: number | string;
-        min_date?: string;
-        max_date?: string;
-        fixed_date?: string;
+        min?: number | string;
+        max?: number | string;
+        fixed?: number | string;
       };
     }
   | { type: "date_format"; value: string }
@@ -96,12 +93,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     required?: boolean;
     data_type?: string[];
     length_mode?: "variable" | "fixed";
-    min_length?: number | string;
-    max_length?: number | string;
-    fixed_length?: number | string;
-    min_date?: string;
-    max_date?: string;
-    fixed_date?: string;
+    min?: number | string;
+    max?: number | string;
+    fixed?: number | string;
     date_format?: string;
     data_redundant_value?: string;
     data_redundant_threshold?: string;
@@ -146,61 +140,55 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
   const current = useMemo(() => data[selectedHeader], [data, selectedHeader]);
   const applyRule = () => {
-    const normalizeTypes = (val: any) =>
-      Array.isArray(val) ? val : val ? [val] : ["string"];
+    const dataTypeRule = current.rules.find((r) => r.type === "data_type");
+
     const error = validateRule(tempRule, {
       ...current,
       tempDataType:
         tempRule.type === "data_type"
-          ? normalizeTypes(tempRule.data_type)
-          : normalizeTypes(
-              current.rules?.find((r) => r.type === "data_type")?.value,
-            ),
+          ? tempRule.data_type
+          : dataTypeRule?.value,
     });
     if (error) return toast.error(error);
     const updated = data.map((h, i) =>
       i === selectedHeader ? { ...h, rules: [...h.rules] } : h,
     );
     const currentHeader = updated[selectedHeader];
-    alert(tempRule.data_type);
-    const selectedTypes = Array.isArray(tempRule.data_type)
-      ? tempRule.data_type
-      : tempRule.data_type
-        ? [tempRule.data_type]
-        : ["string"];
+
     // ✅ If editing → remove OLD rule (regardless of type)
     if (editingIndex !== null) {
       const removingType = currentHeader.rules[editingIndex]?.type;
 
       // ✅ If editing data_type → also remove date_format
-      if (removingType === "data_type") {
-        const previousDataType = currentHeader.rules[editingIndex]?.value || [];
-        const newDataType = tempRule.data_type || [];
-
-        currentHeader.rules = currentHeader.rules.filter((r, i) => {
-          if (i === editingIndex) return false;
-
-          // keep your existing logic
-          if (r.type === "date_format") return false;
-
-          // ✅ FIXED condition
-          const isSameArray = (a: string[], b: string[]) =>
-            a.length === b.length && a.every((v) => b.includes(v));
-
-          const isSwitchingWithDate =
-            !isSameArray(previousDataType, newDataType) &&
-            (previousDataType.includes("date") || newDataType.includes("date"));
-
-          if (r.type === "data_length" && isSwitchingWithDate) {
-            return false;
-          }
-
-          return true;
-        });
-      } else {
-        console.log("Else");
+      if (editingIndex !== null) {
         currentHeader.rules.splice(editingIndex, 1);
       }
+      // if (removingType === "data_type") {
+      //   if (editingIndex !== null) {
+      //     currentHeader.rules.splice(editingIndex, 1);
+      //   }
+
+      //   currentHeader.rules = currentHeader.rules.filter((r, i) => {
+      //     if (i === editingIndex) return false;
+
+      //     // keep your existing logic
+      //     /// if (r.type === "date_format") return false;
+
+      //     // ✅ FIXED condition
+      //     const isSwitchingWithDate =
+      //       previousDataType !== newDataType &&
+      //       (previousDataType === "date" || newDataType === "date");
+
+      //     if (r.type === "data_length" && isSwitchingWithDate) {
+      //       return false;
+      //     }
+
+      //     return true;
+      //   });
+      // } else {
+      //   console.log("Else");
+      //   currentHeader.rules.splice(editingIndex, 1);
+      // }
     }
     switch (tempRule.type) {
       case "required":
@@ -209,81 +197,45 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           value: true,
         });
         break;
-      case "data_type":
+      case "data_type": {
+        const dataTypes = Array.isArray(tempRule.data_type)
+          ? tempRule.data_type
+          : [];
+
+        // 🔥 REMOVE date_format if date not selected
+        if (!dataTypes.includes("date")) {
+          currentHeader.rules = currentHeader.rules.filter(
+            (r) => r.type !== "date_format",
+          );
+        }
+
         currentHeader.rules.push({
           type: "data_type",
-          value: selectedTypes,
-        });
-
-        if (
-          tempRule.data_type?.includes("date") &&
-          (tempRule.date_format || tempRule.custom_date_format)
-        ) {
-          currentHeader.rules.push({
-            type: "date_format",
-            value:
-              tempRule.date_format === "custom"
-                ? tempRule.custom_date_format
-                : tempRule.date_format || "YYYY-MM-DD", // ✅ safety fallback
-          });
-        }
-        break;
-      case "data_length": {
-        const normalizeTypes = (val: any) =>
-          Array.isArray(val) ? val : val ? [val] : ["string"];
-
-        // ✅ ALWAYS get from existing rule
-        const selectedTypes = normalizeTypes(
-          currentHeader.rules?.find((r) => r.type === "data_type")?.value,
-        );
-        const isDate = selectedTypes.includes("date");
-
-        const isNonDate = selectedTypes.some((t) =>
-          [
-            "string",
-            "alphabetic",
-            "number",
-            "integer",
-            "float",
-            "boolean",
-          ].includes(t),
-        );
-
-        const value: any = {
-          mode: tempRule.length_mode || "variable",
-        };
-
-        // ✅ VARIABLE MODE
-        if (value.mode === "variable") {
-          if (isNonDate) {
-            value.min_length = tempRule.min_length;
-            value.max_length = tempRule.max_length;
-          }
-          alert(isDate + "==" + isNonDate);
-          if (isDate) {
-            value.min_date = tempRule.min_date;
-            value.max_date = tempRule.max_date;
-          }
-        }
-
-        // ✅ FIXED MODE
-        if (value.mode === "fixed") {
-          if (isNonDate) {
-            value.fixed_length = tempRule.fixed_length;
-          }
-
-          if (isDate) {
-            value.fixed_date = tempRule.fixed_date;
-          }
-        }
-
-        currentHeader.rules.push({
-          type: "data_length",
-          value,
+          value: dataTypes,
         });
 
         break;
       }
+      case "date_format":
+        currentHeader.rules.push({
+          type: "date_format",
+          value:
+            tempRule.date_format === "custom"
+              ? tempRule.custom_date_format
+              : tempRule.date_format || "YYYY-MM-DD",
+        });
+        break;
+      case "data_length":
+        currentHeader.rules.push({
+          type: "data_length",
+          value: {
+            mode: tempRule.length_mode || "variable",
+            min: tempRule.min,
+            max: tempRule.max,
+            fixed: tempRule.fixed,
+          },
+        });
+        break;
       case "data_redundant":
         currentHeader.rules.push({
           type: "data_redundant",
@@ -357,9 +309,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
 
     const updated = [...data];
     const currentHeader = updated[selectedHeader];
-    const selectedTypes = tempRule.data_type?.length
-      ? tempRule.data_type
-      : ["string"];
+
     const deletedRule = currentHeader.rules[deleteIndex];
     currentHeader.rules.splice(deleteIndex, 1);
 
@@ -382,7 +332,6 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
   const currentDataType = (appliedRuleDataType?.[0]?.value as string[]) || [
     "string",
   ];
-
   useEffect(() => {
     if (headers.length > 0) {
       setData(
@@ -395,6 +344,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
     }
   }, [headers]);
   const buildTempRule = (rule: Rule): any => {
+    console.log("EDIT RULE VALUE:", rule.value);
     switch (rule.type) {
       case "required":
         return {
@@ -402,32 +352,18 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           required: rule.value as boolean,
         };
 
-      case "data_type": {
-        const dataType = rule.value as string[];
-
-        const isDate = dataType.includes("date");
-        const dateFormatRule = current.rules.find(
-          (r) => r.type === "date_format",
-        );
-
-        const dateValue = dateFormatRule?.value as string;
-        const isPredefined = date_format_options.includes(dateValue);
+      case "data_type":
         return {
           type: "data_type",
-          data_type: dataType,
-          ...(isDate && {
-            date_format: isPredefined ? dateValue : "custom",
-            custom_date_format: isPredefined ? "" : dateValue,
-          }),
+          data_type: Array.isArray(rule.value) ? rule.value : [rule.value],
         };
-      }
 
       case "date_format": {
         const value = rule.value as string;
         const isPredefined = date_format_options.includes(value);
+
         return {
-          type: "data_type", // important
-          data_type: "date",
+          type: "date_format",
           date_format: isPredefined ? value : "custom",
           custom_date_format: isPredefined ? "" : value,
         };
@@ -438,12 +374,9 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
         return {
           type: "data_length",
           length_mode: val.mode || "variable",
-          min_length: val.min_length ?? "",
-          max_length: val.max_length ?? "",
-          fixed_length: val.fixed_length ?? "",
-          min_date: val.min_date ?? "",
-          max_date: val.max_date ?? "",
-          fixed_date: val.fixed_date ?? "",
+          min: val.min ?? "",
+          max: val.max ?? "",
+          fixed: val.fixed ?? "",
         };
       }
 
@@ -573,10 +506,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                           : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
                       }`}
                     >
-                      {
-                        item.rules.filter((r) => r.type !== "date_format")
-                          .length
-                      }
+                      {item.rules.length}
                     </span>
                   )}
                 </div>
@@ -642,250 +572,196 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
             </div>
           ) : (
             <div className="space-y-3">
-              [[[[{JSON.stringify(current)}]]]
-              {current.rules
-                .filter((rule) => rule.type !== "date_format")
-                .map((rule, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between px-2 py-4 transition-all duration-200 bg-white border border-gray-100 group rounded-xl hover:shadow-md hover:border-gray-200 "
-                  >
-                    <div className="flex-1 min-w-0 text-lg text-gray-700">
-                      {[
-                        "required",
-                        "regex",
-                        "cell_start_with",
-                        "fixed_header",
-                        "data_redundant",
-                      ].includes(rule.type) && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500 ">
-                            {RULE_LABELS[rule.type]}{" "}
-                          </span>
+              [[{JSON.stringify(current.rules)}]]
+              {current.rules.map((rule, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between px-2 py-4 transition-all duration-200 bg-white border border-gray-100 group rounded-xl hover:shadow-md hover:border-gray-200 "
+                >
+                  <div className="flex-1 min-w-0 text-lg text-gray-700">
+                    {[
+                      "required",
+                      "regex",
+                      "cell_start_with",
+                      "fixed_header",
+                      "data_redundant",
+                    ].includes(rule.type) && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 ">
+                          {RULE_LABELS[rule.type]}{" "}
+                        </span>
 
-                          <span className={ruleListClass}>
-                            {rule.type === "required"
-                              ? rule.value
-                                ? "Empty Not Allowed"
-                                : "Empty Allow"
-                              : rule.type === "data_redundant"
-                                ? rule.value?.data_redundant_value
-                                : typeof rule.value === "string"
-                                  ? rule.value
-                                  : ""}
-                          </span>
+                        <span className={ruleListClass}>
+                          {rule.type === "required"
+                            ? rule.value
+                              ? "Empty Not Allowed"
+                              : "Empty Allow"
+                            : rule.type === "data_redundant"
+                              ? rule.value?.data_redundant_value
+                              : typeof rule.value === "string"
+                                ? rule.value
+                                : ""}
+                        </span>
 
-                          {rule.type === "data_redundant" && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-gray-500">Threshold</span>
-
-                              <span className={ruleListClass}>
-                                {rule.value?.data_redundant_threshold}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {rule.type === "data_type" && (
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sidebar">Data Type</span>
-
-                          {/* Data Type Badge */}
-                          <span className={ruleListClass}>
-                            {Array.isArray(rule.value)
-                              ? rule.value.map((v) => formatText(v)).join(", ")
-                              : formatText(rule.value)}
-                          </span>
-
-                          {/* ✅ If DATE → show format */}
-                          {rule.value.includes("date") &&
-                            (() => {
-                              const dateFormatRule = current.rules.find(
-                                (r) => r.type === "date_format",
-                              );
-
-                              return dateFormatRule ? (
-                                <span className={ruleListClass}>
-                                  {dateFormatRule.value as string}
-                                </span>
-                              ) : null;
-                            })()}
-                        </div>
-                      )}
-
-                      {rule.type === "data_length" && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500 ">
-                            {RULE_LABELS[rule.type]}
-                          </span>
-
-                          {/* Mode */}
-                          <span className={ruleListClass}>
-                            {formatText(rule.value?.mode)}
-                          </span>
-
-                          {/* Detect if it's DATE or LENGTH */}
-                          {(() => {
-                            const hasDate =
-                              rule.value?.min_date ||
-                              rule.value?.max_date ||
-                              rule.value?.fixed_date;
-
-                            const hasLength =
-                              rule.value?.min_length !== undefined ||
-                              rule.value?.max_length !== undefined ||
-                              rule.value?.fixed_length !== undefined;
-
-                            if (rule.value?.mode === "fixed") {
-                              return (
-                                <>
-                                  {hasLength && (
-                                    <span className={ruleListClass}>
-                                      {rule.value?.fixed_length ?? "-"}
-                                    </span>
-                                  )}
-
-                                  {hasDate && (
-                                    <span className={ruleListClass}>
-                                      {rule.value?.fixed_date ?? "-"}
-                                    </span>
-                                  )}
-                                </>
-                              );
-                            }
-
-                            if (rule.value?.mode === "variable") {
-                              return (
-                                <>
-                                  {hasLength && (
-                                    <>
-                                      <span className={ruleListClass}>
-                                        {rule.value?.min_length ?? "-"}
-                                      </span>
-                                      <span className="font-semibold">To</span>
-                                      <span className={ruleListClass}>
-                                        {rule.value?.max_length ?? "-"}
-                                      </span>
-                                    </>
-                                  )}
-
-                                  {hasDate && (
-                                    <>
-                                      <span className={ruleListClass}>
-                                        {rule.value?.min_date ?? "-"}
-                                      </span>
-                                      <span className="font-semibold">To</span>
-                                      <span className={ruleListClass}>
-                                        {rule.value?.max_date ?? "-"}
-                                      </span>
-                                    </>
-                                  )}
-                                </>
-                              );
-                            }
-
-                            return null;
-                          })()}
-                        </div>
-                      )}
-
-                      {["cell_end_with", "not_match_found"].includes(
-                        rule.type,
-                      ) && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500 ">
-                            {RULE_LABELS[rule.type]}
-                          </span>
-                          <div className="flex flex-wrap gap-2">
-                            {(rule.value as string[])?.map((val, index) => (
-                              <span key={index} className={ruleListClass}>
-                                {val}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {rule.type === "dependency" && (
-                        <div className="flex flex-col gap-2">
-                          {/* 🔹 Main Dependency */}
+                        {rule.type === "data_redundant" && (
                           <div className="flex items-center gap-2">
-                            <span className="text-lg text-gray-500">
-                              Dependency
-                            </span>
+                            <span className="text-gray-500">Threshold</span>
 
                             <span className={ruleListClass}>
-                              {rule.value.mode === "required"
-                                ? "Required"
-                                : rule.value.main_value}
+                              {rule.value?.data_redundant_threshold}
                             </span>
                           </div>
+                        )}
+                      </div>
+                    )}
 
-                          {/* 🔹 Sub Dependencies */}
-                          {rule.value.sub_dependencies?.length > 0 && (
-                            <div className="flex flex-col gap-2 pl-4 border-l border-gray-200">
-                              {rule.value.sub_dependencies.map(
-                                (s: any, i: number) => (
-                                  <div
-                                    key={i}
-                                    className="flex flex-wrap items-center gap-2 text-lg"
-                                  >
-                                    {/* Headers */}
-                                    <span className={ruleListClass}>
-                                      {s.headers.join(", ")}
-                                    </span>
+                    {rule.type === "data_type" && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sidebar">Data Type</span>
 
-                                    {/* Arrow */}
-                                    <span className="text-gray-400">
-                                      <ArrowRight
-                                        size={12}
-                                        className="inline-block text-gray-400"
-                                      />
-                                    </span>
+                        <span className={ruleListClass}>
+                          {(rule.value as string[])
+                            .map((v) => v.charAt(0).toUpperCase() + v.slice(1))
+                            .join(", ")}
+                        </span>
+                      </div>
+                    )}
+                    {rule.type === "date_format" && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">Date Format</span>
+                        <span className={ruleListClass}>
+                          {rule.value as string}
+                        </span>
+                      </div>
+                    )}
+                    {rule.type === "data_length" && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 ">
+                          {RULE_LABELS[rule.type]}
+                        </span>
 
-                                    {/* Mode */}
-                                    {s.mode == "required" && (
-                                      <span className={ruleListClass}>
-                                        {capitalizeFirst(s.mode)}
-                                      </span>
-                                    )}
-                                    {/* Value (optional) */}
-                                    {s.value && (
-                                      <span className={ruleListClass}>
-                                        {s.value}
-                                      </span>
-                                    )}
-                                  </div>
-                                ),
-                              )}
-                            </div>
-                          )}
+                        {/* Mode Badge */}
+                        <span className={ruleListClass}>
+                          {formatText(rule.value?.mode)}
+                        </span>
+
+                        {/* Values */}
+                        {rule.value?.mode === "fixed" && (
+                          <span className={ruleListClass}>
+                            {rule.value?.fixed || "-"}
+                          </span>
+                        )}
+
+                        {rule.value?.mode === "variable" && (
+                          <>
+                            <span className={ruleListClass}>
+                              {rule.value?.min || "-"}
+                            </span>
+                            <span className="font-semibold">To</span>
+                            <span className={ruleListClass}>
+                              {rule.value?.max || "-"}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )}
+
+                    {["cell_end_with", "not_match_found"].includes(
+                      rule.type,
+                    ) && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 ">
+                          {RULE_LABELS[rule.type]}
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {(rule.value as string[])?.map((val, index) => (
+                            <span key={index} className={ruleListClass}>
+                              {val}
+                            </span>
+                          ))}
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
-                    <div className="flex items-center gap-2 ml-4 transition-opacity duration-200 opacity-100 ">
-                      <button
-                        onClick={() => {
-                          setEditingRule(true);
-                          setEditingIndex(idx);
-                          setTempRule(buildTempRule(rule));
-                          setIsModalOpen(true);
-                        }}
-                        className="p-2 transition-all duration-200 rounded-lg text-sidebar hover:text-sidebarSecondaryHover hover:bg-blue-50"
-                      >
-                        <FiEdit size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteRule(idx)}
-                        className="p-2 transition-all duration-200 rounded-lg text-sidebar hover:text-red-600 hover:bg-red-50"
-                      >
-                        <FiTrash2 size={16} />
-                      </button>
-                    </div>
+                    {rule.type === "dependency" && (
+                      <div className="flex flex-col gap-2">
+                        {/* 🔹 Main Dependency */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg text-gray-500">
+                            Dependency
+                          </span>
+
+                          <span className={ruleListClass}>
+                            {rule.value.mode === "required"
+                              ? "Required"
+                              : rule.value.main_value}
+                          </span>
+                        </div>
+
+                        {/* 🔹 Sub Dependencies */}
+                        {rule.value.sub_dependencies?.length > 0 && (
+                          <div className="flex flex-col gap-2 pl-4 border-l border-gray-200">
+                            {rule.value.sub_dependencies.map(
+                              (s: any, i: number) => (
+                                <div
+                                  key={i}
+                                  className="flex flex-wrap items-center gap-2 text-lg"
+                                >
+                                  {/* Headers */}
+                                  <span className={ruleListClass}>
+                                    {s.headers.join(", ")}
+                                  </span>
+
+                                  {/* Arrow */}
+                                  <span className="text-gray-400">
+                                    <ArrowRight
+                                      size={12}
+                                      className="inline-block text-gray-400"
+                                    />
+                                  </span>
+
+                                  {/* Mode */}
+                                  {s.mode == "required" && (
+                                    <span className={ruleListClass}>
+                                      {capitalizeFirst(s.mode)}
+                                    </span>
+                                  )}
+                                  {/* Value (optional) */}
+                                  {s.value && (
+                                    <span className={ruleListClass}>
+                                      {s.value}
+                                    </span>
+                                  )}
+                                </div>
+                              ),
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+
+                  <div className="flex items-center gap-2 ml-4 transition-opacity duration-200 opacity-100 ">
+                    <button
+                      onClick={() => {
+                        setEditingRule(true);
+                        setEditingIndex(idx);
+                        setTempRule(buildTempRule(rule));
+                        setIsModalOpen(true);
+                      }}
+                      className="p-2 transition-all duration-200 rounded-lg text-sidebar hover:text-sidebarSecondaryHover hover:bg-blue-50"
+                    >
+                      <FiEdit size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteRule(idx)}
+                      className="p-2 transition-all duration-200 rounded-lg text-sidebar hover:text-red-600 hover:bg-red-50"
+                    >
+                      <FiTrash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -913,7 +789,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           onClick={() => setConfirmOpen(false)}
         >
           <div
-            className="relative w-full max-w-md p-6 transition-all duration-200 transform scale-100 bg-white shadow-2xl rounded-2xl"
+            className="w-full max-w-2xl p-6 bg-white rounded-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -928,10 +804,10 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
               <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
                 <FiTrash2 className="text-2xl text-red-600" />
               </div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Delete Rule
-              </h2>
-              <p className="mt-2 text-base text-gray-500">
+              <h1 className="text-3xl font-semibold text-gray-800">
+                Rule Delete
+              </h1>
+              <p className="mt-2 text-lg text-gray-500">
                 Are you sure you want to delete this rule? This action cannot be
                 undone.
               </p>

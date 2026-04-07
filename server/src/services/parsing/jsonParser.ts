@@ -130,10 +130,14 @@ export const jsonParser = async (
 
           headers.forEach((header) => {
             const ruleConfig = columnConfig[header] || {};
-            columnStats[header] = createColumnStatsFromRules(
+            const stats = createColumnStatsFromRules(
               ruleConfig,
               "not_add_dependency",
             );
+            // ✅ initialize Set here
+              stats.unique_values = new Set();
+              stats.invalid_row_numbers = [];
+              columnStats[header] = stats;
           });
           const dependencyColumns = extractDependencyColumns(columnConfig);
 

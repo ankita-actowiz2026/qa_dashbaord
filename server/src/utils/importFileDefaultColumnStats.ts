@@ -3,6 +3,7 @@ import { ColumnStats } from "../interface/importedFile.interface";
 export const RULE_TO_STATS_MAP = {
   is_required: ["empty_count"],
   data_type: ["datatype_error_count"],
+  date_format: ["date_format_error_count"],
   length_validation_type: ["length_validation_error_count"],
   data_redundant_value: ["redundant_error_count"],
   cell_contains: ["regex_pattern_error_count"],
@@ -18,7 +19,7 @@ export const errorMessageMap: Record<string, string> = {
   regex_pattern_error_count: "Regex Pattern validation failed",
   redundant_error_count: "Redundant value found",
   fixed_header_error_count: "Fixed validation failed",
-  //date_format_error_count: "Invalid date format",
+  date_format_error_count: "Invalid date format",
   cell_start_with_error_count: "Cell start with validation failed",
   cell_end_with_error_count: "Cell end with validation failed",
   length_validation_error_count: "Length validation failed",
