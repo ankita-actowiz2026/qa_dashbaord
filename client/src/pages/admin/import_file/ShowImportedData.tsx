@@ -101,23 +101,14 @@ const ShowImportedData: React.FC = () => {
       <SavedRules
         hasRules={Object.keys(rulesData).length > 0}
         fileName={fileName}
+        headers={headers}
         currentRules={rulesData}
         onRuleSelect={(selectedRules) => {
-          // const updatedRules = Object.fromEntries(
-          //   Object.entries(selectedRules).map(([key, value]: any) => [
-          //     key,
-          //     {
-          //       name: key, // ✅ add name
-          //       ...value,
-          //     },
-          //   ]),
-          // );
           console.log(selectedRules);
           setRulesData(selectedRules); // ✅ use transformed data
-          toast.success("Rules loaded successfully");
         }}
       />
-      [[ {JSON.stringify(setRulesData)}]]
+
       {/* 🔹 Validation Rules UI */}
       {
         <ShowValidationRules

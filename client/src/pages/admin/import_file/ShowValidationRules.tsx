@@ -641,7 +641,7 @@ const ShowValidationRules: React.FC<Props> = ({
         {/* HEADER */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50 rounded-t-2xl">
           <div>
-            <h2 className="text-2xl font-semibold text-sidebar">
+            <h2 className="text-2xl font-semibold text-gray-700">
               {current.name}
             </h2>
             <p className="text-base text-gray-400 mt-0.5">

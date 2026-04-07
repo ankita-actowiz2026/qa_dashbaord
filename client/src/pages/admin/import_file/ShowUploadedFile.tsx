@@ -62,7 +62,7 @@ const ShowUploadedFile: React.FC<Props> = ({
             <span>Change File</span>
           </button>
           {/* Validate Data */}
-          [[{!hasRules}]]
+
           <button
             type="button"
             onClick={onValidate}

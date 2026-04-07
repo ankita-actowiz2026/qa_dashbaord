@@ -83,25 +83,24 @@ export const updateFileRules = async (
   try {
     const { id } = req.params;
 
-    const response = await FileRules.findByIdAndUpdate(
+    const updated = await FileRules.findByIdAndUpdate(
       id,
-      {
-        ...req.body,
-      },
+      { ...req.body },
       { new: true },
     );
 
-    if (!response) {
+    if (!updated) {
       return res.status(404).json({
         success: false,
         message: "File rules not found",
       });
     }
+    const allRules = await FileRules.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       message: "File rules updated successfully",
-      data: response,
+      data: allRules,
     });
   } catch (error: any) {
     next(error);
