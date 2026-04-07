@@ -789,7 +789,7 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
           onClick={() => setConfirmOpen(false)}
         >
           <div
-            className="w-full max-w-2xl p-6 bg-white rounded-xl"
+            className="w-full max-w-2xl p-6 bg-white rounded-xl relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -805,11 +805,10 @@ const ShowValidationRules: React.FC<Props> = ({ headers, onRulesChange }) => {
                 <FiTrash2 className="text-2xl text-red-600" />
               </div>
               <h1 className="text-3xl font-semibold text-gray-800">
-                Rule Delete
+                Deleteing Rule
               </h1>
               <p className="mt-2 text-lg text-gray-500">
-                Are you sure you want to delete this rule? This action cannot be
-                undone.
+                Are you sure you want to delete this rule?{" "}
               </p>
 
               {/* Actions */}

@@ -312,7 +312,7 @@ const RuleModal: React.FC<Props> = ({
 
                     {/* DATE */}
                     {currentDataType.some((type) =>
-                      ["integer", "float"].includes(type),
+                      ["date"].includes(type),
                     ) && (
                       <>
                         <input
@@ -587,7 +587,7 @@ const RuleModal: React.FC<Props> = ({
           </button>
           <button
             onClick={onSubmit}
-            className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium bg-sidebar  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-sidebarHover active:scale-[0.98] transition-all duration-200"
+            className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium bg-sidebarSecondary  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-sidebarSecondaryHover active:scale-[0.98] transition-all duration-200"
           >
             {editingRule ? "Edit Rule" : "Add Rule"}
           </button>

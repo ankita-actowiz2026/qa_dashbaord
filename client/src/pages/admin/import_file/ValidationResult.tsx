@@ -389,37 +389,37 @@ const ValidationResult = () => {
             <table className="min-w-[800px] w-full border-collapse">
               <thead className="border-b-2 bg-gradient-to-r from-slate-100 to-slate-50 border-slate-200">
                 <tr>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[5%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[5%] whitespace-nowrap">
                     ID
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%] whitespace-nowrap">
                     Headers
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%] whitespace-nowrap">
                     Total
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     QC Pass
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     QC Fail
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%]">
-                    Blank Rows
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%] whitespace-nowrap">
+                    Empty Rows
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%] whitespace-nowrap">
                     Reasons
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     Unique %
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     Status
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     QC Fail %
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[13%]">
+                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[13%]  whitespace-nowrap">
                     No. of Row ID
                   </th>
                 </tr>
