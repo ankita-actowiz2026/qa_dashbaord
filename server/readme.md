@@ -1,11 +1,9 @@
-1. if type date and dateformat is not set then?
+1. when back from view summary and file not exist then redirect to import page
+2. header responsive and add hidesidebaricon
+3. file process complete then delete file
+   4)node side while import validattion with express validator
 
-To do
-
-1. read json file and reaf first 50 records for headers
-2. when user login set context api and username show from database
-3. in resoponsive date is not coming for length
-4. optimize code in node + react
+1) if type date and dateformat is not set then?
 
 ---
 
