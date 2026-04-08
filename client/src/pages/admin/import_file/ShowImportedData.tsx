@@ -75,6 +75,7 @@ const ShowImportedData: React.FC = () => {
           responseData: response.data,
           requestData: cleanedRules,
           fileName,
+          dbFileName: filePath,
         },
       });
     } catch (error: any) {

@@ -1,6 +1,6 @@
 import ColumnDetailRow from "./ColumnDetailRow";
-
-import { useState, useMemo, useCallback } from "react";
+import apiClient from "../../../services/apiClient";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { FiCheckCircle } from "react-icons/fi";
 import { XCircle } from "lucide-react";
 import SummaryCard from "./SummaryCard";
@@ -10,168 +10,6 @@ import { FiFileText, FiDownload } from "react-icons/fi";
 import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
-const formatErrorMsg = (count, label) => {
-  if (!count || count === 0) {
-    return "No validation errors found";
-  }
-
-  switch (label) {
-    case "Length Type":
-      return `${count} value${count > 1 ? "s" : ""} failed length validation`;
-
-    case "Redundant Value":
-      return `${count} duplicate/redundant value${count > 1 ? "s" : ""} found`;
-
-    case "Regex":
-      return `${count} value${count > 1 ? "s" : ""} did not match the required pattern`;
-
-    case "Data Type":
-      return `${count} value${count > 1 ? "s" : ""} have incorrect data type`;
-
-    case "fixed_header":
-      return `${count} value${count > 1 ? "s" : ""} did not match fixed value`;
-
-    case "Dependency":
-      return `${count} dependency condition${count > 1 ? "s" : ""} failed`;
-
-    case "cell_start_with":
-      return `${count} value${count > 1 ? "s" : ""} did not start with the required prefix`;
-
-    case "cell_end_with":
-      return `${count} value${count > 1 ? "s" : ""} did not end with the required suffix`;
-
-    case "blocked":
-      return `${count} value${count > 1 ? "s" : ""} contain restricted/blocked content`;
-
-    case "required":
-      return `${count} empty or missing value${count > 1 ? "s" : ""} found`;
-  }
-};
-const errorKeyMap = {
-  fixed_header: "fixed_header_error_count",
-  is_required: "datatype_error_count",
-  cell_start_with: "cell_start_with_error_count",
-  cell_end_with: "cell_end_with_error_count",
-  not_match_found: "blocked_word_error_count",
-};
-const buildRulesArray = (colRules, issueMap = {}) => {
-  const arr = [];
-
-  if (!colRules) return arr;
-
-  // ✅ Length
-  if (colRules.length_validation_type) {
-    let value = colRules.length_validation_type;
-    if (colRules.length_validation_type == "fixed") {
-      value = `${value.charAt(0).toUpperCase() + value.slice(1)} (${
-        colRules.min_length ?? "-"
-      })`;
-    } else {
-      value = `${value.charAt(0).toUpperCase() + value.slice(1)} (${
-        colRules.min_length ?? "-"
-      } To ${colRules.max_length ?? "-"})`;
-    }
-
-    arr.push({
-      label: "Length Type",
-      value,
-      errorMsg: formatErrorMsg(
-        issueMap.length_validation_error_count,
-        "Length Type",
-      ),
-    });
-  }
-
-  // ✅ Redundant
-  if (colRules.data_redundant_value !== undefined) {
-    let value = colRules.data_redundant_value;
-
-    value = `${value} (Threshold: ${colRules.data_redundant_threshold ?? "-"})`;
-
-    arr.push({
-      label: "Redundant Value",
-      value,
-      errorMsg: formatErrorMsg(issueMap.redundant_error_count, "Redundant"),
-    });
-  }
-
-  // ✅ Regex
-  if (colRules.cell_contains) {
-    let value = colRules.cell_contains
-      ? `Enabled (${colRules.cell_contains_value || "pattern"})`
-      : "Disabled";
-
-    arr.push({
-      label: "Regex",
-      value,
-      errorMsg: formatErrorMsg(issueMap.regex_pattern_error_count, "Regex"),
-    });
-  }
-  if (colRules.data_type) {
-    let value = colRules.data_type;
-
-    value =
-      colRules.data_type === "date"
-        ? `Date (${colRules.date_format || "format"})`
-        : colRules.data_type.charAt(0).toUpperCase() +
-          colRules.data_type.slice(1);
-
-    arr.push({
-      label: "Data Type",
-      value,
-      errorMsg: formatErrorMsg(issueMap.datatype_error_count, "Data Type"),
-    });
-  }
-  // ✅ Dependency
-
-  if (colRules.dependency && Object.keys(colRules.dependency).length > 0) {
-    const value = Object.entries(colRules.dependency)
-      .map(([k, v]) => (v === true ? `${k} (Required)` : `${k} (${v})`))
-      .join(" - ");
-
-    arr.push({ label: "Dependency", value });
-  }
-
-  // ✅ Remaining fields (generic)
-  Object.entries(colRules).forEach(([key, value]) => {
-    if (
-      [
-        "name",
-        "data_type",
-        "date_format",
-        "length_validation_type",
-        "min_length",
-        "max_length",
-        "data_redundant_value",
-        "data_redundant_threshold",
-        "cell_contains",
-        "cell_contains_value",
-        "dependency",
-      ].includes(key)
-    ) {
-      return;
-    }
-    const errorCount = issueMap[errorKeyMap[key]];
-
-    arr.push({
-      label: key || key,
-      value: formatValue(value),
-      errorMsg: formatErrorMsg(errorCount, key),
-    });
-  });
-
-  return arr;
-};
-const formatValue = (value) => {
-  if (Array.isArray(value)) return value.join(", ");
-  if (typeof value === "object")
-    return Object.entries(value)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(", ");
-  if (value === true) return "Yes";
-  if (value === false) return "No";
-  return String(value);
-};
 const ignoreColumns = [
   "total_records",
   "valid_records",
@@ -187,75 +25,7 @@ const getFilteredColumns = (columnStats: any) => {
     Object.entries(stats).some(([key, value]) => !ignoreColumns.includes(key)),
   );
 };
-type ColumnError = {
-  row: number;
-  error_type: string;
-  error_description: string;
-};
 
-type ColumnStats = {
-  total_records: number;
-  valid_records: number;
-  invalid_records: number;
-  error_msg?: ColumnError[];
-  [key: string]: any;
-};
-
-type ResponseData = {
-  data: {
-    total_rows: number;
-    valid_rows: number;
-    invalid_rows: number;
-    column_wise_stats: Record<string, ColumnStats>;
-  };
-  result_file: string;
-  errors_for_coloms: Record<string, string[]>;
-};
-const errorStyleMap: Record<string, string> = {
-  empty: "text-yellow-700 bg-yellow-50 border-yellow-200",
-  regex: "text-purple-700 bg-purple-50 border-purple-200",
-  datatype: "text-blue-700 bg-blue-50 border-blue-200",
-  length: "text-green-700 bg-green-50 border-green-200",
-  start: "text-orange-700 bg-orange-50 border-orange-200",
-  end: "text-amber-700 bg-amber-50 border-amber-200",
-  duplicate: "text-pink-700 bg-pink-50 border-pink-200",
-  redundant: "text-pink-700 bg-pink-50 border-pink-200",
-  header: "text-indigo-700 bg-indigo-50 border-indigo-200",
-  blocked: "text-rose-700 bg-rose-50 border-rose-200",
-  depend: "text-cyan-700 bg-cyan-50 border-cyan-200",
-};
-
-const getErrorStyle = (err: string) => {
-  const lower = err.toLowerCase();
-
-  const match = Object.keys(errorStyleMap).find((key) => lower.includes(key));
-
-  return match
-    ? errorStyleMap[match]
-    : "text-gray-700 bg-gray-50 border-gray-200";
-};
-const FIELD_LABELS = {
-  is_required: "Required",
-  data_type: "Data Type",
-
-  length_validation_type: "Length Type",
-  min_length: "Min Length",
-  max_length: "Max Length",
-
-  data_redundant_value: "Redundant Value",
-  data_redundant_threshold: "Redundant Threshold",
-
-  cell_contains: "Regex Enabled",
-  cell_contains_value: "Regex Pattern",
-
-  fixed_header: "Fixed Value",
-  cell_start_with: "Starts With",
-  cell_end_with: "Ends With",
-
-  not_match_found: "Blocked Values",
-
-  dependency: "Dependency",
-};
 const ValidationResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -263,10 +33,32 @@ const ValidationResult = () => {
   const responseData = location.state?.responseData;
   const requestData = location.state?.requestData;
   const fileName = location.state?.fileName;
+  const dbFileName = location.state?.dbFileName;
+
   // console.log(responseData);
+  useEffect(() => {
+    const fetchData = async () => {
+      //validation-response/1775631276193.xlsx
+      try {
+        //  setLoading(true);
+        const fileName = dbFileName.split("/").pop();
+        const res = await apiClient.get(
+          `admin/api/qa_file/validation-response/${fileName}`,
+        );
 
+        setColumn_wise_stats(res.data.data.column_wise_stats);
+      } catch (err) {
+        console.error(err);
+        // setError("Failed to fetch data");
+      } finally {
+        //setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
   const [expandedColumn, setExpandedColumn] = useState<string | null>(null);
-
+  const [column_wise_stats, setColumn_wise_stats] = useState<any>({});
   if (!responseData) {
     return (
       <div className="p-6 text-center text-gray-500">No data available</div>
@@ -276,7 +68,6 @@ const ValidationResult = () => {
     total_rows = 0,
     valid_rows = 0,
     invalid_rows = 0,
-    column_wise_stats = {},
   } = responseData?.data || {};
   const { result_file, errors_for_coloms } = responseData;
 

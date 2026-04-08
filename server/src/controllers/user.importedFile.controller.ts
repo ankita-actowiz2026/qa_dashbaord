@@ -12,7 +12,9 @@ import { parser } from "stream-json";
 import { streamArray } from "stream-json/streamers/StreamArray";
 import csv from "csv-parser";
 import { convertXlsToXlsx } from "../utils/convertXlsToXlsx";
-
+import { ValidationSummary } from "../models/ValidationSummary";
+import { ColumnErrors } from "../models/ColumnErrors";
+import { ValidatationResponse } from "../models/ValidationResponse";
 import {
   validateRow,
   getCellValue,
@@ -36,27 +38,6 @@ class ImportFileController {
     const ss = String(now.getSeconds()).padStart(2, "0");
 
     return `${file_name}_${mm}${dd}${yyyy}${hh}${mi}${ss}.${extension}`;
-  };
-  saveRulesToDB = async (user_id: string, rules: any) => {
-    try {
-      const result = await FileRules.findOneAndUpdate(
-        { user_id },
-        { $setOnInsert: { user_id, rules } },
-        { new: true, upsert: true },
-      );
-
-      return {
-        success: true,
-        data: result,
-        message: "Inserted if not exists, otherwise ignored",
-      };
-    } catch (error: any) {
-      console.error("Error saving rules to DB:", error);
-      return {
-        success: false,
-        message: error.message,
-      };
-    }
   };
 
   addImportedFile = async (
@@ -111,36 +92,23 @@ class ImportFileController {
       }
       let result: ParserResult;
       switch (ext) {
-        case ".json":
-          result = await jsonParser(filePath, columnConfig, errorSheet);
-          break;
-        case ".xls":
-          result = await xlsParser(filePath, columnConfig, errorSheet);
-          break;
-        case ".csv":
-          result = await csvParser(filePath, columnConfig, errorSheet);
-          break;
+        // case ".json":
+        //   result = await jsonParser(filePath, columnConfig);
+        //   break;
+        // case ".xls":
+        //   result = await xlsParser(filePath, columnConfig, errorSheet);
+        //   break;
+        // case ".csv":
+        //   result = await csvParser(filePath, columnConfig, errorSheet);
+        //   break;
         case ".xlsx":
-          result = await xlsxParser(filePath, columnConfig, errorSheet);
+          result = await xlsxParser(filePath, columnConfig);
           break;
         default:
           throw new Error(
             "Unsupported file type. Only .xlsx, .json, .csv, .xls files are allowed",
           );
       }
-
-      //save repsonse to db
-
-      // const response = await this.saveRulesToDB(
-      //   req.user._id,
-      //   req.body.columnConfig,
-      // );
-      // let file_saved = true;
-      // if (!response.success) {
-      //   file_saved = false;
-      // }
-
-      // start storing in excel first sheet
 
       // 1. Get stats first
       const column_wise_stats = result.column_wise_stats;
@@ -181,9 +149,16 @@ class ImportFileController {
 
       finalColumns.forEach((col) => {
         Object.keys(column_wise_stats[col] || {}).forEach((key) => {
-          if (!["error_msg", "error_rows", "invalid_row_numbers","unique_values"].includes(key)) {
-  metricsSet.add(key);
-}
+          if (
+            ![
+              "error_msg",
+              "error_rows",
+              "invalid_row_numbers",
+              "unique_values",
+            ].includes(key)
+          ) {
+            metricsSet.add(key);
+          }
         });
       });
 
@@ -304,7 +279,230 @@ class ImportFileController {
       }
     }
   };
+  addImportedFile11112 = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    let filePath: string | null = null;
 
+    try {
+      // ✅ 1. Validate input
+      if (!req.body.fileName) {
+        res.status(400).json({
+          success: false,
+          message: "No file provided",
+        });
+        return;
+      }
+
+      filePath = path.resolve(req.body.fileName);
+      const fileName = path.basename(filePath).trim();
+
+      console.log("Resolved path:", filePath);
+
+      const ext = path.extname(filePath).toLowerCase();
+
+      if (!req.body.columnConfig) {
+        throw new Error("columnConfig is missing");
+      }
+
+      const columnConfig: Record<string, ColumnRule> =
+        typeof req.body.columnConfig === "string"
+          ? JSON.parse(req.body.columnConfig)
+          : req.body.columnConfig;
+
+      // =========================
+      // ✅ 2. PARSE FILE
+      // =========================
+
+      let result: ParserResult;
+
+      switch (ext) {
+        // case ".json":
+        //   result = await jsonParser(filePath, columnConfig);
+        //   break;
+        // case ".xls":
+        //   result = await xlsParser(filePath, columnConfig);
+        //   break;
+        // case ".csv":
+        //   result = await csvParser(filePath, columnConfig);
+        //   break;
+        case ".xlsx":
+          result = await xlsxParser(filePath, columnConfig);
+          break;
+        default:
+          throw new Error(
+            "Unsupported file type. Only .xlsx, .json, .csv, .xls allowed",
+          );
+      }
+
+      const column_wise_stats = result.column_wise_stats;
+      const columns = Object.keys(column_wise_stats);
+
+      if (!columns.length) {
+        throw new Error("No column stats generated or File is empty");
+      }
+      const errors_for_coloms: Record<string, string[]> = {};
+
+      for (const column in result.column_wise_stats) {
+        const stats = column_wise_stats[column];
+        const errors: string[] = [];
+
+        for (const key in errorMessageMap) {
+          if (stats[key] && stats[key] > 0) {
+            errors.push(errorMessageMap[key]);
+          }
+        }
+
+        if (errors.length > 0) {
+          errors_for_coloms[column] = errors;
+        }
+      }
+
+      console.log(errors_for_coloms);
+      // =========================
+      // ✅ 3. BUILD SUMMARY (ONE DOC)
+      // =========================
+
+      const IGNORE_KEYS = [
+        "total_records",
+        "valid_records",
+        "invalid_records",
+        "unique_records",
+        "error_msg",
+      ];
+
+      const filteredColumns = columns.filter((col) => {
+        const stats = column_wise_stats[col];
+        return Object.keys(stats).some(
+          (key) =>
+            !IGNORE_KEYS.includes(key) &&
+            stats[key] !== null &&
+            stats[key] !== undefined,
+        );
+      });
+
+      const finalColumns = filteredColumns.length ? filteredColumns : columns;
+
+      const metricsSet = new Set<string>();
+
+      finalColumns.forEach((col) => {
+        Object.keys(column_wise_stats[col] || {}).forEach((key) => {
+          if (
+            ![
+              "error_msg",
+              "error_rows",
+              "invalid_row_numbers",
+              "unique_values",
+              "unique_records",
+              "total_records",
+              "total_records",
+              "valid_records",
+              "invalid_records",
+            ].includes(key)
+          ) {
+            metricsSet.add(key);
+          }
+        });
+      });
+
+      const metrics = Array.from(metricsSet);
+
+      const errorsArray: any[] = [];
+
+      for (const metric of metrics) {
+        for (const column of finalColumns) {
+          const val = column_wise_stats[column]?.[metric];
+
+          errorsArray.push({
+            metric,
+            column,
+            value:
+              val === null || val === undefined || Number.isNaN(val)
+                ? null
+                : val,
+          });
+        }
+      }
+
+      // =========================
+      // ✅ 4. BUILD COLUMN ERRORS (GROUPED)
+      // =========================
+
+      const columnErrorMap: Record<string, any[]> = {};
+
+      for (const column in column_wise_stats) {
+        const stats = column_wise_stats[column];
+
+        for (const key in errorMessageMap) {
+          if (stats[key] && stats[key] > 0) {
+            if (!columnErrorMap[column]) {
+              columnErrorMap[column] = [];
+            }
+
+            columnErrorMap[column].push({
+              errorType: key,
+              message: errorMessageMap[key],
+              count: stats[key],
+            });
+          }
+        }
+      }
+
+      const columnErrorsArray = Object.keys(columnErrorMap).map((column) => ({
+        column,
+        errors: columnErrorMap[column],
+      }));
+
+      // =========================
+      // ✅ 5. SAVE TO DB (UPSERT 🚀)
+      // =========================
+
+      await Promise.all([
+        // ✅ Validation Summary (ONE DOC)
+        ValidationSummary.findOneAndUpdate(
+          { fileName },
+          { $set: { errors: errorsArray } },
+          { upsert: true, new: true },
+        ),
+
+        // ✅ Column Errors (ONE DOC)
+        ColumnErrors.findOneAndUpdate(
+          { fileName },
+          { $set: { columnErrors: columnErrorsArray } },
+          { upsert: true, new: true },
+        ),
+      ]);
+
+      // // =========================
+      // // ✅ 6. RESPONSE
+      // // =========================
+      await ValidatationResponse.updateOne(
+        { fileName },
+        {
+          $set: {
+            fileName,
+            column_wise_stats,
+          },
+        },
+        { upsert: true },
+      );
+      //delete result.column_wise_stats;
+      res.status(200).json({
+        success: true,
+        fileName,
+        message: "File processed successfully",
+        data: result,
+        errors_for_coloms: errors_for_coloms,
+      });
+    } catch (error) {
+      next(error);
+    } finally {
+      // Optional: delete uploaded file
+      // if (filePath) await fs.promises.unlink(filePath);
+    }
+  };
   readHeader = async (
     req: Request,
     res: Response,
@@ -494,6 +692,40 @@ class ImportFileController {
           console.error("Failed to delete temp XLSX:", cleanupError);
         }
       }
+    }
+  };
+
+  validationResponse = async (req: Request, res: Response) => {
+    try {
+      const { fileName } = req.params;
+
+      if (!fileName) {
+        return res.status(400).json({
+          success: false,
+          message: "fileName is required",
+        });
+      }
+
+      const data = await ValidatationResponse.findOne({ fileName }).lean(); // 🔥 faster
+
+      if (!data) {
+        return res.status(404).json({
+          success: false,
+          message: "No data found for this file",
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      console.error("validationResponse error:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error",
+      });
     }
   };
 }

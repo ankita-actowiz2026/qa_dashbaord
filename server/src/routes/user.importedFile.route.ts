@@ -16,5 +16,9 @@ importedFileRouter.post(
   authentication,
   importFileController.readHeader,
 );
-
+importedFileRouter.get(
+  "/validation-response/:fileName",
+  authentication,
+  importFileController.validationResponse,
+);
 export default importedFileRouter;

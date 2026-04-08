@@ -1,5 +1,8 @@
 import ExcelJS from "exceljs";
-import { ErrorBuffer } from "../../utils/errorBuffer";
+
+import { DBBuffer } from "../../utils/DBBuffer";
+import path from "path";
+
 import {
   ColumnRule,
   ColumnStats,
@@ -16,7 +19,6 @@ import {
 export const xlsxParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
-  errorSheet: ExcelJS.Worksheet,
 ) => {
   const ruleMap: Record<string, ColumnRule> = columnConfig;
   prepareColumnRules(ruleMap);
@@ -29,7 +31,9 @@ export const xlsxParser = async (
   let invalid_rows = 0;
 
   const columnStats: Record<string, ColumnStats> = {};
-  const errorBuffer = new ErrorBuffer(errorSheet, 500);
+  //const errorBuffer = new ErrorBuffer(errorSheet, 500);
+  const fileNameForBuffer = path.basename(filePath);
+  const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
 
   try {
     const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
@@ -111,7 +115,7 @@ export const xlsxParser = async (
             headers,
             ruleMap,
             columnStats,
-            errorBuffer,
+            dbBuffer,
             "xlsx",
           );
 
@@ -123,12 +127,12 @@ export const xlsxParser = async (
         } catch (rowError) {
           invalid_rows++;
 
-          errorBuffer.add([
-            row.number,
-            "Row Error",
-            "Row Processing Error",
-            (rowError as Error).message,
-          ]);
+          dbBuffer.add({
+            rowNumber: row.number,
+            columnName: "Row Error",
+            errorType: "Row Processing Error",
+            errorMsg: (rowError as Error).message,
+          });
         }
       }
 
@@ -139,7 +143,7 @@ export const xlsxParser = async (
       throw new Error("XLSX file contains no worksheets");
     }
 
-    errorBuffer.flush();
+    dbBuffer.flush();
 
     return {
       total_rows,

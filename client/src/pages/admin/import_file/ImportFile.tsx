@@ -171,6 +171,7 @@ const ImportFile: React.FC = () => {
           responseData: response.data,
           requestData: rulesData,
           fileName: fileName,
+          dbFileName: uploadedFileName,
         },
       });
       console.log("Validation Response:", response.data);
