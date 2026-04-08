@@ -35,9 +35,6 @@ const ValidationResult = () => {
   const fileName = location.state?.fileName;
   const dbFileName = location.state?.dbFileName;
 
-  console.log("+++++");
-  console.log(JSON.stringify(responseData));
-  console.log("+++++");
   useEffect(() => {
     const fetchData = async () => {
       //validation-response/1775631276193.xlsx
@@ -47,7 +44,7 @@ const ValidationResult = () => {
         const res = await apiClient.get(
           `admin/api/qa_file/validation-response/${fileName}`,
         );
-
+        console.log(res.data.data.column_wise_stats);
         setColumn_wise_stats(res.data.data.column_wise_stats);
       } catch (err) {
         console.error(err);

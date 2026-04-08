@@ -488,7 +488,7 @@ class ImportFileController {
         },
         { upsert: true },
       );
-      delete result.column_wise_stats;
+      //delete result.column_wise_stats;
       res.status(200).json({
         success: true,
         fileName,
