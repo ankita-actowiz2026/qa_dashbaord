@@ -475,12 +475,11 @@ export const validateRow = (
 
         // ✅ Ensure
 
-        const dataTypes = Array.isArray(dataType) ? dataType : [dataType];
         var errorMsg = `${
           strValueOriginal ?? strValue
-        } does not match allowed data types (${dataTypes.join(", ")})`;
+        } does not match allowed data types (${dataType.join(", ")})`;
         // ✅ OR validation (any type should pass)
-        const isValid = dataTypes.some((type) => {
+        const isValid = dataType.some((type) => {
           switch (type) {
             case "string":
               return stringRegex.test(strValue);
