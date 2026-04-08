@@ -179,7 +179,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 text-base font-medium text-sidebarSecondary bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all duration-200"
               >
                 <Plus size={20} />
-                Create New Rule
+                Save Rule
               </button>
             )}
 
@@ -481,7 +481,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-3  bg-sidebarSecondary  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-sidebarSecondaryHover transition-all font-medium"
                     >
                       <Plus size={20} />
-                      Add New
+                      Save New
                     </button>
 
                     <button
