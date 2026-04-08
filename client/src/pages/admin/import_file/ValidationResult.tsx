@@ -1,13 +1,13 @@
 import ColumnDetailRow from "./ColumnDetailRow";
 import apiClient from "../../../services/apiClient";
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { FiCheckCircle } from "react-icons/fi";
-import { XCircle } from "lucide-react";
+
 import SummaryCard from "./SummaryCard";
 import { useNavigate } from "react-router-dom";
 import { FaUpload } from "react-icons/fa";
-import { FiFileText, FiDownload } from "react-icons/fi";
-import { CheckCircle, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { FiDownload } from "react-icons/fi";
+import { CheckCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 const ignoreColumns = [
@@ -37,9 +37,8 @@ const ValidationResult = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      //validation-response/1775631276193.xlsx
       try {
-        //  setLoading(true);
+        setLoading(true);
         const fileName = dbFileName.split("/").pop();
         const res = await apiClient.get(
           `admin/api/qa_file/validation-response/${fileName}`,
@@ -50,13 +49,14 @@ const ValidationResult = () => {
         console.error(err);
         // setError("Failed to fetch data");
       } finally {
-        //setLoading(false);
+        setLoading(false);
       }
     };
 
     fetchData();
   }, []);
-  const [expandedColumn, setExpandedColumn] = useState<string | null>(null);
+
+  const [loading, setLoading] = useState(false);
   const [column_wise_stats, setColumn_wise_stats] = useState<any>({});
   if (!responseData) {
     return (
@@ -68,7 +68,6 @@ const ValidationResult = () => {
     valid_rows = 0,
     invalid_rows = 0,
   } = responseData?.data || {};
-  const { result_file, errors_for_coloms } = responseData;
 
   const filteredColumns = useMemo(
     () => getFilteredColumns(column_wise_stats),
@@ -97,6 +96,7 @@ const ValidationResult = () => {
 
   const handleDownload = async () => {
     try {
+      setLoading(true);
       const fileName = dbFileName.split("/").pop();
       const res = await apiClient.get(
         `admin/api/qa_file/download/${fileName}`, // 👈 your API
@@ -123,6 +123,8 @@ const ValidationResult = () => {
       link.remove();
     } catch (error) {
       console.error("Download failed:", error);
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -283,6 +285,29 @@ const ValidationResult = () => {
           </div>
         </div>
       </div>
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 pointer-events-auto">
+            {/* Animated ring with custom colors */}
+            <div className="relative w-12 h-12">
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#3F4D67] border-r-[#424649] animate-spin"></div>
+              <div
+                className="absolute inset-0 rounded-full border-4 border-transparent border-b-[#3F4D67] border-l-[#424649] animate-spin animation-delay-150"
+                style={{ animationDuration: "0.8s" }}
+              ></div>
+              <div className="absolute inset-2 rounded-full bg-gradient-to-r from-[#3F4D67] to-[#424649] animate-pulse"></div>
+            </div>
+
+            {/* Pulsing text */}
+            <div className="relative">
+              <p className="text-sm font-semibold bg-gradient-to-r from-[#3F4D67] to-[#424649] bg-clip-text text-transparent animate-pulse">
+                Processing...
+              </p>
+              <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#3F4D67] to-[#424649] rounded-full animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

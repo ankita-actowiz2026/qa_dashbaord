@@ -189,161 +189,84 @@ const ImportFile: React.FC = () => {
     <div className="mt-6 space-y-6">
       <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>
         {/* Upload Box */}
-        {headers.length === 0 ? (
-          <div className="p-8 mx-auto bg-white border border-gray-200 shadow-sm rounded-2xl">
-            <div className="mb-8 text-left">
-              <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
-                Upload File
-              </h1>
-              <p className="mt-2 text-lg text-gray-500">
-                Upload your file to configure validation rules and analyze data
-                quality
+
+        <div className="p-8 mx-auto bg-white border border-gray-200 shadow-sm rounded-2xl">
+          <div className="mb-8 text-left">
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
+              Upload File
+            </h1>
+            <p className="mt-2 text-lg text-gray-500">
+              Upload your file to configure validation rules and analyze data
+              quality
+            </p>
+          </div>
+          <div
+            className="p-10 transition border-2 border-gray-300 border-dashed cursor-pointer rounded-xl bg-gray-50 hover:border-sidebar hover:bg-sidebar/10"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              const file = e.dataTransfer.files[0];
+              if (file) handleFile(file);
+            }}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <div className="flex flex-col items-center text-gray-600">
+              <FiUpload className="text-3xl text-gray-400 sm:text-4xl" />
+
+              <p className="mt-2 text-2xl font-semibold text-gray-700">
+                Drag & Drop File Here
+              </p>
+              <p className="text-lg text-gray-400">OR Click To Browse</p>
+              <p className="mt-3 text-lg text-gray-400">
+                Supports .xlsx, .xls, .csv, .json Only
               </p>
             </div>
-            <div
-              className="p-10 transition border-2 border-gray-300 border-dashed cursor-pointer rounded-xl bg-gray-50 hover:border-sidebar hover:bg-sidebar/10"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                e.preventDefault();
-                const file = e.dataTransfer.files[0];
+
+            {/* Hidden input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv,.json"
+              disabled={loading}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
                 if (file) handleFile(file);
               }}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="flex flex-col items-center text-gray-600">
-                <FiUpload className="text-3xl text-gray-400 sm:text-4xl" />
-
-                <p className="mt-2 text-2xl font-semibold text-gray-700">
-                  Drag & Drop File Here
-                </p>
-                <p className="text-lg text-gray-400">OR Click To Browse</p>
-                <p className="mt-3 text-lg text-gray-400">
-                  Supports .xlsx, .xls, .csv, .json Only
-                </p>
-              </div>
-
-              {/* Hidden input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv,.json"
-                disabled={loading}
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFile(file);
-                }}
-              />
-            </div>
-
-            {/* Loader OUTSIDE */}
-            {loading && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
-                <div className="flex flex-col items-center gap-4 pointer-events-auto">
-                  {/* Animated ring with custom colors */}
-                  <div className="relative w-12 h-12">
-                    <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#3F4D67] border-r-[#424649] animate-spin"></div>
-                    <div
-                      className="absolute inset-0 rounded-full border-4 border-transparent border-b-[#3F4D67] border-l-[#424649] animate-spin animation-delay-150"
-                      style={{ animationDuration: "0.8s" }}
-                    ></div>
-                    <div className="absolute inset-2 rounded-full bg-gradient-to-r from-[#3F4D67] to-[#424649] animate-pulse"></div>
-                  </div>
-
-                  {/* Pulsing text */}
-                  <div className="relative">
-                    <p className="text-sm font-semibold bg-gradient-to-r from-[#3F4D67] to-[#424649] bg-clip-text text-transparent animate-pulse">
-                      Processing...
-                    </p>
-                    <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#3F4D67] to-[#424649] rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {fileName && (
-              <p className="px-2 mt-3 text-base text-center break-all text-sidebar">
-                Uploaded: {fileName}
-              </p>
-            )}
+            />
           </div>
-        ) : (
-          <>
-            <div className="relative p-6 transition-all duration-200 bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-lg">
-              {/* Top Accent Line */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-sidebar rounded-t-2xl" />
 
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                {/* LEFT SIDE → File Info */}
-                <div className="flex items-center min-w-0 gap-4">
-                  {/* Icon */}
-                  <div className="p-2.5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
-                    <FaUpload className="text-sidebar" size={20} />
-                  </div>
-
-                  {/* File Details */}
-                  <div className="min-w-0">
-                    <p className="text-base text-gray-500">Uploaded File</p>
-
-                    <p className="text-lg font-semibold text-gray-900 truncate">
-                      {fileName}
-                    </p>
-
-                    {/* Header Count */}
-                    <div className="mt-1">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 text-base font-medium text-sidebarSecondary bg-blue-50 rounded-full">
-                        <FiGrid className="text-xs" />
-                        {headers.length} Headers
-                      </span>
-                    </div>
-                  </div>
+          {/* Loader OUTSIDE */}
+          {loading && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-4 pointer-events-auto">
+                {/* Animated ring with custom colors */}
+                <div className="relative w-12 h-12">
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[#3F4D67] border-r-[#424649] animate-spin"></div>
+                  <div
+                    className="absolute inset-0 rounded-full border-4 border-transparent border-b-[#3F4D67] border-l-[#424649] animate-spin animation-delay-150"
+                    style={{ animationDuration: "0.8s" }}
+                  ></div>
+                  <div className="absolute inset-2 rounded-full bg-gradient-to-r from-[#3F4D67] to-[#424649] animate-pulse"></div>
                 </div>
 
-                {/* RIGHT SIDE → Buttons */}
-                <div className="flex flex-wrap justify-end gap-3">
-                  {/* Upload New File */}
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="inline-flex items-center gap-2 px-6 py-3 text-lg font-medium transition-all duration-200 bg-white border border-gray-300 rounded-lg text-sidebar hover:bg-gray-50 hover:border-gray-400 active:scale-95"
-                  >
-                    <FiRefreshCw className="text-2xl" />
-                    <span>Change File</span>
-                  </button>
-
-                  {/* Run Validation */}
-                  <button
-                    onClick={handleRunValidation}
-                    type="button"
-                    disabled={!hasRules || validating}
-                    className={`px-5 py-2 text-lg font-medium rounded-lg transition-all duration-200 flex items-center gap-2
-  ${
-    hasRules && !validating
-      ? "bg-sidebar text-white hover:shadow-lg hover:bg-sidebarHover active:scale-95"
-      : "bg-gray-100 text-gray-400 cursor-not-allowed"
-  }`}
-                  >
-                    {validating ? (
-                      <>
-                        <FiLoader className="animate-spin" size={16} />
-                        Validating...
-                      </>
-                    ) : (
-                      <>
-                        <FiCheckCircle size={16} />
-                        Validate Data
-                      </>
-                    )}
-                  </button>
+                {/* Pulsing text */}
+                <div className="relative">
+                  <p className="text-sm font-semibold bg-gradient-to-r from-[#3F4D67] to-[#424649] bg-clip-text text-transparent animate-pulse">
+                    Processing...
+                  </p>
+                  <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gradient-to-r from-[#3F4D67] to-[#424649] rounded-full animate-pulse"></div>
                 </div>
               </div>
             </div>
-            <ShowValidationRules
-              headers={headers}
-              onRulesChange={setRulesData}
-            ></ShowValidationRules>
-          </>
-        )}
+          )}
+
+          {fileName && (
+            <p className="px-2 mt-3 text-base text-center break-all text-sidebar">
+              Uploaded: {fileName}
+            </p>
+          )}
+        </div>
       </form>
     </div>
   );
