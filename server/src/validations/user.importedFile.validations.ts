@@ -6,7 +6,7 @@ import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
 import { ErrorBuffer } from "../utils/errorBuffer";
-const debug = 0;
+const debug = 1;
 const dateTimeRegex =
   /^(\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4})(\s+(\d{1,2}:\d{1,2}(:\d{1,2})?(\s*[AP]M)?))?$/i;
 const stringRegex = /^.*$/s;
@@ -112,11 +112,8 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
       );
     }
 
-    if (rule.cell_end_with?.length) {
-      rule.cell_end_with_normalized = rule.cell_end_with.map((v) =>
-        //String(v).trim().toLowerCase(),
-        String(v),
-      );
+    if (rule.cell_end_with) {
+      rule.cell_end_with_value = String(rule.cell_end_with);
     }
 
     if (rule.not_match_found?.length) {
@@ -158,7 +155,7 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
       rule.blockwordsMessage = rule.not_match_found.join(", ");
     }
     if (rule.cell_end_with) {
-      rule.cellEndWithMessage = rule.cell_end_with.join(", ");
+      rule.cellEndWithMessage = String(rule.cell_end_with);
     }
     if (rule.fixed_header) {
       rule.fixedHeaderMessage = String(rule.fixed_header);
@@ -886,12 +883,9 @@ function validateEndWith({
   debug,
   markInvalid,
 }: any) {
-  if (
-    rule.cell_end_with_normalized?.length &&
-    !rule.cell_end_with_normalized.some((suffix) =>
-      normalizedValue.endsWith(suffix),
-    )
-  ) {
+  console.log(normalizedValue + "====" + rule.cell_end_with_value);
+  console.log(normalizedValue.endsWith(rule.cell_end_with_value));
+  if (!normalizedValue.endsWith(rule.cell_end_with_value)) {
     markInvalid();
     pushError({ columnStat, ruleKey: "end_with", rowNumber });
 
@@ -1128,7 +1122,7 @@ export const validateRow = (
       }
 
       //end with
-      if (rule.cell_end_with_normalized?.length) {
+      if (rule.cell_end_with_value?.length) {
         validateEndWith({
           rule,
           normalizedValue,

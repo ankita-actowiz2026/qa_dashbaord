@@ -107,7 +107,7 @@ const ShowValidationRules: React.FC<Props> = ({
     cell_contains_value?: string;
     fixed_header?: string;
     not_match_found?: string[];
-    cell_end_with?: string[];
+    cell_end_with?: string;
     cell_start_with?: string;
     custom_date_format?: string;
     dependency_mode?: "required" | "other";
@@ -412,7 +412,7 @@ const ShowValidationRules: React.FC<Props> = ({
       case "cell_end_with":
         return {
           type: "cell_end_with",
-          cell_end_with: rule.value as string[],
+          cell_end_with: rule.value,
         };
 
       case "not_match_found":
@@ -520,12 +520,11 @@ const ShowValidationRules: React.FC<Props> = ({
               : [saved.not_match_found],
           });
         }
+
         if (saved.cell_end_with) {
           rules.push({
             type: "cell_end_with",
-            value: Array.isArray(saved.cell_end_with)
-              ? saved.cell_end_with
-              : [saved.cell_end_with],
+            value: saved.cell_end_with,
           });
         }
         if (saved.data_redundant_value || saved.data_redundant_threshold) {
@@ -701,6 +700,7 @@ const ShowValidationRules: React.FC<Props> = ({
                       "required",
                       "regex",
                       "cell_start_with",
+                      "cell_end_with",
                       "fixed_header",
                       "data_redundant",
                     ].includes(rule.type) && (
@@ -784,9 +784,7 @@ const ShowValidationRules: React.FC<Props> = ({
                       </div>
                     )}
 
-                    {["cell_end_with", "not_match_found"].includes(
-                      rule.type,
-                    ) && (
+                    {["not_match_found"].includes(rule.type) && (
                       <div className="flex items-center gap-2">
                         <span className="text-gray-500 ">
                           {RULE_LABELS[rule.type]}

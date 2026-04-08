@@ -497,16 +497,23 @@ const RuleModal: React.FC<Props> = ({
           </div>
         )}
         {tempRule.type === "cell_end_with" && (
-          <TagInputRule
-            label="Cell end with value"
-            values={tempRule.cell_end_with || []}
-            onChange={(val) => setTempRule({ ...tempRule, cell_end_with: val })}
-            label_style_title={label_style_title}
-            label_style={label_style}
-            dropdown_style={dropdown_style}
-            textbox_style={textbox_style}
-            div_class_1={div_class_1}
-          />
+          <div className={div_class_1}>
+            <label className={label_style}>Cell end with</label>
+            <div className="mt-0">
+              <input
+                type="text"
+                value={tempRule.cell_end_with || ""}
+                onChange={(e) =>
+                  setTempRule({
+                    ...tempRule,
+                    cell_end_with: e.target.value,
+                  })
+                }
+                placeholder="e.g. .com"
+                className={textbox_style}
+              />
+            </div>
+          </div>
         )}
         {tempRule.type === "not_match_found" && (
           <TagInputRule

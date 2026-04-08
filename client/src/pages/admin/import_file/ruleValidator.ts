@@ -1,9 +1,10 @@
 export const validateRule = (tempRule, current) => {
   if (!tempRule.type) return "Please select a rule";
 
-
-
-  if (tempRule.type === "data_type" && (!tempRule.data_type || tempRule.data_type.length === 0)) {
+  if (
+    tempRule.type === "data_type" &&
+    (!tempRule.data_type || tempRule.data_type.length === 0)
+  ) {
     return "Please add at least one data type";
   }
 
@@ -12,8 +13,9 @@ export const validateRule = (tempRule, current) => {
       (rule) => rule.type === "data_type",
     );
 
-    const dataTypes = current?.tempDataType || dataTypeRule?.value || ["string"];
-const isDateType = dataTypes.includes("date");
+    const dataTypes = current?.tempDataType ||
+      dataTypeRule?.value || ["string"];
+    const isDateType = dataTypes.includes("date");
     if (tempRule.length_mode === "fixed") {
       if (!tempRule.fixed && tempRule.fixed !== 0) {
         return isDateType
@@ -123,10 +125,10 @@ const isDateType = dataTypes.includes("date");
   }
 
   // ✅ Regex Validation
-if (tempRule.type === "regex") {
+  if (tempRule.type === "regex") {
     if (!tempRule.cell_contains_value) {
       return "Please enter regex value";
-    }  
+    }
     try {
       new RegExp(tempRule.cell_contains_value);
     } catch {
@@ -134,13 +136,13 @@ if (tempRule.type === "regex") {
     }
   }
 
-  if (tempRule.type === "fixed_header") {    
+  if (tempRule.type === "fixed_header") {
     if (!tempRule.fixed_header) {
       return "Please add at least one header value";
     }
   }
   if (tempRule.type === "cell_end_with") {
-    if (!tempRule.cell_end_with || tempRule.cell_end_with.length === 0) {
+    if (!tempRule.cell_end_with) {
       return "Please add at least one cell end with";
     }
   }
