@@ -98,7 +98,7 @@ export const createColumnStatsFromRules = (
 export const validateId = [param("id").isMongoId().withMessage("Invalid ID")];
 export const validateAdd = [];
 export const validateEdit = [];
-//if (columnName == "Id") console.log(columnValid);
+
 export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
   for (const rule of Object.values(ruleMap)) {
     if (rule.fixed_header !== undefined && rule.fixed_header !== null) {
@@ -127,9 +127,11 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
     if (rule.data_redundant_threshold) {
       rule.redundantCounter = new Map<string, number>();
     }
+
     const dataTypes = Array.isArray(rule.data_type)
       ? rule.data_type
       : [rule.data_type];
+
     if (dataTypes.includes("date") && rule.date_format) {
       rule.dateRegex = buildDateRegex(rule.date_format);
     }
@@ -154,12 +156,18 @@ export const prepareColumnRules = (ruleMap: Record<string, ColumnRule>) => {
     if (rule.not_match_found) {
       rule.blockwordsMessage = rule.not_match_found.join(", ");
     }
+
     if (rule.cell_end_with) {
       rule.cellEndWithMessage = String(rule.cell_end_with);
     }
     if (rule.fixed_header) {
       rule.fixedHeaderMessage = String(rule.fixed_header);
     }
+    rule.data_types_new = Array.isArray(rule.data_type)
+      ? rule.data_type
+      : rule.data_type
+        ? [rule.data_type]
+        : [];
   }
 };
 export const excelDateToJSDate = (serial: number) => {
@@ -364,7 +372,8 @@ export const validateRow = (
   fileType: string = "",
 ) => {
   let rowValid = true;
-
+  const excelTypes = new Set(["csv", "xls", "xlsx"]);
+  const isExcel = excelTypes.has(fileType);
   const dependentColumns = new Set<string>();
 
   Object.values(ruleMap).forEach((rule: any) => {
@@ -391,7 +400,7 @@ export const validateRow = (
     const shouldProcess = rule || isDependent;
 
     if (!shouldProcess) continue;
-    const dataType = rule?.data_type;
+    const dataType = rule?.data_types_new;
     const columnStat = columnStats[columnName];
 
     if (!columnStat) continue;
@@ -428,6 +437,9 @@ export const validateRow = (
 
     //has_empty
     if (rule) {
+      // console.log("=======start");
+      // console.log(rule.data_types_new);
+      // console.log("======= end");
       if (rule.is_required) {
         if (strValue === "") {
           columnStat.empty_count++;
@@ -470,7 +482,7 @@ export const validateRow = (
         }
       }
 
-      if (dataType != undefined) {
+      if (rule.data_types_new.length > 0) {
         let isError = false;
 
         // ✅ Ensure
@@ -495,20 +507,14 @@ export const validateRow = (
             }
             case "integer":
               // Excel special case
-              if (
-                ["csv", "xls", "xlsx"].includes(fileType) &&
-                typeof rawValue !== "number"
-              ) {
+              if (isExcel && typeof rawValue !== "number") {
                 return false;
               }
 
               return integerRegex.test(strValue);
 
             case "float":
-              if (
-                ["csv", "xls", "xlsx"].includes(fileType) &&
-                typeof rawValue !== "number"
-              ) {
+              if (isExcel && typeof rawValue !== "number") {
                 return false;
               }
               return numberRegex.test(strValue);
@@ -583,14 +589,13 @@ export const validateRow = (
         let is_error = 0;
         let errorMsg = "";
         const numValue = +strValue;
-        const dataTypes = Array.isArray(dataType)
-          ? dataType
-          : dataType
-            ? [dataType]
-            : [];
+
         const isInvalidNumber = Number.isNaN(numValue);
 
-        if (dataTypes.includes("float") || dataTypes.includes("integer")) {
+        if (
+          rule.data_types_new.includes("float") ||
+          rule.data_types_new.includes("integer")
+        ) {
           if (isInvalidNumber) {
             is_error = 1;
             errorMsg = `${strValueOriginal ?? "Value"}  must be between ${rule.min_length} and ${rule.max_length}`;
@@ -638,7 +643,7 @@ export const validateRow = (
             strValue,
             rule.date_format || "DD-MM-YYYY",
           );
-          console.log(strValue + "===============" + currentDate);
+
           if (
             currentDate &&
             rule.min_length &&
@@ -677,11 +682,7 @@ export const validateRow = (
                     fixedDate.getMonth(),
                     fixedDate.getDate(),
                   );
-                  console.log("Fixed date->" + fixedDate);
-                  console.log("compareDate>" + compareDate);
-                  console.log(
-                    inputDate.getTime() + "!==" + compareDate.getTime(),
-                  );
+
                   if (inputDate.getTime() !== compareDate.getTime()) {
                     is_error = 1;
                     errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length}`;
@@ -785,8 +786,6 @@ export const validateRow = (
 
       //end with
       if (rule.cell_end_with_value?.length) {
-        console.log(normalizedValue + "====" + rule.cell_end_with_value);
-        console.log(normalizedValue.endsWith(rule.cell_end_with_value));
         if (!normalizedValue.endsWith(rule.cell_end_with_value)) {
           markInvalid();
           pushError({ columnStat, ruleKey: "end_with", rowNumber });
@@ -828,12 +827,7 @@ export const validateRow = (
             errorType: "Blocked Word",
             errorMsg,
           });
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Blocked Word",
-            errorMsg,
-          });
+
           // if (debug == 1)
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -865,13 +859,6 @@ export const validateRow = (
           pushError({ columnStat, ruleKey: "redundant", rowNumber });
 
           const errorMsg = `${strValue} exceeded allowed repetition (${threshold})`;
-
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Redundant Value Error",
-            errorMsg,
-          });
 
           dbBuffer.add({
             rowNumber,
