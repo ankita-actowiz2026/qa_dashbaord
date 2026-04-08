@@ -35,7 +35,9 @@ const ValidationResult = () => {
   const fileName = location.state?.fileName;
   const dbFileName = location.state?.dbFileName;
 
-  // console.log(responseData);
+  console.log("+++++");
+  console.log(JSON.stringify(responseData));
+  console.log("+++++");
   useEffect(() => {
     const fetchData = async () => {
       //validation-response/1775631276193.xlsx
@@ -95,6 +97,37 @@ const ValidationResult = () => {
 
     return set;
   }, [requestData]);
+
+  const handleDownload = async () => {
+    try {
+      const fileName = dbFileName.split("/").pop();
+      const res = await apiClient.get(
+        `admin/api/qa_file/download/${fileName}`, // 👈 your API
+        {
+          responseType: "blob", // 🔥 IMPORTANT
+        },
+      );
+
+      // Create file URL
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+
+      // Create temp link
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Extract file name
+      const cleanFileName = fileName?.split("/").pop() || "report.xlsx";
+
+      link.setAttribute("download", cleanFileName);
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+    } catch (error) {
+      console.error("Download failed:", error);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="mx-auto ">
@@ -142,16 +175,14 @@ const ValidationResult = () => {
           </div>
         </div>
         <div className="flex justify-end mb-6">
-          <a
-            href={result_file}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={handleDownload}
             className="relative inline-flex items-center gap-3 px-8 py-3 overflow-hidden font-medium text-white transition-all duration-300 shadow-lg group bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl hover:shadow-xl"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover"></div>
             <FiDownload className="relative z-10 text-lg transition-transform group-hover:scale-110" />
             <span className="relative z-10">Download Full Report</span>
-          </a>
+          </button>
         </div>
         {/* 🔹 COLUMN LIST */}
         <div className="overflow-hidden bg-white border border-gray-100 shadow-lg rounded-2xl">

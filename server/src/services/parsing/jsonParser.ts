@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import fs from "fs";
-import { ErrorBuffer } from "../../utils/errorBuffer";
+import path from "path";
+
 import { parser } from "stream-json";
 import { streamArray } from "stream-json/streamers/StreamArray";
 import { createColumnStats } from "../../utils/importFileDefaultColumnStats";
@@ -14,11 +15,11 @@ import {
   createColumnStatsFromRules,
   extractDependencyColumns,
 } from "../../validations/user.importedFile.validations";
+import { DBBuffer } from "../../utils/DBBuffer";
 
 export const jsonParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
-  errorSheet: ExcelJS.Worksheet,
 ): Promise<ParserResult> => {
   const ruleMap = columnConfig;
   prepareColumnRules(ruleMap);
@@ -31,8 +32,8 @@ export const jsonParser = async (
   let headerInitialized = false;
 
   const columnStats: Record<string, any> = {};
-  const errorBuffer = new ErrorBuffer(errorSheet, 500);
-
+  const fileNameForBuffer = path.basename(filePath);
+  const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
   let previewRows: any[] = [];
   let detectedHeaders = new Set<string>();
 
@@ -84,7 +85,7 @@ export const jsonParser = async (
         headers,
         ruleMap,
         columnStats,
-        errorBuffer,
+        dbBuffer,
         "json",
       );
 
@@ -95,12 +96,12 @@ export const jsonParser = async (
     const handleRowError = (err: any) => {
       invalid_rows++;
 
-      errorBuffer.add([
-        total_rows + 1,
-        "Row Error",
-        "Parsing Error",
-        err?.message || "Unknown error",
-      ]);
+      dbBuffer.add({
+        rowNumber: total_rows + 1,
+        columnName: "Row Error",
+        errorType: "Row Processing Error",
+        errorMsg: err?.message || "Unknown error",
+      });
     };
 
     arrayStream.on("data", ({ value }) => {
@@ -135,9 +136,9 @@ export const jsonParser = async (
               "not_add_dependency",
             );
             // ✅ initialize Set here
-              stats.unique_values = new Set();
-              stats.invalid_row_numbers = [];
-              columnStats[header] = stats;
+            stats.unique_values = new Set();
+            stats.invalid_row_numbers = [];
+            columnStats[header] = stats;
           });
           const dependencyColumns = extractDependencyColumns(columnConfig);
 
@@ -190,7 +191,7 @@ export const jsonParser = async (
           previewRows.forEach((row) => processRow(row));
         }
 
-        errorBuffer.flush();
+        dbBuffer.flush();
 
         safeResolve({
           total_rows,

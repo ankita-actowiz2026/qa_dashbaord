@@ -21,4 +21,10 @@ importedFileRouter.get(
   authentication,
   importFileController.validationResponse,
 );
+importedFileRouter.get(
+  "/download/:fileName",
+  authentication,
+  importFileController.downloadFile,
+);
+
 export default importedFileRouter;

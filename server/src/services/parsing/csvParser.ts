@@ -1,14 +1,15 @@
 import fs from "fs";
 import ExcelJS from "exceljs";
 import csv from "csv-parser";
-import { ErrorBuffer } from "../../utils/errorBuffer";
+import path from "path";
+import { DBBuffer } from "../../utils/DBBuffer";
 import { createColumnStats } from "../../utils/importFileDefaultColumnStats";
 import {
   ColumnRule,
   ParserResult,
 } from "../../interface/importedFile.interface";
 import {
-   validateRow,
+  validateRow,
   getCellValue,
   prepareColumnRules,
   createColumnStatsFromRules,
@@ -18,7 +19,6 @@ import {
 export const csvParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
-  errorSheet: ExcelJS.Worksheet,
 ): Promise<ParserResult> => {
   const ruleMap: Record<string, ColumnRule> = columnConfig;
 
@@ -33,7 +33,8 @@ export const csvParser = async (
   const columnStats: Record<string, any> = {};
 
   let headerInitialized = false;
-  const errorBuffer = new ErrorBuffer(errorSheet, 500);
+  const fileNameForBuffer = path.basename(filePath);
+  const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
 
   return new Promise((resolve, reject) => {
     try {
@@ -93,7 +94,7 @@ export const csvParser = async (
             headers,
             ruleMap,
             columnStats,
-            errorBuffer,
+            dbBuffer,
             "csv",
           );
 
@@ -102,18 +103,18 @@ export const csvParser = async (
         } catch (rowError) {
           invalid_rows++;
 
-          errorBuffer.add([
-            total_rows + 1,
-            "Row Error",
-            "Parsing Error",
-            (rowError as Error).message,
-          ]);
+          dbBuffer.add({
+            rowNumber: total_rows + 1,
+            columnName: "Row Error",
+            errorType: "Row Processing Error",
+            errorMsg: (rowError as Error).message,
+          });
         }
       });
 
       csvStream.on("end", () => {
         try {
-          errorBuffer.flush();
+          dbBuffer.flush();
 
           resolve({
             total_rows,

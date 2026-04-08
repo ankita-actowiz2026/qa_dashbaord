@@ -9,7 +9,6 @@ import { ColumnRule } from "../../interface/importedFile.interface";
 export const xlsParser = async (
   filePath: string,
   columnConfig: Record<string, ColumnRule>,
-  errorSheet: ExcelJS.Worksheet,
 ) => {
   let xlsxPath: string | null = null;
 
@@ -24,7 +23,7 @@ export const xlsParser = async (
     console.log("====================Converted XLSX size:", stats.size);
 
     // STEP 2: parse XLSX
-    const result = await xlsxParser(xlsxPath, columnConfig, errorSheet);
+    const result = await xlsxParser(xlsxPath, columnConfig);
 
     return result;
   } catch (err) {
