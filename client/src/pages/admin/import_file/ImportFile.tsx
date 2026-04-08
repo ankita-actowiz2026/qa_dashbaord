@@ -214,11 +214,11 @@ const ImportFile: React.FC = () => {
                 <FiUpload className="text-3xl text-gray-400 sm:text-4xl" />
 
                 <p className="mt-2 text-2xl font-semibold text-gray-700">
-                  Drag & drop file here
+                  Drag & Drop File Here
                 </p>
-                <p className="text-lg text-gray-400">or click to browse</p>
+                <p className="text-lg text-gray-400">OR Click To Browse</p>
                 <p className="mt-3 text-lg text-gray-400">
-                  Supports .xlsx, .xls, .csv, .json
+                  Supports .xlsx, .xls, .csv, .json Only
                 </p>
               </div>
 

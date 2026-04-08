@@ -28,20 +28,29 @@ const buildErrorSummary = (columnName, errorRows) => {
 
   return rows;
 };
-const downloadCSV = (data, fileName = "errors.csv") => {
-  const header = ["Column", "Rule", "Count", "Rows"];
+const downloadTXT = (data, fileName = "errors.txt") => {
+  const lines = [];
+  let currentColumn = null;
 
-  const csvRows = [
-    header.join(","),
-    ...data.map((row) => {
-      const ruleLabel = RULE_LABELS[row.rule] || row.rule;
+  data.forEach((row) => {
+    const ruleLabel = RULE_LABELS[row.rule] || row.rule;
 
-      return `${row.column},${ruleLabel},${row.count},"[${row.rows.join(", ")}]"`;
-    }),
-  ];
+    // If new column → print column header
+    if (row.column !== currentColumn) {
+      if (currentColumn !== null) {
+        lines.push(""); // empty line between columns
+      }
 
-  const blob = new Blob([csvRows.join("\n")], {
-    type: "text/csv;charset=utf-8;",
+      lines.push(`Headers: ${row.column}`);
+      currentColumn = row.column;
+    }
+
+    // Print rule details
+    lines.push(`${ruleLabel} ${row.count} [${row.rows.join(", ")}]`);
+  });
+
+  const blob = new Blob([lines.join("\n")], {
+    type: "text/plain;charset=utf-8;",
   });
 
   const url = URL.createObjectURL(blob);
@@ -247,12 +256,24 @@ const ColumnDetailRow = ({
             <>
               <div className="px-2 py-1 font-mono text-base rounded-md bg-red-50 whitespace-nowrap">
                 [{visible.slice(0, 3).join(", ")}
-                {visible.length > 3 ? ", ..." : ""}]
+                {hidden.length > 3 ? ", ..." : ""}]
               </div>
+            </>
+          ) : (
+            <span className="flex items-center gap-1 text-base text-green-600 whitespace-nowrap">
+              All valid
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="px-3 py-3">
+        <div className="flex items-center gap-1">
+          {mergedRows.length > 0 ? (
+            <>
               <button
                 onClick={() => {
                   const data = buildErrorSummary(col, stats.error_rows);
-                  downloadCSV(data, `${col}_errors.csv`);
+                  downloadTXT(data, `${col}_errors.txt`);
                 }}
                 className="p-1 transition-all rounded-lg hover:bg-red-100"
                 title="Download error details"
@@ -262,7 +283,7 @@ const ColumnDetailRow = ({
             </>
           ) : (
             <span className="flex items-center gap-1 text-base text-green-600 whitespace-nowrap">
-              All valid
+              -
             </span>
           )}
         </div>

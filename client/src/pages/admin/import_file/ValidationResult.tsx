@@ -129,7 +129,7 @@ const ValidationResult = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="mx-auto ">
         <div className="mb-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -211,38 +211,41 @@ const ValidationResult = () => {
             <table className="min-w-[800px] w-full border-collapse">
               <thead className="border-b-2 bg-gradient-to-r from-slate-100 to-slate-50 border-slate-200">
                 <tr>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[5%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[5%] whitespace-nowrap">
                     ID
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[15%] whitespace-nowrap">
                     Headers
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[6%] whitespace-nowrap">
                     Total
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     QC Pass
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     QC Fail
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[6%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[6%] whitespace-nowrap">
                     Empty Rows
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[15%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[10%] whitespace-nowrap">
                     Reasons
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     Unique %
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     Status
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[8%] whitespace-nowrap">
                     QC Fail %
                   </th>
-                  <th className="px-3 py-3 text-left text-lg font-bold text-slate-600 uppercase tracking-wider w-[13%]  whitespace-nowrap">
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[13%]  whitespace-nowrap">
                     No. of Row ID
+                  </th>
+                  <th className="px-3 py-3 text-left text-base font-bold text-slate-600 uppercase tracking-wider w-[5%]  whitespace-nowrap">
+                    Action
                   </th>
                 </tr>
               </thead>

@@ -352,637 +352,7 @@ export const buildDateRegex = (format: string): RegExp => {
 
   return new RegExp(regex, "i");
 };
-const normalizeValue = (value: any, dataType: string) => {
-  if (value === null || value === undefined) return "";
 
-  if (typeof value === "string") {
-    return value.trim();
-  }
-
-  return value;
-};
-const validateRequired = ({
-  strValue,
-  columnName,
-  rowNumber,
-  rule,
-  columnStat,
-  markInvalid,
-
-  dbBuffer,
-}: {
-  strValue: string;
-  columnName: string;
-  rowNumber: number;
-  rule: any;
-  columnStat: any;
-  markInvalid: () => void;
-
-  dbBuffer: any;
-}) => {
-  if (strValue === "") {
-    columnStat.empty_count++;
-
-    pushError({ columnStat, ruleKey: "empty", rowNumber });
-    markInvalid();
-
-    const errorMsg = `The ${columnName} field is required`;
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Empty Data",
-      errorMsg,
-    });
-    // if (debug == 1) {
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Empty Data",
-    //     error_description: errorMsg,
-    //   });
-    // }
-
-    return true;
-  }
-
-  return false;
-};
-
-export const validateRegex = ({
-  strValue,
-  columnName,
-  rowNumber,
-  rule,
-  columnStat,
-  markInvalid,
-
-  dbBuffer,
-}: any) => {
-  ///////////////////
-  const value = String(strValue);
-  rule.cellContainsRegex.lastIndex = 0;
-  if (!rule.cellContainsRegex.test(value)) {
-    columnStat.regex_pattern_error_count++;
-    markInvalid();
-    pushError({ columnStat, ruleKey: "regex", rowNumber });
-
-    const errorMsg = `${strValue || "Value"} does not match required format ${rule.cellContainsRegex}`;
-    // if (debug == 1)
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Regex Pattern Error",
-    //     error_description: errorMsg,
-    //   });
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Regex Pattern Error",
-      errorMsg,
-    });
-    return true; // ❗ error occurred
-  }
-  return false;
-};
-export const validateDateFormat = ({
-  dataType,
-  strValue,
-  rawValue,
-  strValueOriginal,
-  fileType,
-  rule,
-  columnName,
-  rowNumber,
-  columnStat,
-  markInvalid,
-
-  dbBuffer,
-}: any) => {
-  let isError = false;
-  let errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;
-  const isValid = rule.dateRegex.test(strValue);
-  if (!isValid) {
-    isError = true;
-  }
-  // 🔥 FINAL ERROR HANDLING
-  if (isError) {
-    columnStat.date_format_error_count++;
-    markInvalid();
-    pushError({ columnStat, ruleKey: "datatype", rowNumber });
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Date Format Error",
-      errorMsg,
-    });
-    // if (debug == 1) {
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Date Format Error",
-    //     error_description: errorMsg,
-    //   });
-    // }
-
-    return true;
-  }
-
-  return false;
-};
-export const validateDataType = ({
-  dataType,
-  strValue,
-  rawValue,
-  strValueOriginal,
-  fileType,
-  rule,
-  columnName,
-  rowNumber,
-  columnStat,
-  markInvalid,
-
-  dbBuffer,
-}: any) => {
-  let isError = false;
-
-  // ✅ Ensure
-
-  const dataTypes = Array.isArray(dataType) ? dataType : [dataType];
-  var errorMsg = `${
-    strValueOriginal ?? strValue
-  } does not match allowed data types (${dataTypes.join(", ")})`;
-  // ✅ OR validation (any type should pass)
-  const isValid = dataTypes.some((type) => {
-    switch (type) {
-      case "string":
-        return stringRegex.test(strValue);
-
-      case "alphabetic":
-        return alphabeticsRegex.test(strValue);
-
-      case "boolean":
-        return validBooleanValues.has(strValue.toLowerCase());
-
-      case "date": {
-        return dateTimeRegex.test(strValue);
-      }
-      case "integer":
-        // Excel special case
-        if (
-          ["csv", "xls", "xlsx"].includes(fileType) &&
-          typeof rawValue !== "number"
-        ) {
-          return false;
-        }
-
-        return integerRegex.test(strValue);
-
-      case "float":
-        if (
-          ["csv", "xls", "xlsx"].includes(fileType) &&
-          typeof rawValue !== "number"
-        ) {
-          return false;
-        }
-        return numberRegex.test(strValue);
-
-      default:
-        return false;
-    }
-  });
-
-  // ❌ If NONE matched → error
-  if (!isValid) {
-    isError = true;
-  }
-
-  // 🔥 FINAL ERROR HANDLING
-  if (isError) {
-    columnStat.datatype_error_count++;
-    markInvalid();
-
-    pushError({ columnStat, ruleKey: "datatype", rowNumber });
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Datatype Error",
-      errorMsg,
-    });
-    // if (debug == 1) {
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Datatype Error",
-    //     error_description: errorMsg,
-    //   });
-    // }
-
-    return true; // ❗ error occurred
-  }
-
-  return false; // ✅ valid
-};
-// export const validateDataType = ({
-//   dataType,
-//   strValue,
-//   rawValue,
-//   strValueOriginal,
-//   fileType,
-//   rule,
-//   columnName,
-//   rowNumber,
-//   columnStat,
-//   markInvalid,
-
-//dbBuffer,
-// }: any) => {
-//   let isError = false;
-//   let errorMsg = `${strValue} does not match ${dataType} format`;
-//   let datatypeValidationChecked = 0;
-
-//   // 🔹 STRING / ALPHABETIC
-//   if (
-//     dataType === "string" ||
-//     dataType === "alphabetic" ||
-//     dataType === "boolean" ||
-//     dataType === "date"
-//   ) {
-//     const isValid =
-//       dataType === "string"
-//         ? stringRegex.test(strValue)
-//         : dataType === "alphabetic"
-//           ? alphabeticsRegex.test(strValue)
-//           : dataType === "boolean"
-//             ? validBooleanValues.has(strValue.toLowerCase())
-//             : rule.dateTimeRegex.test(strValue);
-//             //: rule.dateRegex.test(strValue);
-//     if (!isValid) {
-//       isError = true;
-//       if (dataType == "date") {
-//         errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;
-//       }
-//     }
-//   }
-
-//   // 🔹 INTEGER / FLOAT
-//   else if (dataType === "integer" || dataType === "float") {
-//     if (
-//       ["csv", "xls", "xlsx"].includes(fileType) &&
-//       typeof rawValue !== "number"
-//     ) {
-//       datatypeValidationChecked = 1;
-//       isError = true;
-//       errorMsg = `${strValueOriginal || "Value"} must be a ${dataType}, but got string`;
-//     }
-
-//     if (datatypeValidationChecked === 0) {
-//       const isValid =
-//         dataType === "integer"
-//           ? integerRegex.test(strValue)
-//           : numberRegex.test(strValue);
-
-//       if (!isValid) isError = true;
-//     }
-//   }
-
-//   // 🔥 FINAL ERROR HANDLING
-//   if (isError) {
-//     columnStat.datatype_error_count++;
-//     markInvalid();
-//     pushError({ columnStat, ruleKey: "datatype", rowNumber });
-
-//     if (debug == 1) {
-//       columnStat.error_msg.push({
-//         row: rowNumber,
-//         column: columnName,
-//         error_type: "Datatype Error",
-//         error_description: errorMsg,
-//       });
-//     }
-
-//     return true;
-//   }
-
-//   return false;
-// };
-function validateLength({
-  rule,
-  strValue,
-  strValueOriginal,
-  dataType,
-  columnName,
-  rowNumber,
-  columnStat,
-
-  dbBuffer,
-  debug,
-  markInvalid,
-  parseDateByFormat,
-}: any) {
-  let is_error = 0;
-  let errorMsg = "";
-  const numValue = +strValue;
-  const dataTypes = Array.isArray(dataType)
-    ? dataType
-    : dataType
-      ? [dataType]
-      : [];
-  const isInvalidNumber = Number.isNaN(numValue);
-
-  if (dataTypes.includes("float") || dataTypes.includes("integer")) {
-    if (isInvalidNumber) {
-      is_error = 1;
-      errorMsg = `${strValueOriginal ?? "Value"}  must be between ${rule.min_length} and ${rule.max_length}`;
-    } else if (rule.length_validation_type === "variable") {
-      if (rule.min_length !== null && numValue < rule.min_length) {
-        is_error = 1;
-        errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
-      }
-
-      if (rule.max_length !== null && numValue > rule.max_length) {
-        is_error = 1;
-        errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
-      }
-    } else if (rule.length_validation_type === "fixed") {
-      if (rule.min_length !== null && strValue !== rule.min_length) {
-        is_error = 1;
-        errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length}`;
-      }
-    }
-  } else if (
-    dataTypes.length === 0 ||
-    ["string", "boolean", "alphabetic"].some((t) => dataTypes.includes(t))
-  ) {
-    const strLen = strValue.length;
-
-    if (rule.length_validation_type === "variable") {
-      if (rule.min_length !== null && strLen < rule.min_length) {
-        is_error = 1;
-        errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length} in length`;
-      } else if (rule.max_length !== null && strLen > rule.max_length) {
-        is_error = 1;
-        errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and  ${rule.max_length} length`;
-      }
-    } else if (rule.length_validation_type === "fixed") {
-      if (rule.min_length !== null && strLen !== Number(rule.min_length)) {
-        is_error = 1;
-        errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length} length`;
-      }
-    }
-  } else if (dataTypes.includes("date")) {
-    const currentDate = parseDateByFormat(
-      strValue,
-      rule.date_format || "DD-MM-YYYY",
-    );
-    console.log(strValue + "===============" + currentDate);
-    if (
-      currentDate &&
-      rule.min_length &&
-      (rule.length_validation_type === "fixed" ||
-        (rule.length_validation_type === "variable" && rule.max_length))
-    ) {
-      const parseFixedDate = (dateStr: string) => {
-        const parts = dateStr.split("-");
-        if (parts.length !== 3) return null;
-
-        const day = Number(parts[2]);
-        const month = Number(parts[1]) - 1;
-        const year = Number(parts[0]);
-
-        return new Date(year, month, day);
-      };
-
-      if (rule.length_validation_type === "fixed") {
-        if (strValue == "") {
-          is_error = 1;
-          errorMsg = `${strValueOriginal ?? "Value"} must be exactly ++ ${rule.min_length}`;
-        } else {
-          const fixedDate = rule.min_length
-            ? parseFixedDate(rule.min_length)
-            : null;
-
-          if (fixedDate) {
-            const inputDate = new Date(
-              currentDate.getFullYear(),
-              currentDate.getMonth(),
-              currentDate.getDate(),
-            );
-
-            const compareDate = new Date(
-              fixedDate.getFullYear(),
-              fixedDate.getMonth(),
-              fixedDate.getDate(),
-            );
-            console.log("Fixed date->" + fixedDate);
-            console.log("compareDate>" + compareDate);
-            console.log(inputDate.getTime() + "!==" + compareDate.getTime());
-            if (inputDate.getTime() !== compareDate.getTime()) {
-              is_error = 1;
-              errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length}`;
-            }
-          }
-        }
-      } else if (rule.length_validation_type === "variable") {
-        const minDate = rule.min_length
-          ? parseFixedDate(rule.min_length)
-          : null;
-        const maxDate = rule.max_length
-          ? parseFixedDate(rule.max_length)
-          : null;
-
-        const inputDate = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          currentDate.getDate(),
-        );
-
-        if (
-          (minDate && inputDate.getTime() < minDate.getTime()) ||
-          (maxDate && inputDate.getTime() > maxDate.getTime())
-        ) {
-          is_error = 1;
-          errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
-        }
-      }
-    }
-  }
-
-  if (is_error == 1) {
-    markInvalid();
-    pushError({ columnStat, ruleKey: "length", rowNumber });
-
-    columnStat.length_validation_error_count++;
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Data Length Error",
-      errorMsg,
-    });
-    // if (debug == 1)
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Data Length Error",
-    //     error_description: errorMsg,
-    //   });
-  }
-}
-
-function validateFixedHeader({
-  rule,
-  strValue,
-  columnName,
-  rowNumber,
-  columnStat,
-
-  dbBuffer,
-  debug,
-  markInvalid,
-}: any) {
-  if (strValue !== rule.fixed_header_value) {
-    markInvalid();
-    pushError({ columnStat, ruleKey: "fixed_header", rowNumber });
-
-    columnStat.fixed_header_error_count++;
-    const errorMsg = `Invalid fixed value: ${strValue}. Only ${rule.fixedHeaderMessage} is allowed`;
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Fixed Value Error",
-      errorMsg,
-    });
-    // if (debug == 1)
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Fixed Value Error",
-    //     error_description: `Invalid fixed value: ${strValue}. Only ${rule.fixedHeaderMessage} is allowed`,
-    //   });
-  }
-}
-
-function validateStartWith({
-  rule,
-  strValue,
-  normalizedValue,
-  columnName,
-  rowNumber,
-  columnStat,
-
-  dbBuffer,
-  debug,
-  markInvalid,
-}: any) {
-  if (!normalizedValue.startsWith(rule.cell_start_with_value)) {
-    markInvalid();
-    pushError({ columnStat, ruleKey: "start_with", rowNumber });
-
-    columnStat.cell_start_with_error_count++;
-    const errorMsg = `Invalid start value: ${strValue}. It must start with ${rule.cellStartWithMessage}.`;
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Start With Error",
-      errorMsg,
-    });
-    // if (debug == 1)
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Start With Error",
-    //     error_description: `Invalid start value: ${strValue}. It must start with ${rule.cellStartWithMessage}.`,
-    //   });
-  }
-}
-
-function validateEndWith({
-  rule,
-  normalizedValue,
-  strValue,
-  columnName,
-  rowNumber,
-  columnStat,
-
-  dbBuffer,
-  debug,
-  markInvalid,
-}: any) {
-  console.log(normalizedValue + "====" + rule.cell_end_with_value);
-  console.log(normalizedValue.endsWith(rule.cell_end_with_value));
-  if (!normalizedValue.endsWith(rule.cell_end_with_value)) {
-    markInvalid();
-    pushError({ columnStat, ruleKey: "end_with", rowNumber });
-
-    columnStat.cell_end_with_error_count++;
-    const errorMsg = `Invalid end value: ${strValue}. It must end with ${rule.cellEndWithMessage}`;
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "End With Error",
-      errorMsg,
-    });
-    // if (debug == 1)
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "End With Error",
-    //     error_description: errorMsg,
-    //   });
-  }
-}
-
-function validateBlockedWords({
-  rule,
-  normalizedValue,
-  strValue,
-  columnName,
-  rowNumber,
-  columnStat,
-
-  dbBuffer,
-  debug,
-  markInvalid,
-}: any) {
-  if (
-    rule.not_match_found_normalized?.length &&
-    rule.not_match_found_normalized.some((word) =>
-      normalizedValue.includes(word),
-    )
-  ) {
-    markInvalid();
-    pushError({ columnStat, ruleKey: "blocked", rowNumber });
-
-    columnStat.blocked_word_error_count++;
-    const errorMsg = `Blocked word ${rule.blockwordsMessage} found in ${strValue}`;
-
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Blocked Word",
-      errorMsg,
-    });
-    dbBuffer.add({
-      rowNumber,
-      columnName,
-      errorType: "Blocked Word",
-      errorMsg,
-    });
-    // if (debug == 1)
-    //   columnStat.error_msg.push({
-    //     row: rowNumber,
-    //     column: columnName,
-    //     error_type: "Blocked Word",
-    //     error_description: `Blocked word ${rule.blockwordsMessage} found in ${strValue}`,
-    //   });
-  }
-}
 export const validateRow = (
   rowData: Record<string, any>,
   rowNumber: number,
@@ -1059,141 +429,420 @@ export const validateRow = (
     //has_empty
     if (rule) {
       if (rule.is_required) {
-        validateRequired({
-          strValue,
-          columnName,
-          rowNumber,
-          rule,
-          columnStat,
-          markInvalid,
+        if (strValue === "") {
+          columnStat.empty_count++;
 
-          dbBuffer,
-        });
+          pushError({ columnStat, ruleKey: "empty", rowNumber });
+          markInvalid();
+
+          const errorMsg = `The ${columnName} field is required`;
+
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Empty Data",
+            errorMsg,
+          });
+        }
       }
-
       if (rule.cellContainsRegex) {
-        validateRegex({
-          strValue,
-          columnName,
-          rowNumber,
-          rule,
-          columnStat,
-          markInvalid,
+        const value = String(strValue);
+        rule.cellContainsRegex.lastIndex = 0;
+        if (!rule.cellContainsRegex.test(value)) {
+          columnStat.regex_pattern_error_count++;
+          markInvalid();
+          pushError({ columnStat, ruleKey: "regex", rowNumber });
 
-          dbBuffer,
-        });
+          const errorMsg = `${strValue || "Value"} does not match required format ${rule.cellContainsRegex}`;
+          // if (debug == 1)
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Regex Pattern Error",
+          //     error_description: errorMsg,
+          //   });
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Regex Pattern Error",
+            errorMsg,
+          });
+        }
       }
 
       if (dataType != undefined) {
-        validateDataType({
-          dataType,
-          strValue,
-          rawValue,
-          strValueOriginal,
-          fileType,
-          rule,
-          columnName,
-          rowNumber,
-          columnStat,
-          markInvalid,
+        let isError = false;
 
-          dbBuffer,
+        // ✅ Ensure
+
+        const dataTypes = Array.isArray(dataType) ? dataType : [dataType];
+        var errorMsg = `${
+          strValueOriginal ?? strValue
+        } does not match allowed data types (${dataTypes.join(", ")})`;
+        // ✅ OR validation (any type should pass)
+        const isValid = dataTypes.some((type) => {
+          switch (type) {
+            case "string":
+              return stringRegex.test(strValue);
+
+            case "alphabetic":
+              return alphabeticsRegex.test(strValue);
+
+            case "boolean":
+              return validBooleanValues.has(strValue.toLowerCase());
+
+            case "date": {
+              return dateTimeRegex.test(strValue);
+            }
+            case "integer":
+              // Excel special case
+              if (
+                ["csv", "xls", "xlsx"].includes(fileType) &&
+                typeof rawValue !== "number"
+              ) {
+                return false;
+              }
+
+              return integerRegex.test(strValue);
+
+            case "float":
+              if (
+                ["csv", "xls", "xlsx"].includes(fileType) &&
+                typeof rawValue !== "number"
+              ) {
+                return false;
+              }
+              return numberRegex.test(strValue);
+
+            default:
+              return false;
+          }
         });
+
+        // ❌ If NONE matched → error
+        if (!isValid) {
+          isError = true;
+        }
+
+        // 🔥 FINAL ERROR HANDLING
+        if (isError) {
+          columnStat.datatype_error_count++;
+          markInvalid();
+
+          pushError({ columnStat, ruleKey: "datatype", rowNumber });
+
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Datatype Error",
+            errorMsg,
+          });
+          // if (debug == 1) {
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Datatype Error",
+          //     error_description: errorMsg,
+          //   });
+          // }
+        }
       }
       if (rule.date_format != undefined) {
-        validateDateFormat({
-          dataType,
-          strValue,
-          rawValue,
-          strValueOriginal,
-          fileType,
-          rule,
-          columnName,
-          rowNumber,
-          columnStat,
-          markInvalid,
+        let isError = false;
+        let errorMsg = `${strValueOriginal ?? "value"} does not match daeformat ${rule.date_format}`;
+        const isValid = rule.dateRegex.test(strValue);
+        if (!isValid) {
+          isError = true;
+        }
+        // 🔥 FINAL ERROR HANDLING
+        if (isError) {
+          columnStat.date_format_error_count++;
+          markInvalid();
+          pushError({ columnStat, ruleKey: "datatype", rowNumber });
 
-          dbBuffer,
-        });
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Date Format Error",
+            errorMsg,
+          });
+          // if (debug == 1) {
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Date Format Error",
+          //     error_description: errorMsg,
+          //   });
+          // }
+        }
       }
       //for number type, also check min/max length if specified
       if (
         rule.length_validation_type != null &&
         rule.length_validation_type != undefined
       ) {
-        validateLength({
-          rule,
-          strValue,
-          strValueOriginal,
-          dataType,
-          columnName,
-          rowNumber,
-          columnStat,
+        let is_error = 0;
+        let errorMsg = "";
+        const numValue = +strValue;
+        const dataTypes = Array.isArray(dataType)
+          ? dataType
+          : dataType
+            ? [dataType]
+            : [];
+        const isInvalidNumber = Number.isNaN(numValue);
 
-          dbBuffer,
-          debug,
-          markInvalid,
-          parseDateByFormat,
-        });
+        if (dataTypes.includes("float") || dataTypes.includes("integer")) {
+          if (isInvalidNumber) {
+            is_error = 1;
+            errorMsg = `${strValueOriginal ?? "Value"}  must be between ${rule.min_length} and ${rule.max_length}`;
+          } else if (rule.length_validation_type === "variable") {
+            if (rule.min_length !== null && numValue < rule.min_length) {
+              is_error = 1;
+              errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
+            }
+
+            if (rule.max_length !== null && numValue > rule.max_length) {
+              is_error = 1;
+              errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
+            }
+          } else if (rule.length_validation_type === "fixed") {
+            if (rule.min_length !== null && strValue !== rule.min_length) {
+              is_error = 1;
+              errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length}`;
+            }
+          }
+        } else if (
+          dataTypes.length === 0 ||
+          ["string", "boolean", "alphabetic"].some((t) => dataTypes.includes(t))
+        ) {
+          const strLen = strValue.length;
+
+          if (rule.length_validation_type === "variable") {
+            if (rule.min_length !== null && strLen < rule.min_length) {
+              is_error = 1;
+              errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length} in length`;
+            } else if (rule.max_length !== null && strLen > rule.max_length) {
+              is_error = 1;
+              errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and  ${rule.max_length} length`;
+            }
+          } else if (rule.length_validation_type === "fixed") {
+            if (
+              rule.min_length !== null &&
+              strLen !== Number(rule.min_length)
+            ) {
+              is_error = 1;
+              errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length} length`;
+            }
+          }
+        } else if (dataTypes.includes("date")) {
+          const currentDate = parseDateByFormat(
+            strValue,
+            rule.date_format || "DD-MM-YYYY",
+          );
+          console.log(strValue + "===============" + currentDate);
+          if (
+            currentDate &&
+            rule.min_length &&
+            (rule.length_validation_type === "fixed" ||
+              (rule.length_validation_type === "variable" && rule.max_length))
+          ) {
+            const parseFixedDate = (dateStr: string) => {
+              const parts = dateStr.split("-");
+              if (parts.length !== 3) return null;
+
+              const day = Number(parts[2]);
+              const month = Number(parts[1]) - 1;
+              const year = Number(parts[0]);
+
+              return new Date(year, month, day);
+            };
+
+            if (rule.length_validation_type === "fixed") {
+              if (strValue == "") {
+                is_error = 1;
+                errorMsg = `${strValueOriginal ?? "Value"} must be exactly ++ ${rule.min_length}`;
+              } else {
+                const fixedDate = rule.min_length
+                  ? parseFixedDate(rule.min_length)
+                  : null;
+
+                if (fixedDate) {
+                  const inputDate = new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth(),
+                    currentDate.getDate(),
+                  );
+
+                  const compareDate = new Date(
+                    fixedDate.getFullYear(),
+                    fixedDate.getMonth(),
+                    fixedDate.getDate(),
+                  );
+                  console.log("Fixed date->" + fixedDate);
+                  console.log("compareDate>" + compareDate);
+                  console.log(
+                    inputDate.getTime() + "!==" + compareDate.getTime(),
+                  );
+                  if (inputDate.getTime() !== compareDate.getTime()) {
+                    is_error = 1;
+                    errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length}`;
+                  }
+                }
+              }
+            } else if (rule.length_validation_type === "variable") {
+              const minDate = rule.min_length
+                ? parseFixedDate(rule.min_length)
+                : null;
+              const maxDate = rule.max_length
+                ? parseFixedDate(rule.max_length)
+                : null;
+
+              const inputDate = new Date(
+                currentDate.getFullYear(),
+                currentDate.getMonth(),
+                currentDate.getDate(),
+              );
+
+              if (
+                (minDate && inputDate.getTime() < minDate.getTime()) ||
+                (maxDate && inputDate.getTime() > maxDate.getTime())
+              ) {
+                is_error = 1;
+                errorMsg = `${strValueOriginal ?? "Value"} must be between ${rule.min_length} and ${rule.max_length}`;
+              }
+            }
+          }
+        }
+
+        if (is_error == 1) {
+          markInvalid();
+          pushError({ columnStat, ruleKey: "length", rowNumber });
+
+          columnStat.length_validation_error_count++;
+
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Data Length Error",
+            errorMsg,
+          });
+          // if (debug == 1)
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Data Length Error",
+          //     error_description: errorMsg,
+          //   });
+        }
       }
 
       if (rule.fixed_header_value !== undefined) {
-        validateFixedHeader({
-          rule,
-          strValue,
-          columnName,
-          rowNumber,
-          columnStat,
+        if (strValue !== rule.fixed_header_value) {
+          markInvalid();
+          pushError({ columnStat, ruleKey: "fixed_header", rowNumber });
 
-          dbBuffer,
-          debug,
-          markInvalid,
-        });
+          columnStat.fixed_header_error_count++;
+          const errorMsg = `Invalid fixed value: ${strValue}. Only ${rule.fixedHeaderMessage} is allowed`;
+
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Fixed Value Error",
+            errorMsg,
+          });
+          // if (debug == 1)
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Fixed Value Error",
+          //     error_description: `Invalid fixed value: ${strValue}. Only ${rule.fixedHeaderMessage} is allowed`,
+          //   });
+        }
       }
 
       if (rule.cell_start_with_value !== undefined) {
-        validateStartWith({
-          rule,
-          strValue,
-          normalizedValue,
-          columnName,
-          rowNumber,
-          columnStat,
+        if (!normalizedValue.startsWith(rule.cell_start_with_value)) {
+          markInvalid();
+          pushError({ columnStat, ruleKey: "start_with", rowNumber });
 
-          dbBuffer,
-          debug,
-          markInvalid,
-        });
+          columnStat.cell_start_with_error_count++;
+          const errorMsg = `Invalid start value: ${strValue}. It must start with ${rule.cellStartWithMessage}.`;
+
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Start With Error",
+            errorMsg,
+          });
+          // if (debug == 1)
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Start With Error",
+          //     error_description: `Invalid start value: ${strValue}. It must start with ${rule.cellStartWithMessage}.`,
+          //   });
+        }
       }
 
       //end with
       if (rule.cell_end_with_value?.length) {
-        validateEndWith({
-          rule,
-          normalizedValue,
-          strValue,
-          columnName,
-          rowNumber,
-          columnStat,
+        console.log(normalizedValue + "====" + rule.cell_end_with_value);
+        console.log(normalizedValue.endsWith(rule.cell_end_with_value));
+        if (!normalizedValue.endsWith(rule.cell_end_with_value)) {
+          markInvalid();
+          pushError({ columnStat, ruleKey: "end_with", rowNumber });
 
-          dbBuffer,
-          debug,
-          markInvalid,
-        });
+          columnStat.cell_end_with_error_count++;
+          const errorMsg = `Invalid end value: ${strValue}. It must end with ${rule.cellEndWithMessage}`;
+
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "End With Error",
+            errorMsg,
+          });
+          // if (debug == 1)
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "End With Error",
+          //     error_description: errorMsg,
+          //   });
+        }
       }
       if (rule.not_match_found_normalized?.length) {
-        validateBlockedWords({
-          rule,
-          normalizedValue,
-          strValue,
-          columnName,
-          rowNumber,
-          columnStat,
+        if (
+          rule.not_match_found_normalized?.length &&
+          rule.not_match_found_normalized.some((word) =>
+            normalizedValue.includes(word),
+          )
+        ) {
+          markInvalid();
+          pushError({ columnStat, ruleKey: "blocked", rowNumber });
 
-          dbBuffer,
-          debug,
-          markInvalid,
-        });
+          columnStat.blocked_word_error_count++;
+          const errorMsg = `Blocked word ${rule.blockwordsMessage} found in ${strValue}`;
+
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Blocked Word",
+            errorMsg,
+          });
+          dbBuffer.add({
+            rowNumber,
+            columnName,
+            errorType: "Blocked Word",
+            errorMsg,
+          });
+          // if (debug == 1)
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Blocked Word",
+          //     error_description: `Blocked word ${rule.blockwordsMessage} found in ${strValue}`,
+          //   });
+        }
       }
     }
     // DUPLICATE

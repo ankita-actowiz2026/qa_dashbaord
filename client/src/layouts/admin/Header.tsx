@@ -81,7 +81,7 @@ export default function Header() {
 
           <FiChevronDown
             className={`text-gray-500 transition-transform duration-200 ${
-              open ? "rotate-180" : "group-hover:rotate-180"
+              open ? "rotate-180" : ""
             }`}
           />
         </button>
