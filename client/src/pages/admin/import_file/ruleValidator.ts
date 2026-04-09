@@ -138,7 +138,7 @@ export const validateRule = (tempRule, current) => {
 
   if (tempRule.type === "fixed_header") {
     if (!tempRule.fixed_header) {
-      return "Please add at least one header value";
+      return "Please add at least one value";
     }
   }
   if (tempRule.type === "cell_end_with") {

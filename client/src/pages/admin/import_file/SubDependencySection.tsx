@@ -42,7 +42,7 @@ const SubDependencySection: React.FC<Props> = ({
 
     // ✅ validations FIRST
     if (!prev.sub_headers || prev.sub_headers.length === 0) {
-      toast.error("Select at least one header");
+      toast.error("Select at least one column");
       return;
     }
 
@@ -62,7 +62,7 @@ const SubDependencySection: React.FC<Props> = ({
     const duplicate = prev.sub_headers.some((h) => usedHeaders.has(h));
 
     if (duplicate) {
-      toast.error("Header already used");
+      toast.error("Subdependant column already used");
       return;
     }
 
@@ -116,7 +116,7 @@ const SubDependencySection: React.FC<Props> = ({
 
       {/* MULTISELECT */}
       <label className="block mb-2 text-base font-medium tracking-wide text-sidebar">
-        Select Headers
+        Select Column
       </label>
       <Select
         isMulti
@@ -197,10 +197,10 @@ const SubDependencySection: React.FC<Props> = ({
           />
         </div>
       )}
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-2 justify-center">
         <button
           onClick={handleAdd}
-          className="flex-1 gap-2 px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover rounded-xl shadow-md hover:shadow-lg hover:from-sidebarSecondaryHover hover:to-sidebarSecondaryHover active:scale-[0.98] transition-all duration-200"
+          className={`${editingIndex !== null ? "flex-2" : "flex-1"} gap-2 px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-sidebarSecondary to-sidebarSecondaryHover rounded-xl shadow-md hover:shadow-lg hover:from-sidebarSecondaryHover hover:to-sidebarSecondaryHover active:scale-[0.98] transition-all duration-200`}
         >
           {editingIndex !== null
             ? "Update Sub Dependency"
@@ -217,9 +217,9 @@ const SubDependencySection: React.FC<Props> = ({
                 sub_value: "",
               }));
             }}
-            className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
+            className="  text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 hover:text-gray-800 transition-all duration-200 gap-2 px-6 py-3 text-lg font-medium"
           >
-            Cancel
+            Cancel Update
           </button>
         )}
       </div>
