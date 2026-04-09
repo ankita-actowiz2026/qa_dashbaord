@@ -1,12 +1,6 @@
 import React, { useState, useRef } from "react";
-
-import { FiCheckCircle, FiLoader, FiUpload, FiGrid } from "react-icons/fi";
-import { FaUpload, FaPlay } from "react-icons/fa";
+import { FiUpload } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { FiRefreshCw } from "react-icons/fi";
-
-import ShowValidationRules from "./ShowValidationRules";
-
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import apiClient from "../../../services/apiClient";
@@ -83,7 +77,7 @@ const ImportFile: React.FC = () => {
 
     try {
       const response = await apiClient.post(
-        `admin/api/qa_file/read_header`,
+        `admin/api/validate/read-header`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -144,47 +138,7 @@ const ImportFile: React.FC = () => {
       fileInputRef.current.value = "";
     }
   };
-  const hasRules = Object.keys(rulesData).length > 0;
-  const handleRunValidation = async () => {
-    try {
-      if (!file) {
-        toast.error("Please select file");
-        return;
-      }
-      setValidating(true);
-      const updatedRulesData = Object.fromEntries(
-        Object.entries(rulesData).map(([key, value]) => {
-          const { name, ...rest } = value; // remove "name"
-          return [key, rest];
-        }),
-      );
-      const formData = {
-        columnConfig: JSON.stringify(updatedRulesData),
-        fileName: uploadedFileName,
-      };
-      const response = await apiClient.post(`admin/api/qa_file`, formData, {
-        withCredentials: true,
-      });
-      toast.success("Validation completed successfully");
-      navigate("/admin/import_file/validation_result", {
-        state: {
-          responseData: response.data,
-          requestData: rulesData,
-          fileName: fileName,
-          dbFileName: uploadedFileName,
-        },
-      });
-      console.log("Validation Response:", response.data);
-    } catch (error: any) {
-      console.error("Validation Error:", error);
 
-      const message = error?.response?.data?.message || "Validation failed";
-
-      toast.error(message);
-    } finally {
-      setValidating(false);
-    }
-  };
   return (
     <div className="mt-6 space-y-6">
       <form onSubmit={handleSubmit(onSubmit, onError)} noValidate>

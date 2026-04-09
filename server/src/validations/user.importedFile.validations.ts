@@ -616,8 +616,8 @@ export const validateRow = (
             }
           }
         } else if (
-          dataTypes.length === 0 ||
-          ["string", "boolean", "alphabetic"].some((t) => dataTypes.includes(t))
+          rule.data_types_new.length === 0 ||
+          ["string", "boolean", "alphabetic"].some((t) => rule.data_types_new.includes(t))
         ) {
           const strLen = strValue.length;
 
@@ -638,7 +638,7 @@ export const validateRow = (
               errorMsg = `${strValueOriginal ?? "Value"} must be exactly ${rule.min_length} length`;
             }
           }
-        } else if (dataTypes.includes("date")) {
+        } else if (rule.data_types_new.includes("date")) {
           const currentDate = parseDateByFormat(
             strValue,
             rule.date_format || "DD-MM-YYYY",

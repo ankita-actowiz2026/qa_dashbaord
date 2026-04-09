@@ -38,25 +38,28 @@ const SubDependencySection: React.FC<Props> = ({
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const handleAdd = useCallback(() => {
-    if (!tempRule.sub_headers || tempRule.sub_headers.length === 0) {
+    const prev = tempRule;
+
+    // ✅ validations FIRST
+    if (!prev.sub_headers || prev.sub_headers.length === 0) {
       toast.error("Select at least one header");
       return;
     }
 
-    if (tempRule.sub_mode === "other" && !tempRule.sub_value) {
+    if (prev.sub_mode === "other" && !prev.sub_value) {
       toast.error("Enter sub dependency value");
       return;
     }
 
-    const existing = tempRule.sub_dependencies || [];
+    const existing = prev.sub_dependencies || [];
 
-    // ✅ Exclude current editing item (important for edit case)
     const usedHeaders = new Set(
       existing
         .filter((_, idx) => idx !== editingIndex)
         .flatMap((s) => s.headers),
     );
-    const duplicate = tempRule.sub_headers.some((h) => usedHeaders.has(h));
+
+    const duplicate = prev.sub_headers.some((h) => usedHeaders.has(h));
 
     if (duplicate) {
       toast.error("Header already used");
@@ -64,31 +67,39 @@ const SubDependencySection: React.FC<Props> = ({
     }
 
     const newItem = {
-      headers: tempRule.sub_headers,
-      mode: tempRule.sub_mode,
-      value: tempRule.sub_mode === "other" ? tempRule.sub_value : undefined,
+      headers: [...prev.sub_headers],
+      mode: prev.sub_mode,
+      value: prev.sub_mode === "other" ? prev.sub_value : undefined,
     };
 
-    let updatedList = [...existing];
+    // ✅ update state
+    setTempRule((prevState) => {
+      const list = prevState.sub_dependencies || [];
+      let updatedList = [...list];
 
-    // ✅ EDIT MODE
+      if (editingIndex !== null) {
+        updatedList[editingIndex] = newItem;
+      } else {
+        updatedList.push(newItem);
+      }
+
+      return {
+        ...prevState,
+        sub_dependencies: updatedList,
+        sub_headers: [],
+        sub_mode: "required",
+        sub_value: "",
+      };
+    });
+
+    // ✅ toast AFTER logic (sync)
     if (editingIndex !== null) {
-      updatedList[editingIndex] = newItem;
       toast.success("Sub dependency updated");
     } else {
-      updatedList.push(newItem);
       toast.success("Sub dependency added");
     }
 
-    setTempRule({
-      ...tempRule,
-      sub_dependencies: updatedList,
-      sub_headers: [],
-      sub_mode: "required",
-      sub_value: "",
-    });
-
-    setEditingIndex(null); // reset edit mode
+    setEditingIndex(null);
   }, [tempRule, editingIndex, setTempRule]);
   const headerOptions = availableHeaders.map((h: string) => ({
     value: h,
@@ -148,7 +159,9 @@ const SubDependencySection: React.FC<Props> = ({
           <input
             type="radio"
             checked={(tempRule.sub_mode ?? "required") === "required"}
-            onChange={() => setTempRule({ ...tempRule, sub_mode: "required" })}
+            onChange={() =>
+              setTempRule((prev) => ({ ...prev, sub_mode: "required" }))
+            }
             className={radioButtonStyle}
           />
           <span className="font-base">Required</span>
@@ -158,7 +171,9 @@ const SubDependencySection: React.FC<Props> = ({
           <input
             type="radio"
             checked={(tempRule.sub_mode ?? "required") === "other"}
-            onChange={() => setTempRule({ ...tempRule, sub_mode: "other" })}
+            onChange={() =>
+              setTempRule((prev) => ({ ...prev, sub_mode: "other" }))
+            }
             className={radioButtonStyle}
           />
 
@@ -172,7 +187,10 @@ const SubDependencySection: React.FC<Props> = ({
             type="text"
             value={tempRule.sub_value || ""}
             onChange={(e) =>
-              setTempRule({ ...tempRule, sub_value: e.target.value })
+              setTempRule((prev) => ({
+                ...prev,
+                sub_value: e.target.value,
+              }))
             }
             placeholder="Enter value"
             className={textbox_style}
@@ -192,12 +210,12 @@ const SubDependencySection: React.FC<Props> = ({
           <button
             onClick={() => {
               setEditingIndex(null);
-              setTempRule({
-                ...tempRule,
+              setTempRule((prev) => ({
+                ...prev,
                 sub_headers: [],
                 sub_mode: "required",
                 sub_value: "",
-              });
+              }));
             }}
             className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 hover:text-gray-800 transition-all duration-200"
           >
@@ -250,12 +268,12 @@ const SubDependencySection: React.FC<Props> = ({
               <button
                 onClick={() => {
                   setEditingIndex(i);
-                  setTempRule({
-                    ...tempRule,
-                    sub_headers: s.headers,
+                  setTempRule((prev) => ({
+                    ...prev,
+                    sub_headers: [...s.headers],
                     sub_mode: s.mode,
                     sub_value: s.value || "",
-                  });
+                  }));
                 }}
                 className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
@@ -263,13 +281,12 @@ const SubDependencySection: React.FC<Props> = ({
               </button>
               <button
                 onClick={() => {
-                  const updated = (tempRule.sub_dependencies || []).filter(
-                    (_: any, idx: number) => idx !== i,
-                  );
-                  setTempRule({
-                    ...tempRule,
-                    sub_dependencies: updated,
-                  });
+                  setTempRule((prev) => ({
+                    ...prev,
+                    sub_dependencies: (prev.sub_dependencies || []).filter(
+                      (_: any, idx: number) => idx !== i,
+                    ),
+                  }));
                   toast.success("Sub dependency removed");
                 }}
                 className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"

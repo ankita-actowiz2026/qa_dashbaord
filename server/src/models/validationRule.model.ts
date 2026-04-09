@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
-import IFileRules from "../interface/fileRules.interface";
+import IvalidationRule from "../interface/ValidationRule.interface";
 
-const FileRulesSchema = new Schema<IFileRules>(
+const validationRuleSchema = new Schema<IvalidationRule>(
   {
     user_id: {
       type: Schema.Types.ObjectId,
@@ -27,7 +27,7 @@ const FileRulesSchema = new Schema<IFileRules>(
   },
 );
 
-export const FileRules = mongoose.model<IFileRules>(
-  "FileRules",
-  FileRulesSchema,
+export const ValidationRule = mongoose.model<IvalidationRule>(
+  "ValidationRules",
+  validationRuleSchema,
 );

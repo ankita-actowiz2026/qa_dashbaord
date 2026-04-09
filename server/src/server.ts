@@ -13,14 +13,15 @@ import connectDB from "./config/db.config";
 
 import adminAuthRouter from "./routes/admin.auth.route";
 import adminUserRouter from "./routes/admin.user.route";
-import fileRule from "./routes/user.fileRule.route";
+import validationRuleRouter from "./routes/admin.validationRule.route";
 import importedFileRouter from "./routes/user.importedFile.route";
 // import authRouter from "./routes/user.auth.route";
 // import reportRouter from "./routes/user.report.route";
 import errorHandler from "./middleware/error.handler";
 import ApiError from "./utils/api.error";
+import { errors } from "mongodb-memory-server";
 //import uploadRoutes from "./routes/upload.route";
-
+import errorLogRouter from "./routes/admin.errorLog.route"
 const app = express();
 
 // middlewares
@@ -36,8 +37,9 @@ app.use(express.urlencoded({ limit: "500mb", extended: true }));
 app.use("/admin/auth", adminAuthRouter);
 app.use("/admin/user", adminUserRouter);
 
-app.use("/admin/api/qa_file", importedFileRouter);
-app.use("/admin/api/file_rule", fileRule);
+app.use("/admin/api/validate", importedFileRouter);
+app.use("/admin/api/validation-rules", validationRuleRouter);
+app.use("/admin/api/error-log", errorLogRouter);
 
 // app.use("/api/auth", authRouter);
 // app.use("/api/report", reportRouter);

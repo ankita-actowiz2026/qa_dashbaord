@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const ErrorLogSchema = new mongoose.Schema({
+const errorLogSchema = new mongoose.Schema({
   fileName: { type: String, required: true, index: true },
 
   errors: [
@@ -13,4 +13,4 @@ const ErrorLogSchema = new mongoose.Schema({
   ],
 });
 
-export const ErrorLog = mongoose.model("ErrorLog", ErrorLogSchema);
+export const errorLog = mongoose.model("errorLog", errorLogSchema);

@@ -65,20 +65,14 @@ export const generateRulesJSON = (data: HeaderItem[]) => {
           obj.not_match_found = rule.value;
           break;
 
-        case "dependency": {
-          const dep: Record<string, any> = {};
-          const main = rule.value;
-
-          dep[item.name] = main.mode === "required" ? true : main.main_value;
-
-          main.sub_dependencies?.forEach((sub: any) => {
-            const key = sub.headers.join(",");
-            dep[key] = sub.mode === "required" ? true : (sub.value ?? true);
-          });
-
-          obj.dependency = dep;
-          break;
-        }
+       case "dependency": {
+  obj.dependency = {
+    mode: rule.value.mode,
+    main_value: rule.value.main_value,
+    sub_dependencies: rule.value.sub_dependencies,
+  };
+  break;
+}
       }
     });
 

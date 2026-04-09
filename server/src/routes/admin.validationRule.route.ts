@@ -2,14 +2,14 @@ import express from "express";
 import { authentication } from "../middleware/auth.middleware";
 import { body, param, validationResult } from "express-validator";
 import {
-  createFileRules,
-  getAllFileRules,
-  getFileRulesById,
-  updateFileRules,
-  deleteFileRules,
-} from "../controllers/user.fileRules.controller";
+  createValidationRule,
+  getAllValidationRules,
+  getValidationRulesById,
+  updateValidationRule,
+  deleteValidationRule,
+} from "../controllers/admin.validationRule.controller";
 
-const router = express.Router();
+const validateRuleRouter = express.Router();
 
 // ✅ VALIDATION HANDLER
 const validateRequest = (req, res, next) => {
@@ -45,42 +45,42 @@ const idValidator = [param("id").isMongoId().withMessage("Invalid ID")];
 // 🔥 ROUTES
 
 // CREATE
-router.post(
+validateRuleRouter.post(
   "/",
   authentication,
   createValidator,
   validateRequest,
-  createFileRules,
+  createValidationRule,
 );
 
 // GET ALL
-router.get("/", authentication, getAllFileRules);
+validateRuleRouter.get("/", authentication, getAllValidationRules);
 
 // GET BY ID
-router.get(
+validateRuleRouter.get(
   "/:id",
   authentication,
   idValidator,
   validateRequest,
-  getFileRulesById,
+  getValidationRulesById,
 );
 
 // UPDATE
-router.put(
+validateRuleRouter.put(
   "/:id",
   authentication,
   updateValidator,
   validateRequest,
-  updateFileRules,
+  updateValidationRule,
 );
 
 // DELETE
-router.delete(
+validateRuleRouter.delete(
   "/:id",
   authentication,
   idValidator,
   validateRequest,
-  deleteFileRules,
+  deleteValidationRule,
 );
 
-export default router;
+export default validateRuleRouter;

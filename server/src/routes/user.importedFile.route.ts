@@ -5,13 +5,13 @@ import { authentication } from "../middleware/auth.middleware";
 const importedFileRouter = express.Router();
 
 importedFileRouter.post(
-  "/",
+  "/run-validation",
   authentication,
-  importFileController.addImportedFile,
+  importFileController.runValidation,
 );
 
 importedFileRouter.post(
-  "/read_header",
+  "/read-header",
   upload.single("file"),
   authentication,
   importFileController.readHeader,

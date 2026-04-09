@@ -12,17 +12,17 @@ import { parser } from "stream-json";
 import { streamArray } from "stream-json/streamers/StreamArray";
 import csv from "csv-parser";
 import { convertXlsToXlsx } from "../utils/convertXlsToXlsx";
-import { ValidationSummary } from "../models/ValidationSummary";
-import { ColumnErrors } from "../models/ColumnErrors";
-import { ErrorLog } from "../models/ErrorLog";
+import { ValidationSummary } from "../models/d_ValidationSummary";
+import { ColumnErrors } from "../models/d_ColumnErrors";
+import { errorLog } from "../models/errorLog";
 
-import { ValidatationResponse } from "../models/ValidationResponse";
+import { validationResponse } from "../models/validationResponse.model";
 import {
   validateRow,
   getCellValue,
   prepareColumnRules,
 } from "../validations/user.importedFile.validations";
-import { FileRules } from "../models/fileRules.model";
+import { ValidationRule } from "../models/validationRule.model";
 
 /**
  * Add/Upload Imported File
@@ -287,11 +287,8 @@ class ImportFileController {
 
       const validattionResponse = await ValidatationResponse.findOne({
         fileName,
-      }).lean(); // 🔥 faster
-      const columnErrors = await ColumnErrors.findOne({ fileName }).lean(); // 🔥 faster
-      const validationSummary = await ValidationSummary.findOne({
-        fileName,
-      }).lean(); // 🔥 faster
+      }).lean(); 
+      
 
       const errorLog = await ErrorLog.findOne({
         fileName,

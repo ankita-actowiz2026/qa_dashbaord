@@ -1,6 +1,6 @@
 // utils/DBBuffer.ts
 import { IErrorBuffer } from "../interface/IErrorBuffer";
-import { ErrorLog } from "../models/ErrorLog";
+import { errorLog } from "../models/errorLog";
 
 export class DBBuffer implements IErrorBuffer {
   private buffer: any[] = [];
@@ -40,7 +40,7 @@ export class DBBuffer implements IErrorBuffer {
     this.buffer = []; // ✅ clear first
 
     try {
-      await ErrorLog.findOneAndUpdate(
+      await errorLog.findOneAndUpdate(
         { fileName: this.fileName },
         {
           $push: {

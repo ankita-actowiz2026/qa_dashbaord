@@ -186,7 +186,7 @@ const RuleModal: React.FC<Props> = ({
                   styles={{
                     menuPortal: (base) => ({ ...base, zIndex: 9999 }), // ensure on top
                   }}
-                  className="w-full text-base border border-gray-200 rounded-lg focus:outline-none focus:ring-1  bg-gray-50 hover:border-gray-300 transition-all duration-200 cursor-pointer"
+                  className="w-full text-base transition-all duration-200 border border-gray-200 rounded-lg cursor-pointer focus:outline-none focus:ring-1 bg-gray-50 hover:border-gray-300"
                   classNamePrefix="react-select"
                 />
               </div>
@@ -261,6 +261,7 @@ const RuleModal: React.FC<Props> = ({
             </div>
 
             {/* VARIABLE */}
+
             {tempRule.length_mode === "variable" && (
               <div className="mt-2">
                 <label className={label_style}>Min - Max Length</label>
@@ -268,7 +269,13 @@ const RuleModal: React.FC<Props> = ({
                   <div className="grid grid-cols-2 gap-2">
                     {/* STRING TYPES */}
                     {currentDataType.some((type) =>
-                      ["string", "alphabetic", "boolean"].includes(type),
+                      [
+                        "string",
+                        "alphabetic",
+                        "boolean",
+                        "integer",
+                        "float",
+                      ].includes(type),
                     ) && (
                       <>
                         <input
@@ -354,7 +361,13 @@ const RuleModal: React.FC<Props> = ({
                     {/* STRING TYPES */}
                     <div className="p-0 m-0 ">
                       {currentDataType.some((type) =>
-                        ["string", "alphabetic", "boolean"].includes(type),
+                        [
+                          "string",
+                          "alphabetic",
+                          "boolean",
+                          "integer",
+                          "float",
+                        ].includes(type),
                       ) && (
                         <input
                           type="number"

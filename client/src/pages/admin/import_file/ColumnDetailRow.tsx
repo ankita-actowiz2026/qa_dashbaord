@@ -160,7 +160,7 @@ const ColumnDetailRow = ({
       {/* Blank Rows */}
       <td className="px-3 py-3">
         <span className="text-base font-medium whitespace-nowrap">
-          {stats.empty_count ?? 0}
+          {total_rows - stats.total_records}
         </span>
       </td>
 
@@ -218,7 +218,7 @@ const ColumnDetailRow = ({
               )}
             </div>
           ) : (
-            <span className="text-base text-gray-400">—</span>
+            <span className="text-base text-gray-400">-</span>
           );
         })()}
       </td>

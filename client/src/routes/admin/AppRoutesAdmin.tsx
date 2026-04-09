@@ -8,6 +8,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 import Report from "../../pages/report/Report";
 import ImportFile from "../../pages/admin/import_file/ImportFile";
+import ErrorLog from "../../pages/admin/import_file/ErrorLog";
+
 import PageNotFound from "../../pages/admin/PageNotFound";
 import ValidationResult from "../../pages/admin/import_file/ValidationResult";
 import ChangePassword from "../../pages/admin/ChangePassword";
@@ -42,7 +44,7 @@ const AppRoutes = () => {
           element={<ShowImportedData />}
         />
         <Route path="change_password" element={<ChangePassword />} />
-
+        <Route path="error_log/:fileName" element={<ErrorLog />} />
         <Route path="update_profile" element={<UpdateProfile />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="user" element={<UserList />} />

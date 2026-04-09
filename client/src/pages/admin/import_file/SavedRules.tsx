@@ -68,7 +68,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
   };
   const fetchSavedRules = async () => {
     try {
-      const response = await apiClient.get(`admin/api/file_rule`, {
+      const response = await apiClient.get(`admin/api/validation-rules`, {
         withCredentials: true,
       });
       setSavedRules(response.data.data);
@@ -87,7 +87,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
       setLoading(true);
 
       const response = await apiClient.post(
-        `admin/api/file_rule`,
+        `admin/api/validation-rules`,
         {
           file_name: fileName,
           feed_name: ruleName.trim(),
@@ -118,7 +118,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
       setLoading(true);
 
       const response = await apiClient.put(
-        `admin/api/file_rule/${selectedRuleId}`,
+        `admin/api/validation-rules/${selectedRuleId}`,
         {
           file_name: fileName,
           rules: currentRules,
@@ -157,7 +157,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
   const ruleCount = currentRules ? Object.keys(currentRules).length : 0;
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-200 shadow-base">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-base">
         {/* Header Section */}
         <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
           <div className="flex items-center justify-between">
@@ -203,8 +203,8 @@ const SavedRules: React.FC<SavedRulesProps> = ({
           {/* Rule Selection Area */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-1 h-5 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-              <label className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+              <div className="w-1 h-5 rounded-full bg-gradient-to-b from-blue-500 to-purple-600"></div>
+              <label className="text-sm font-bold tracking-wider text-gray-700 uppercase">
                 Load Existing Rule
               </label>
               {savedRules.length > 0 && (
@@ -217,7 +217,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
             <div className="relative dropdown">
               <button
                 onClick={() => setOpen(!open)}
-                className="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl flex justify-between items-center hover:border-blue-400 focus:border-blue-500 focus:outline-none transition-all duration-200 shadow-sm hover:shadow-md"
+                className="flex items-center justify-between w-full px-4 py-3 transition-all duration-200 bg-white border-2 border-gray-200 shadow-sm rounded-xl hover:border-blue-400 focus:border-blue-500 focus:outline-none hover:shadow-md"
               >
                 <span
                   className={`text-base ${selectedRuleId ? "text-gray-800 font-medium" : "text-gray-400"}`}
@@ -233,7 +233,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
               </button>
 
               {open && (
-                <div className="absolute z-20 w-full bg-white border border-gray-200 rounded-xl mt-2 shadow-2xl max-h-80 overflow-auto animate-in slide-in-from-top-2 duration-200">
+                <div className="absolute z-20 w-full mt-2 overflow-auto duration-200 bg-white border border-gray-200 shadow-2xl rounded-xl max-h-80 animate-in slide-in-from-top-2">
                   {savedRules.map((rule, idx) => (
                     <div
                       key={rule._id}
@@ -266,7 +266,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="font-bold text-gray-800 text-base mb-1">
+                          <div className="mb-1 text-base font-bold text-gray-800">
                             {rule.feed_name}
                           </div>
                           <div className="flex items-center gap-3 text-base text-gray-500">
@@ -303,7 +303,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
 
             {/* Empty state message */}
             {savedRules.length === 0 && (
-              <div className="flex items-center gap-3 mt-3 p-4 bg-red-50 border border-red-200 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3 p-4 mt-3 border border-red-200 shadow-sm bg-red-50 rounded-xl">
                 <div className="p-2 bg-red-100 rounded-full">
                   <AlertCircle className="w-5 h-5 text-red-600" />
                 </div>
@@ -321,7 +321,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
       {/* Save Rule Modal - Modern Design */}
       {showSaveInput && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center duration-200 bg-black/50 backdrop-blur-sm animate-in fade-in"
           onClick={onClose}
         >
           <div
@@ -339,7 +339,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
               </div>
               <button
                 onClick={onClose}
-                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 text-gray-400 transition-colors rounded-lg hover:text-gray-600 hover:bg-gray-100"
               >
                 <MdClear size={20} />
               </button>
@@ -366,12 +366,12 @@ const SavedRules: React.FC<SavedRulesProps> = ({
               </div>
 
               {/* File Name Display */}
-              <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                <label className="block text-base font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <div className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                <label className="block mb-2 text-base font-semibold tracking-wider text-gray-500 uppercase">
                   Associated File
                 </label>
                 <div className="flex items-center gap-2">
-                  <code className="text-base bg-white px-2 py-1 rounded border border-gray-200">
+                  <code className="px-2 py-1 text-base bg-white border border-gray-200 rounded">
                     {fileName || "No file selected"}
                   </code>
                 </div>
@@ -379,8 +379,8 @@ const SavedRules: React.FC<SavedRulesProps> = ({
 
               {/* Rules Preview */}
               {currentRules && Object.keys(currentRules).length > 0 && (
-                <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                  <p className="text-base font-medium text-blue-800 mb-2">
+                <div className="p-3 border border-blue-100 rounded-lg bg-blue-50">
+                  <p className="mb-2 text-base font-medium text-blue-800">
                     Headers rules to be saved:
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -427,7 +427,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
       {/* Update Modal - Modern Design */}
       {showUpdateModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center duration-200 bg-black/50 backdrop-blur-sm animate-in fade-in"
           onClick={closeUpdateModal}
         >
           <div
@@ -446,7 +446,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
               </div>
               <button
                 onClick={closeUpdateModal}
-                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 text-gray-400 transition-colors rounded-lg hover:text-gray-600 hover:bg-gray-100"
               >
                 <MdClear size={20} />
               </button>
@@ -456,11 +456,11 @@ const SavedRules: React.FC<SavedRulesProps> = ({
             <div className="p-5">
               {updateMode === "choice" && (
                 <>
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-50 rounded-full mb-3">
+                  <div className="mb-6 text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 mb-3 rounded-full bg-blue-50">
                       <Layers className="w-12 h-12 text-blue-500" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                    <h3 className="mb-1 text-lg font-semibold text-gray-800">
                       Rule contains {ruleCount}{" "}
                       {ruleCount === 1 ? "column" : "columns"}
                     </h3>
@@ -478,7 +478,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
                         setShowSaveInput(true);
                         setShowUpdateModal(false);
                       }}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3  bg-sidebarSecondary  text-white rounded-xl shadow-md hover:shadow-lg hover:bg-sidebarSecondaryHover transition-all font-medium"
+                      className="flex items-center justify-center flex-1 gap-2 px-4 py-3 font-medium text-white transition-all shadow-md bg-sidebarSecondary rounded-xl hover:shadow-lg hover:bg-sidebarSecondaryHover"
                     >
                       <Plus size={20} />
                       Save New
@@ -486,7 +486,7 @@ const SavedRules: React.FC<SavedRulesProps> = ({
 
                     <button
                       onClick={handleUpdateRule}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-all font-medium"
+                      className="flex items-center justify-center flex-1 gap-2 px-4 py-3 font-medium text-white transition-all bg-green-500 rounded-xl hover:bg-green-600"
                     >
                       <FiSave size={20} />
                       Update Existing
@@ -514,13 +514,13 @@ const SavedRules: React.FC<SavedRulesProps> = ({
                   <div className="flex gap-2 pt-2">
                     <button
                       onClick={() => setUpdateMode("choice")}
-                      className="flex-1 px-4 py-2 text-base font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                      className="flex-1 px-4 py-2 text-base font-medium text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
                     >
                       Back
                     </button>
                     <button
                       onClick={handleSaveRule}
-                      className="flex-1 px-4 py-2 text-base font-medium text-white bg-sidebarSecondary rounded-lg hover:bg-sidebarSecondaryHover transition-colors"
+                      className="flex-1 px-4 py-2 text-base font-medium text-white transition-colors rounded-lg bg-sidebarSecondary hover:bg-sidebarSecondaryHover"
                     >
                       Save
                     </button>

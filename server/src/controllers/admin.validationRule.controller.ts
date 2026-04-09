@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { FileRules } from "../models/fileRules.model";
+import { ValidationRule } from "../models/validationRule.model";
 
 // ✅ CREATE
-export const createFileRules = async (
+export const createValidationRule = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -10,13 +10,13 @@ export const createFileRules = async (
   try {
     const { feed_name, file_name, rules } = req.body;
 
-    await FileRules.create({
+    await ValidationRule.create({
       user_id: req?.user?.id,
       feed_name: feed_name,
       file_name: file_name,
       rules: rules,
     });
-    const rule_data = await FileRules.find().sort({ createdAt: -1 });
+    const rule_data = await ValidationRule.find().sort({ createdAt: -1 });
     res.status(200).json({
       success: true,
       message: "File rules created successfully",
@@ -28,13 +28,13 @@ export const createFileRules = async (
 };
 
 // ✅ GET ALL
-export const getAllFileRules = async (
+export const getAllValidationRules = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const response = await FileRules.find().sort({ createdAt: -1 });
+    const response = await ValidationRule.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -47,7 +47,7 @@ export const getAllFileRules = async (
 };
 
 // ✅ GET BY ID
-export const getFileRulesById = async (
+export const getValidationRulesById = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -55,7 +55,7 @@ export const getFileRulesById = async (
   try {
     const { id } = req.params;
 
-    const response = await FileRules.findById(id);
+    const response = await ValidationRule.findById(id);
 
     if (!response) {
       return res.status(404).json({
@@ -75,7 +75,7 @@ export const getFileRulesById = async (
 };
 
 // ✅ UPDATE
-export const updateFileRules = async (
+export const updateValidationRule = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -83,7 +83,7 @@ export const updateFileRules = async (
   try {
     const { id } = req.params;
 
-    const updated = await FileRules.findByIdAndUpdate(
+    const updated = await ValidationRule.findByIdAndUpdate(
       id,
       { ...req.body },
       { new: true },
@@ -95,7 +95,7 @@ export const updateFileRules = async (
         message: "File rules not found",
       });
     }
-    const allRules = await FileRules.find().sort({ createdAt: -1 });
+    const allRules = await ValidationRule.find().sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -108,7 +108,7 @@ export const updateFileRules = async (
 };
 
 // ✅ DELETE
-export const deleteFileRules = async (
+export const deleteValidationRule = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -116,7 +116,7 @@ export const deleteFileRules = async (
   try {
     const { id } = req.params;
 
-    const response = await FileRules.findByIdAndDelete(id);
+    const response = await ValidationRule.findByIdAndDelete(id);
 
     if (!response) {
       return res.status(404).json({
