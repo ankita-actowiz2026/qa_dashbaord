@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 
-import { DBBuffer } from "../../utils/DBBuffer";
+//import { FileBuffer } from "../../utils/FileBuffer";
 import path from "path";
 
 import {
@@ -32,9 +32,8 @@ export const xlsxParser = async (
 
   const columnStats: Record<string, ColumnStats> = {};
   //const errorBuffer = new ErrorBuffer(errorSheet, 500);
-  const fileNameForBuffer = path.basename(filePath);
-  const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
-
+  //  const fileNameForBuffer = path.basename(filePath);
+  //  const buffer = new FileBuffer(fileNameForBuffer);
   try {
     const workbook = new ExcelJS.stream.xlsx.WorkbookReader(filePath, {
       entries: "emit",
@@ -115,7 +114,6 @@ export const xlsxParser = async (
             headers,
             ruleMap,
             columnStats,
-            dbBuffer,
             "xlsx",
           );
 
@@ -127,12 +125,12 @@ export const xlsxParser = async (
         } catch (rowError) {
           invalid_rows++;
 
-          dbBuffer.add({
-            rowNumber: row.number,
-            columnName: "Row Error",
-            errorType: "Row Processing Error",
-            errorMsg: (rowError as Error).message,
-          });
+          // buffer.add({
+          //   rowNumber: row.number,
+          //   columnName: "Row Error",
+          //   errorType: "Row Processing Error",
+          //   errorMsg: (rowError as Error).message,
+          // });
         }
       }
 
@@ -143,7 +141,7 @@ export const xlsxParser = async (
       throw new Error("XLSX file contains no worksheets");
     }
 
-    dbBuffer.flush();
+    //buffer.flush();
 
     return {
       total_rows,

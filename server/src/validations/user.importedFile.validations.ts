@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { body, validationResult } from "express-validator";
 import { RULE_TO_STATS_MAP } from "../utils/importFileDefaultColumnStats";
-
+import { FileBuffer } from "../utils/FileBuffer";
 import ApiError from "../utils/api.error";
 import { param } from "express-validator";
 import { ColumnRule, ColumnStats } from "../interface/importedFile.interface";
-import { DBBuffer } from "../utils/DBBuffer";
+
 const debug = 0;
 const dateTimeRegex =
   /^(\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4})(\s+(\d{1,2}:\d{1,2}(:\d{1,2})?(\s*[AP]M)?))?$/i;
@@ -367,8 +367,6 @@ export const validateRow = (
   headers: string[],
   ruleMap: Record<string, any>,
   columnStats: any,
-
-  dbBuffer: DBBuffer,
   fileType: string = "",
 ) => {
   let rowValid = true;
@@ -448,13 +446,19 @@ export const validateRow = (
           markInvalid();
 
           const errorMsg = `The ${columnName} field is required`;
-
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Empty Data",
-            errorMsg,
-          });
+          // if (debug == 1)
+          //   columnStat.error_msg.push({
+          //     row: rowNumber,
+          //     column: columnName,
+          //     error_type: "Regex Pattern Error",
+          //     error_description: errorMsg,
+          //   });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Empty Data",
+          //   errorMsg,
+          // });
         }
       }
       if (rule.cellContainsRegex) {
@@ -473,12 +477,12 @@ export const validateRow = (
           //     error_type: "Regex Pattern Error",
           //     error_description: errorMsg,
           //   });
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Regex Pattern Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Regex Pattern Error",
+          //   errorMsg,
+          // });
         }
       }
 
@@ -536,12 +540,12 @@ export const validateRow = (
 
           pushError({ columnStat, ruleKey: "datatype", rowNumber });
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Datatype Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Datatype Error",
+          //   errorMsg,
+          // });
           // if (debug == 1) {
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -565,12 +569,12 @@ export const validateRow = (
           markInvalid();
           pushError({ columnStat, ruleKey: "datatype", rowNumber });
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Date Format Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Date Format Error",
+          //   errorMsg,
+          // });
           // if (debug == 1) {
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -617,7 +621,9 @@ export const validateRow = (
           }
         } else if (
           rule.data_types_new.length === 0 ||
-          ["string", "boolean", "alphabetic"].some((t) => rule.data_types_new.includes(t))
+          ["string", "boolean", "alphabetic"].some((t) =>
+            rule.data_types_new.includes(t),
+          )
         ) {
           const strLen = strValue.length;
 
@@ -720,12 +726,12 @@ export const validateRow = (
 
           columnStat.length_validation_error_count++;
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Data Length Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Data Length Error",
+          //   errorMsg,
+          // });
           // if (debug == 1)
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -744,12 +750,12 @@ export const validateRow = (
           columnStat.fixed_header_error_count++;
           const errorMsg = `Invalid fixed value: ${strValue}. Only ${rule.fixedHeaderMessage} is allowed`;
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Fixed Value Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Fixed Value Error",
+          //   errorMsg,
+          // });
           // if (debug == 1)
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -768,12 +774,12 @@ export const validateRow = (
           columnStat.cell_start_with_error_count++;
           const errorMsg = `Invalid start value: ${strValue}. It must start with ${rule.cellStartWithMessage}.`;
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Start With Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Start With Error",
+          //   errorMsg,
+          // });
           // if (debug == 1)
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -793,12 +799,12 @@ export const validateRow = (
           columnStat.cell_end_with_error_count++;
           const errorMsg = `Invalid end value: ${strValue}. It must end with ${rule.cellEndWithMessage}`;
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "End With Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "End With Error",
+          //   errorMsg,
+          // });
           // if (debug == 1)
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -821,12 +827,12 @@ export const validateRow = (
           columnStat.blocked_word_error_count++;
           const errorMsg = `Blocked word ${rule.blockwordsMessage} found in ${strValue}`;
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Blocked Word",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Blocked Word",
+          //   errorMsg,
+          // });
 
           // if (debug == 1)
           //   columnStat.error_msg.push({
@@ -860,12 +866,12 @@ export const validateRow = (
 
           const errorMsg = `${strValue} exceeded allowed repetition (${threshold})`;
 
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Redundant Value Error",
-            errorMsg,
-          });
+          // buffer.add({
+          //   rowNumber,
+          //   columnName,
+          //   errorType: "Redundant Value Error",
+          //   errorMsg,
+          // });
           // if (debug == 1) {
           //   columnStat.error_msg.push({
           //     row: rowNumber,
@@ -948,26 +954,16 @@ export const validateRow = (
             columnStat.error_rows.dependency.push(rowNumber);
           }
 
-          // errorBuffer.add([
+          // buffer.add({
           //   rowNumber,
-          //   col,
-          //   "Dependency Error",
-          //   `${col} must be ${
+          //   columnName,
+          //   errorType: "Dependency Error",
+          //   errorMsg: `${col} must be ${
           //     nextCondition === true ? "not empty" : nextCondition
           //   } because ${currentKey} is ${
           //     currentCondition === true ? "required" : currentCondition
           //   }`,
-          // ]);
-          dbBuffer.add({
-            rowNumber,
-            columnName,
-            errorType: "Dependency Error",
-            errorMsg: `${col} must be ${
-              nextCondition === true ? "not empty" : nextCondition
-            } because ${currentKey} is ${
-              currentCondition === true ? "required" : currentCondition
-            }`,
-          });
+          // });
           // if (debug == 1) {
           //   columnStat.error_msg.push({
           //     row: rowNumber,

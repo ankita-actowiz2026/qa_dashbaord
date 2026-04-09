@@ -82,6 +82,7 @@ const ShowImportedData: React.FC = () => {
       const payload = {
         columnConfig: JSON.stringify(cleanedRules),
         fileName: filePath,
+        originalFileName: fileName,
       };
       setLoading(true);
       const response = await apiClient.post(
@@ -101,6 +102,7 @@ const ShowImportedData: React.FC = () => {
           requestData: cleanedRules,
           fileName,
           dbFileName: filePath,
+          lastInsertedFileId: response.data.insertedId,
         },
       });
     } catch (error: any) {

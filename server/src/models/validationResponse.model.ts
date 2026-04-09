@@ -1,13 +1,21 @@
 import mongoose from "mongoose";
 
 const validationResponseSchema = new mongoose.Schema({
-  fileName: {
+  accessFileName: {
     type: String,
     required: true,
-    unique: true,
   },
-
-  column_wise_stats: {
+  feedName: {
+    type: String,
+  },
+  originalFileName: {
+    type: String,
+  },
+  response: {
+    type: mongoose.Schema.Types.Mixed, // store full object directly
+    required: true,
+  },
+  rules: {
     type: mongoose.Schema.Types.Mixed, // store full object directly
     required: true,
   },
@@ -16,6 +24,5 @@ const validationResponseSchema = new mongoose.Schema({
 // ✅ collection name = validationResponse
 export const validationResponse = mongoose.model(
   "validationResponse",
-  validationResponseSchema
-  
+  validationResponseSchema,
 );

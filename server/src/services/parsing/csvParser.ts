@@ -2,7 +2,7 @@ import fs from "fs";
 import ExcelJS from "exceljs";
 import csv from "csv-parser";
 import path from "path";
-import { DBBuffer } from "../../utils/DBBuffer";
+//import { DBBuffer } from "../../utils/DBBuffer";
 import { createColumnStats } from "../../utils/importFileDefaultColumnStats";
 import {
   ColumnRule,
@@ -33,8 +33,8 @@ export const csvParser = async (
   const columnStats: Record<string, any> = {};
 
   let headerInitialized = false;
-  const fileNameForBuffer = path.basename(filePath);
-  const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
+  //const fileNameForBuffer = path.basename(filePath);
+  //const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
 
   return new Promise((resolve, reject) => {
     try {
@@ -94,7 +94,6 @@ export const csvParser = async (
             headers,
             ruleMap,
             columnStats,
-            dbBuffer,
             "csv",
           );
 
@@ -103,18 +102,18 @@ export const csvParser = async (
         } catch (rowError) {
           invalid_rows++;
 
-          dbBuffer.add({
-            rowNumber: total_rows + 1,
-            columnName: "Row Error",
-            errorType: "Row Processing Error",
-            errorMsg: (rowError as Error).message,
-          });
+          // dbBuffer.add({
+          //   rowNumber: total_rows + 1,
+          //   columnName: "Row Error",
+          //   errorType: "Row Processing Error",
+          //   errorMsg: (rowError as Error).message,
+          // });
         }
       });
 
       csvStream.on("end", () => {
         try {
-          dbBuffer.flush();
+          //dbBuffer.flush();
 
           resolve({
             total_rows,

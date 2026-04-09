@@ -17,7 +17,7 @@ importedFileRouter.post(
   importFileController.readHeader,
 );
 importedFileRouter.get(
-  "/validation-response/:fileName",
+  "/validation-response/:id",
   authentication,
   importFileController.validationResponse,
 );

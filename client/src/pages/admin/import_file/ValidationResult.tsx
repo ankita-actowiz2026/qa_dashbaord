@@ -34,17 +34,17 @@ const ValidationResult = () => {
   const requestData = location.state?.requestData;
   const fileName = location.state?.fileName;
   const dbFileName = location.state?.dbFileName;
+  const lastInsertedFileId = location.state?.lastInsertedFileId;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const fileName = dbFileName.split("/").pop();
         const res = await apiClient.get(
-          `admin/api/validate/validation-response/${fileName}`,
+          `admin/api/validate/validation-response/${lastInsertedFileId}`,
         );
         console.log(res.data.data.column_wise_stats);
-        setColumn_wise_stats(res.data.data.column_wise_stats);
+        setColumn_wise_stats(res.data.data);
       } catch (err) {
         console.error(err);
         // setError("Failed to fetch data");

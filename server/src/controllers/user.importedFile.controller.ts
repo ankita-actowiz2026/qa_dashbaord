@@ -1,3 +1,4 @@
+import readline from "readline";
 import { Request, Response, NextFunction, response } from "express";
 import path from "path";
 import fs from "fs";
@@ -55,8 +56,16 @@ class ImportFileController {
         });
         return;
       }
+      if (!req.body.originalFileName) {
+        res.status(400).json({
+          success: false,
+          message: "No original name provided",
+        });
+        return;
+      }
 
       filePath = path.resolve(req.body.fileName);
+      const originalFileName = req.body.originalFileName;
       const fileName = path.basename(filePath).trim();
 
       console.log("Resolved path:", filePath);
@@ -107,22 +116,40 @@ class ImportFileController {
       //   fileName,
       //   column_wise_stats,
       // });
-      await validationResponse.updateOne(
-        { fileName },
-        {
-          $set: {
-            fileName,
-            column_wise_stats,
-          },
-        },
-        { upsert: true },
+
+      delete result.column_wise_stats;
+      const filteredColumnStats = Object.fromEntries(
+        Object.entries(column_wise_stats).filter(([key, value]: any) => {
+          return !(
+            value.total_records === 0 &&
+            value.valid_records === 0 &&
+            value.invalid_records === 0 &&
+            value.unique_records === 0
+          );
+        }),
       );
-      //delete result.column_wise_stats;
+      let savedDoc;
+      try {
+        savedDoc = await validationResponse.create({
+          feedName: "",
+          originalFileName: originalFileName,
+          accessFileName: fileName,
+          response: filteredColumnStats,
+          rules: req.body.columnConfig,
+        });
+      } catch (err) {
+        throw new Error("File not saved in DB");
+      }
+
+      const insertedId = savedDoc._id;
+
       res.status(200).json({
         success: true,
         fileName,
         message: "File processed successfully",
         data: result,
+        filteredColumnStats,
+        insertedId,
       });
     } catch (error) {
       next(error);
@@ -325,16 +352,16 @@ class ImportFileController {
 
   validationResponse = async (req: Request, res: Response) => {
     try {
-      const { fileName } = req.params;
+      const { id } = req.params;
 
-      if (!fileName) {
+      if (!id) {
         return res.status(400).json({
           success: false,
-          message: "fileName is required",
+          message: "id is required",
         });
       }
 
-      const data = await validationResponse.findOne({ fileName }).lean(); // 🔥 faster
+      const data = await validationResponse.findById(id).lean(); // 🔥 faster
 
       if (!data) {
         return res.status(404).json({
@@ -345,7 +372,7 @@ class ImportFileController {
 
       return res.status(200).json({
         success: true,
-        data,
+        data: data?.response,
       });
     } catch (error) {
       console.error("validationResponse error:", error);
@@ -487,29 +514,46 @@ class ImportFileController {
       }
       //////////////
 
-      ////////////
       //errorLog.errors
-      const errorSheet = workbook.addWorksheet("Error messages");
+      // const errorSheet = workbook.addWorksheet("Error messages");
 
-      const errorHeaderRow = errorSheet.addRow([
-        this.cleanExcelString("Row"),
-        this.cleanExcelString("Column"),
-        this.cleanExcelString("ErrorType"),
-        this.cleanExcelString("ErrorDescription"),
-      ]);
-      errorHeaderRow.font = { bold: true };
-      errorHeaderRow.commit();
-      // Insert rows (efficient)
-      for (const err of errorLogData?.errors || []) {
-        const row = errorSheet.addRow([
-          this.cleanExcelString(err.rowNumber),
-          this.cleanExcelString(err.columnName),
-          this.cleanExcelString(err.errorType),
-          this.cleanExcelString(err.errorMsg),
-        ]);
+      // const errorHeaderRow = errorSheet.addRow([
+      //   this.cleanExcelString("Row"),
+      //   this.cleanExcelString("Column"),
+      //   this.cleanExcelString("ErrorType"),
+      //   this.cleanExcelString("ErrorDescription"),
+      // ]);
 
-        row.commit(); // 🔥 important for streaming
-      }
+      // errorHeaderRow.font = { bold: true };
+      // errorHeaderRow.commit();
+
+      // // ✅ remove extension and add .json
+      // const nameWithoutExt = path.parse(fileName).name;
+      // const jsonFileName = `${nameWithoutExt}.json`;
+
+      // // ✅ read JSON
+      // const errors = await this.readErrorFile(jsonFileName);
+
+      // let count = 0;
+      // console.log("~~~~~~>" + jsonFileName);
+      // for (const err of errors) {
+      //   console.log("~~>" + err.rowNumber);
+      //   const row = errorSheet.addRow([
+      //     this.cleanExcelString(err.rowNumber ?? ""),
+      //     this.cleanExcelString(err.columnName ?? ""),
+      //     this.cleanExcelString(err.errorType ?? ""),
+      //     this.cleanExcelString(err.errorMsg ?? ""),
+      //   ]);
+
+      //   row.commit();
+
+      //   count++;
+
+      //   // prevent blocking for large data
+      //   if (count % 1000 === 0) {
+      //     await new Promise((r) => setImmediate(r));
+      //   }
+      // }
       ////////////////second end
 
       //third
@@ -562,7 +606,7 @@ class ImportFileController {
       const publicUrl = `${process.env.API_URL}/${outputPath.replace(/\\/g, "/")}`;
       try {
         totalsSheet.commit();
-        errorSheet.commit();
+        //  errorSheet.commit();
         colomwise_sheet.commit();
         await workbook.commit();
       } catch (err) {
@@ -582,5 +626,32 @@ class ImportFileController {
       });
     }
   };
+
+  async readErrorFile(fileName: string) {
+    const filePath = path.resolve("error_logs", fileName);
+    console.log("path==>" + filePath);
+    if (!fs.existsSync(filePath)) {
+      console.log("File not found:", filePath);
+      return [];
+    }
+
+    try {
+      const content = await fs.promises.readFile(filePath, "utf-8");
+
+      const parsed = JSON.parse(content);
+      console.log("PArsed-->");
+      console.log(parsed);
+      // safety check
+      if (!Array.isArray(parsed)) {
+        console.log("++++++++Invalid JSON format");
+        return [];
+      }
+
+      return parsed;
+    } catch (err) {
+      console.error("++++++++++Error reading JSON:", err);
+      return [];
+    }
+  }
 }
 export const importFileController = new ImportFileController();

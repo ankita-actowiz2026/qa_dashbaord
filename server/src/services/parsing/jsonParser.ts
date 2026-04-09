@@ -15,7 +15,7 @@ import {
   createColumnStatsFromRules,
   extractDependencyColumns,
 } from "../../validations/user.importedFile.validations";
-import { DBBuffer } from "../../utils/DBBuffer";
+//import { DBBuffer } from "../../utils/DBBuffer";
 
 export const jsonParser = async (
   filePath: string,
@@ -32,8 +32,8 @@ export const jsonParser = async (
   let headerInitialized = false;
 
   const columnStats: Record<string, any> = {};
-  const fileNameForBuffer = path.basename(filePath);
-  const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
+  // const fileNameForBuffer = path.basename(filePath);
+  // const dbBuffer = new DBBuffer(fileNameForBuffer, 2000);
   let previewRows: any[] = [];
   let detectedHeaders = new Set<string>();
 
@@ -85,7 +85,7 @@ export const jsonParser = async (
         headers,
         ruleMap,
         columnStats,
-        dbBuffer,
+        //dbBuffer,
         "json",
       );
 
@@ -96,12 +96,12 @@ export const jsonParser = async (
     const handleRowError = (err: any) => {
       invalid_rows++;
 
-      dbBuffer.add({
-        rowNumber: total_rows + 1,
-        columnName: "Row Error",
-        errorType: "Row Processing Error",
-        errorMsg: err?.message || "Unknown error",
-      });
+      // dbBuffer.add({
+      //   rowNumber: total_rows + 1,
+      //   columnName: "Row Error",
+      //   errorType: "Row Processing Error",
+      //   errorMsg: err?.message || "Unknown error",
+      // });
     };
 
     arrayStream.on("data", ({ value }) => {
@@ -191,7 +191,7 @@ export const jsonParser = async (
           previewRows.forEach((row) => processRow(row));
         }
 
-        dbBuffer.flush();
+        //dbBuffer.flush();
 
         safeResolve({
           total_rows,
